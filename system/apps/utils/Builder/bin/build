@@ -2027,6 +2027,11 @@ ENV['IMAGE'] = @systemRoot
 arg1, arg2, arg3 = ARGV
 
 case arg1
+when 'list', "-l", '--list'
+	puts Dir.glob("/usr/Builder/packages/*").map {|g|g.split("/").last}.sort
+when 'edit', '-e', '--edit'
+	file =  "#{recipePath(arg2)}/#{arg2}.recipe"
+	system("#{ENV['EDITOR']} #{file}") if File.exist?(file)
 when 'version', '-v', '--version'
 	puts 'Syllable Build System 0.10.4',
 		'Copyright (c) 2002-2010 Kaj de Vos',
