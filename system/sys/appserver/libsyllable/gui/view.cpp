@@ -32,7 +32,6 @@
 #include <gui/stringview.h>
 #include <gui/font.h>
 #include <gui/bitmap.h>
-#include <gui/tooltip.h>
 
 #include <appserver/protocol.h>
 
@@ -162,7 +161,6 @@ class View::Private
 
 	ShortcutKey	m_cKey;	// Keyboard shortcut
 	Menu* m_pcContextMenu; // Popup menu for this view.
-	ToolTip* m_pcToolTip;
 };
 
 
@@ -222,10 +220,6 @@ View::View( const Rect & cFrame, const String & cTitle, uint32 nResizeMask, uint
 	m->m_sBgColor = get_default_color( COL_NORMAL );
 	m->m_sEraseColor = get_default_color( COL_NORMAL );
 
-	m->m_pcToolTip = NULL;
-
-	//m->m_pcToolTip->Start();
-	
 	try
 	{
 		Font *pcFont = new Font( DEFAULT_FONT_REGULAR );
@@ -1238,13 +1232,6 @@ uint32 View::GetQualifiers() const
 
 void View::MouseMove( const Point & cNewPos, int nCode, uint32 nButtons, Message * pcData )
 {
-	
-	if (nCode == MOUSE_INSIDE && m->m_pcToolTip != NULL)
-	{
-		os::Point p = ConvertToScreen(cNewPos);
-		m->m_pcToolTip->MoveTo(p);
-		m->m_pcToolTip->ShowTip();
-	}
 	Window *pcWnd = GetWindow();
 
 	if( pcWnd != NULL )
@@ -1796,16 +1783,6 @@ void View::ClearShapeRegion()
 	Flush();
 }
 
-void View::SetToolTip(const os::String& t)
-{
-	m->m_pcToolTip = new ToolTip(t.c_str());
-	m->m_pcToolTip->Start();
-}
-
-os::String View::GetToolTip() const
-{
-	return m->m_pcToolTip->GetTip();
-}
 
 /** Virtual hook called by the system when the view is moved within it's parent.
  * \par Description:
