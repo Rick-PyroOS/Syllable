@@ -83,7 +83,7 @@ public:
 								os::Path path = os::Path(cOpts.GetFileArgs()[0]);
 								List(path.GetPath());
 							} else{
-								printf("You must pass arguments like: open --list/-l filename")
+								printf("You must pass arguments like: open --list/-l filename");
 							}
                             exit(0);
                             break;
