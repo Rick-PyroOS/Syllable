@@ -32,7 +32,7 @@
 #include <gui/stringview.h>
 #include <gui/font.h>
 #include <gui/bitmap.h>
-
+#include <gui/tooltip.h>
 #include <appserver/protocol.h>
 
 #include <macros.h>
@@ -122,9 +122,10 @@ static Color32_s Tint( const Color32_s & sColor, float vTint )
 
 class View::Private
 {
-      public:
+public:
 	int m_hViewHandle;	// Our bridge to the server
-	port_id m_hReplyPort;	// Used as reply address when talking to server
+	port_id m_hToolTipPort;	// Used as reply address when talking to server
+
 	View *m_pcTopChild;
 	View *m_pcBottomChild;
 
@@ -137,6 +138,7 @@ class View::Private
 
 	ScrollBar *m_pcHScrollBar;
 	ScrollBar *m_pcVScrollBar;
+	ToolTip* m_pcToolTip;
 	Rect m_cFrame;
 	Point m_cScrollOffset;
 	String m_cTitle;
@@ -182,7 +184,7 @@ View::View( const Rect & cFrame, const String & cTitle, uint32 nResizeMask, uint
 {
 	m = new Private;
 
-	m->m_hReplyPort = create_port( "view_reply", DEFAULT_PORT_SIZE );
+	m->m_hToolTipPort = create_port( "tooltip_reply", DEFAULT_PORT_SIZE );
 
 	m->m_pcContextMenu = NULL;
 
@@ -215,6 +217,7 @@ View::View( const Rect & cFrame, const String & cTitle, uint32 nResizeMask, uint
 
 	m->m_pcHScrollBar = NULL;
 	m->m_pcVScrollBar = NULL;
+	m->m_pcToolTip = NULL;
 
 	m->m_nTabOrder = -1;
 	m->m_sBgColor = get_default_color( COL_NORMAL );
@@ -275,7 +278,7 @@ View::~View()
 		m->m_pcParent->RemoveChild( this );
 	}
 	_ReleaseFont();
-	delete_port( m->m_hReplyPort );
+	delete_port( m->m_hToolTipPort );
 	delete m;
 }
 
@@ -1781,6 +1784,17 @@ void View::ClearShapeRegion()
 	psCmd->m_nClipCount = -1;
 	pcWindow->_PutRenderCmd();
 	Flush();
+}
+
+void View::SetToolTip(const os::String& t) const
+{
+	m->m_pcToolTip = new ToolTip(t.c_str());
+	m->m_pcToolTip->Start();
+}
+
+os::String View::GetToolTip() const
+{
+	return m->m_pcToolTip->GetTip();
 }
 
 
