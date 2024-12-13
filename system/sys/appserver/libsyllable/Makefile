@@ -31,6 +31,7 @@ OBJS += filereference.o filereference_info.o filereference_rename.o operation_co
 	datetime.o shortcutkey.o catalog.o keymap.o \
 	locale.o attribute.o
 OBJS += translator.o
+OBJS += random.o
 OBJS += vstubs.o
 
 OBJDIR	:= objs
