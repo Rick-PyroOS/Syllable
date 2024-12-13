@@ -118,17 +118,17 @@ os::String Random::AsString(uint nType, int nWidth)
 		
 	for (int i=0;i<nWidth;i++)
 	{
-		if (STRING_ALPHA)
+		if (nType == STRING_ALPHA)
 		{
 			nRandom = AsInt(0,m_cAlpha.Length());
-			nRandomChar = m_cAlpha[nRandom];	
+			nRandomChar = m_cAlpha[nRandom];
 		}
-		else if (STRING_ALPHANUMERIC)
+		else if (nType == STRING_ALPHANUMERIC)
 		{
 			nRandom = AsInt(0,m_cAlphaNum.Length());
 			nRandomChar = m_cAlpha[nRandom];
 		}
-		else if (STRING_ALL)
+		else if (nType == STRING_ALL)
 		{
 			nRandom = AsInt(0,m_cAll.Length());
 			nRandomChar = m_cAlpha[nRandom];
