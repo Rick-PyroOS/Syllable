@@ -1235,6 +1235,13 @@ uint32 View::GetQualifiers() const
 
 void View::MouseMove( const Point & cNewPos, int nCode, uint32 nButtons, Message * pcData )
 {
+	if (nCode == MOUSE_INSIDE && m->m_pcToolTip != NULL)
+	{
+		os::Point p = ConvertToScreen(cNewPos);
+		m->m_pcToolTip->MoveTo(p);
+		m->m_pcToolTip->ShowTip();
+	}
+
 	Window *pcWnd = GetWindow();
 
 	if( pcWnd != NULL )
