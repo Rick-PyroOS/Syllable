@@ -17,7 +17,7 @@ OBJS	= rect.o region.o desktop.o bitmap.o view.o tabview.o			\
 	  listview.o requesters.o layoutview.o			\
 	  radiobutton.o filerequester.o dropdownmenu.o checkmenu.o splitter.o \
 	  image.o imageview.o imagebutton.o treeview.o \
-      popupmenu.o iconview.o icondirview.o statusbar.o toolbar.o separator.o inputbox.o
+      popupmenu.o iconview.o icondirview.o statusbar.o toolbar.o separator.o inputbox.o tooltip.o
 
 OBJS += colorselector.o colorview.o colorwheel.o gradientview.o
 OBJS += fontrequester.o fontrequesterview.o
@@ -31,6 +31,7 @@ OBJS += filereference.o filereference_info.o filereference_rename.o operation_co
 	datetime.o shortcutkey.o catalog.o keymap.o \
 	locale.o attribute.o
 OBJS += translator.o
+OBJS += random.o
 OBJS += vstubs.o
 
 OBJDIR	:= objs
