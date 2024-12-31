@@ -29,7 +29,7 @@ objs:
 
 "WidgetGallery": $(OBJS)
 	@echo Linking...
-	@$(CXX) $(OBJS) -o "WidgetGallery"  -lsyllable -lstdc++
+	@$(CXX) $(OBJS) -o "WidgetGallery"  -los -lstdc++
 	@echo Adding resources...
 	@rescopy "WidgetGallery" -r resources/icons/*
 	@addattrib "WidgetGallery" os::Category Other
