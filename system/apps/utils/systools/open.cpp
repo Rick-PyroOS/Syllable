@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <storage/fsnode.h>
 #include <sys/stat.h>
-
+#include <vector>
 
 bool fileExists(const char *filename)
 {
@@ -63,7 +63,7 @@ public:
         cOpts.AddArgMap(asArgs);
         cOpts.ParseOptions("laerph");
 
-        if (cOpts.FindOption('h'))
+        if (argc <= 1 || cOpts.FindOption('h'))
         {
             usage(cOpts, true);
         }
@@ -79,23 +79,36 @@ public:
                     {
                         case 'l':
                         {
-                            os::Path path = os::Path(cOpts.GetFileArgs()[0]);
-                            List(path.GetPath());
+                            if  (argc == 3) {
+								os::Path path = os::Path(cOpts.GetFileArgs()[0]);
+								List(path.GetPath());
+							} else{
+								printf("You must pass arguments like: open --list/-l filename");
+							}
                             exit(0);
                             break;
                         }
                         case 'r':
                         {
-                            os::Path path = os::Path(cOpts.GetFileArgs()[0]);
-                            RevealFile(path);
+							if  (argc == 3) {
+								os::Path path = os::Path(cOpts.GetFileArgs()[0]);
+								RevealFile(path);
+							} else{
+								printf("You must pass arguments like: open --reveal/-r filename");
+							}
                             exit(0);
                             break;
                         }
 
                         case 'e':
                         {
-                            os::Path path = os::Path(cOpts.GetFileArgs()[0]);
-                            OpenFile(path.GetPath(), "/system/bin/aedit");
+							if  (argc == 3) {
+
+								os::Path path = os::Path(cOpts.GetFileArgs()[0]);
+								OpenFile(path.GetPath(), "/system/bin/aedit");
+							} else{
+								printf("You must pass arguments like: open --edit/-e filename");
+							}
                             exit(0);
                             break;
                         }
@@ -190,34 +203,40 @@ void Application::Prompt(const os::String &cFile)
 
 void Application::List(const os::String &cFile)
 {
-    printf("------------------------------------\n");
-    printf("List of Available Applications: \n");
-    try
-    {
-        os::Message message;
-        os::String type;
-        os::Image *image = NULL;
-        m_pcManager->GetTypeAndIcon(cFile, os::Point(24, 24), &type, &image, &message);
-        int32 nHandlerCount;
+	std::vector<os::String> cApplications;
 
-        if (message.FindInt32("handler_count", &nHandlerCount) == 0)
-        {
-            os::String handler;
-            for (int i = 0; i < nHandlerCount; i++)
-            {
-                message.FindString("handler", &handler, i);
-                printf("\tApplication: %s\n", handler.c_str());
-            }
-        }
-        else
-        {
-            printf("\tNo alternate Applications\n");
-        }
-    }
+
+    try {
+		os::Message message;
+		os::String type;
+		os::Image *image = NULL;
+		m_pcManager->GetTypeAndIcon(cFile, os::Point(24, 24), &type, &image, &message);
+		int32 nHandlerCount;
+
+		if (message.FindInt32("handler_count", &nHandlerCount) == 0) {
+			os::String handler;
+			for (int i = 0; i < nHandlerCount; i++) {
+				message.FindString("handler", &handler, i);
+				cApplications.push_back(handler);
+			}
+		}
+	}
+
     catch (...)
     {
     }
-    printf("------------------------------------\n");
+
+	if (cApplications.size() > 0) {
+		printf("------------------------------------\n");
+		printf("List of Available Applications: \n");
+		for (int i=0; i < cApplications.size(); i++) {
+			printf("\t%s\n", cApplications[i].c_str());
+		}
+		printf("------------------------------------\n");
+	}
+	else{
+		printf("No available applications\n");
+	}
     //PostMessage(os::M_QUIT);
 }
 

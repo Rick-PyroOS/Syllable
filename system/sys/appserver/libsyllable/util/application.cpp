@@ -30,6 +30,7 @@
 #include <appserver/protocol.h>
 #include <util/keymap.h>
 #include <algorithm>
+#include <unistd.h>
 
 using namespace os;
 
@@ -1186,6 +1187,26 @@ void Application::RemoveWindow( Window * pcWindow )
 	Unlock();
 }
 
+os::String Application::GetApplicationPath()
+{
+	os::String cPath;
+	const unsigned BUFFER_SIZE = PATH_MAX+200;
+	char buffer[BUFFER_SIZE];
+	int nFD;
+	
+	if( (nFD = open_image_file( IMGFILE_BIN_DIR )) < 0 )
+		return "";
+		
+	if( get_directory_path( nFD,buffer,BUFFER_SIZE ) < 0 )
+		return "";
+	
+	close(nFD);
+	buffer[BUFFER_SIZE-1] = 0; /* ensure null-terminated */
+	cPath =  os::String(buffer);
+	
+	return cPath;
+}
+
 
 
 void Application::__reserved1__()
@@ -1218,6 +1239,9 @@ void Application::__reserved9__()
 void Application::__reserved10__()
 {
 }
+
+
+
 
 
 

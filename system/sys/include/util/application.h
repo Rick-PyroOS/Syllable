@@ -119,6 +119,8 @@ public:
 	void RegisterKeyEvent(const os::KeyboardEvent&);
 	void UnregisterKeyEvent(const os::String& cEvent);
 	int GetCurrentKeyShortcuts(std::vector<os::KeyboardEvent> *pcTable);
+	
+	static os::String GetApplicationPath();
 private:
     friend class Window;
     friend class Desktop;
@@ -171,6 +173,8 @@ private:
 }
 
 #endif	// __F_UTIL_APPLICATION_H__
+
+
 
 
 

@@ -45,7 +45,7 @@ enum	{ SL_MINSIZE = 8 };
 class Slider : public Control
 {
 public:
-    enum { TICKS_ABOVE = 0x0001, TICKS_BELOW = 0x0002, TICKS_LEFT = 0x0001, TICKS_RIGHT = 0x0002 };
+    enum { TICKS_ABOVE = 0x0001, TICKS_BELOW = 0x0002, TICKS_DISABLED = 0x003,TICKS_LEFT = 0x0001, TICKS_RIGHT = 0x0002 };
     enum knob_mode { KNOB_SQUARE, KNOB_TRIANGLE, KNOB_DIAMOND };
     
     Slider( const Rect& cFrame, const String& cName, Message* pcMsg, uint32 nTickFlags = TICKS_BELOW,
@@ -131,3 +131,4 @@ private:
 }
 
 #endif	// __F_GUI_SLIDER_H__
+

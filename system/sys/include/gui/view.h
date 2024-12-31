@@ -94,6 +94,7 @@ enum default_color_t
     COL_ICON_SELECTED,
 	COL_ICON_BG,
 	COL_FOCUS,
+    COL_DISABLED,
     COL_COUNT
 };
 
@@ -110,6 +111,7 @@ enum
     FRAME_ETCHED      = 0x000080,
     FRAME_FLAT	      = 0x000100,
     FRAME_DISABLED    = 0x000200,
+    FRAME_KEEP_COLOR  = 0x000300,
     FRAME_TRANSPARENT = 0x010000
 };
 
@@ -265,6 +267,9 @@ public:
     View*		GetParent() const;
     ScrollBar*		GetVScrollBar() const;
     ScrollBar*		GetHScrollBar() const;
+	void			SetToolTip(const os::String& t) const;
+	os::String 		GetToolTip() const;
+
     Window*		GetWindow() const { return( (Window*)GetLooper() ); }
     String		GetTitle() const;
 
@@ -395,6 +400,9 @@ public:
     void		DrawBitmap( const Bitmap* pcBitmap, const Rect& cSrcRect, const Rect& cDstRect );
     void		EraseRect( const Rect& cRect );
     void		DrawFrame( const Rect& cRect, uint32 nFlags );
+	void        DrawRoundedFrame(const os::Rect& cReizeFrame = os::Rect(1,4,-1,-4),const os::Color32_s& cColor = get_default_color(COL_SHADOW));
+	void        DrawRoundedFrame(const os::Rect& cFrame,const os::Rect& cReizeFrame = os::Rect(1,4,-1,-4),const os::Color32_s& cColor = get_default_color(COL_SHADOW) );
+    
 
     void		DrawString( const Point& cPos, const String& cString );
     void		DrawString( const String& cString );

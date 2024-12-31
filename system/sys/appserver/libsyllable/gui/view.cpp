@@ -28,10 +28,11 @@
 #include <util/application.h>
 #include <util/message.h>
 #include <util/string.h>
-
+#include <atheos/time.h>
+#include <gui/stringview.h>
 #include <gui/font.h>
 #include <gui/bitmap.h>
-
+#include <gui/tooltip.h>
 #include <appserver/protocol.h>
 
 #include <macros.h>
@@ -59,6 +60,8 @@ static Color32_s g_asDefaultColors[] = {
 	Color32_s( 0xBA, 0xC7, 0xE3, 0xff ),    // COL_ICON_SELECTED
 	Color32_s( 0xff, 0xff, 0xff, 0xff ),	// COL_ICON_BACKGROUND
 	Color32_s( 0x00, 0xCC, 0x00, 0xff ),    // COL_FOCUS
+	Color32_s( 100, 100, 100, 0xff), 		// COL_DISABLED
+
 };
 
 /** Get the value of one of the standard system colors.
@@ -116,10 +119,13 @@ static Color32_s Tint( const Color32_s & sColor, float vTint )
 }
 
 
+
 class View::Private
 {
-      public:
+public:
 	int m_hViewHandle;	// Our bridge to the server
+	port_id m_hToolTipPort;	// Used as reply address when talking to server
+
 	View *m_pcTopChild;
 	View *m_pcBottomChild;
 
@@ -132,6 +138,7 @@ class View::Private
 
 	ScrollBar *m_pcHScrollBar;
 	ScrollBar *m_pcVScrollBar;
+	ToolTip* m_pcToolTip;
 	Rect m_cFrame;
 	Point m_cScrollOffset;
 	String m_cTitle;
@@ -177,6 +184,8 @@ View::View( const Rect & cFrame, const String & cTitle, uint32 nResizeMask, uint
 {
 	m = new Private;
 
+	m->m_hToolTipPort = create_port( "tooltip_reply", DEFAULT_PORT_SIZE );
+
 	m->m_pcContextMenu = NULL;
 
 	m->m_cFrame = cFrame;
@@ -208,6 +217,7 @@ View::View( const Rect & cFrame, const String & cTitle, uint32 nResizeMask, uint
 
 	m->m_pcHScrollBar = NULL;
 	m->m_pcVScrollBar = NULL;
+	m->m_pcToolTip = NULL;
 
 	m->m_nTabOrder = -1;
 	m->m_sBgColor = get_default_color( COL_NORMAL );
@@ -268,6 +278,7 @@ View::~View()
 		m->m_pcParent->RemoveChild( this );
 	}
 	_ReleaseFont();
+	delete_port( m->m_hToolTipPort );
 	delete m;
 }
 
@@ -1224,6 +1235,13 @@ uint32 View::GetQualifiers() const
 
 void View::MouseMove( const Point & cNewPos, int nCode, uint32 nButtons, Message * pcData )
 {
+	if (nCode == MOUSE_INSIDE && m->m_pcToolTip != NULL)
+	{
+		os::Point p = ConvertToScreen(cNewPos);
+		m->m_pcToolTip->MoveTo(p);
+		m->m_pcToolTip->ShowTip();
+	}
+
 	Window *pcWnd = GetWindow();
 
 	if( pcWnd != NULL )
@@ -1774,6 +1792,18 @@ void View::ClearShapeRegion()
 	pcWindow->_PutRenderCmd();
 	Flush();
 }
+
+void View::SetToolTip(const os::String& t) const
+{
+	m->m_pcToolTip = new ToolTip(t.c_str());
+	m->m_pcToolTip->Start();
+}
+
+os::String View::GetToolTip() const
+{
+	return m->m_pcToolTip->GetTip();
+}
+
 
 /** Virtual hook called by the system when the view is moved within it's parent.
  * \par Description:
@@ -2774,9 +2804,22 @@ void View::DrawFrame( const Rect & a_cRect, uint32 nStyle )
 		bSunken = true;
 	}
 
-	Color32_s sFgCol = get_default_color( COL_SHINE );
-	Color32_s sBgCol = get_default_color( COL_SHADOW );
-
+	Color32_s sFgCol;
+	Color32_s sBgCol;
+	
+	if (nStyle & FRAME_KEEP_COLOR)
+	{
+			sBgCol = bg_save;
+			sFgCol = fg_save;
+	}
+	
+	else
+	{
+		sFgCol = get_default_color(COL_SHINE);
+		sBgCol = get_default_color(COL_SHADOW);
+	}
+	
+	
 	if( nStyle & FRAME_DISABLED )
 	{
 		sFgCol = Tint( sFgCol, 0.6f );
@@ -2869,6 +2912,59 @@ void View::DrawFrame( const Rect & a_cRect, uint32 nStyle )
 
 	SetFgColor( fg_save );
 	SetBgColor( bg_save );
+}
+
+void View::DrawRoundedFrame(const os::Rect& cResize,const os::Color32_s& sColor)
+{
+	os::Rect cBounds = GetBounds();
+	DrawRoundedFrame(cBounds,cResize,sColor);
+}
+
+void View::DrawRoundedFrame(const os::Rect& cBounds, const os::Rect& cResize, const os::Color32_s& sColor)
+{
+	os::Rect cFillRect =  cBounds; //GetBounds();
+	cFillRect.Resize(cResize.left,cResize.top,cResize.right,cResize.bottom);
+	
+	SetFgColor(sColor);
+
+
+	//Draw the left side of the frame
+	DrawLine( os::Point( 0, cFillRect.top ), os::Point( 0, cFillRect.bottom ) );
+	
+	//Draw the right side of the frame
+	DrawLine( os::Point( cFillRect.right + 1, cFillRect.top ), os::Point( cFillRect.right + 1, cFillRect.bottom ) );
+	
+	//Draw the top of the frame
+	DrawLine( os::Point( 4, 0 ), os::Point( cBounds.right - 4, 0 ) );
+	
+	
+	//Draw the top/left corner
+	DrawLine( os::Point( 2, 1 ), os::Point( 3, 1 ) );
+	DrawLine( os::Point( 1, 2 ), os::Point( 1, 3 ) );
+	
+	
+	//draw the top/right corner
+	DrawLine( os::Point( cBounds.right - 2, 1 ), os::Point( cBounds.right - 3, 1 ) );
+	DrawLine( os::Point( cBounds.right - 1, 2 ), os::Point( cBounds.right - 1, 3 ) );
+
+	
+	cFillRect.top = cBounds.bottom - 3;
+	cFillRect.bottom = cBounds.bottom;
+	SetFgColor(sColor);
+	
+	//Draw the bottom of the frame
+	DrawLine( os::Point( 4, cFillRect.bottom - 0 ), os::Point( cBounds.right - 4, cFillRect.bottom - 0 ) );
+
+	//Draw the bottom/left corner
+	DrawLine( os::Point( 2, cFillRect.bottom - 1 ), os::Point( 3, cFillRect.bottom - 1 ) );
+	DrawLine( os::Point( 1, cFillRect.bottom - 2 ), os::Point( 1, cFillRect.bottom - 3 ) );
+
+	//Draw the bottom/right corner
+	DrawLine( os::Point( cBounds.right - 2, cFillRect.bottom - 1 ), os::Point(  cBounds.right - 3, cFillRect.bottom - 1 ) );
+	DrawLine( os::Point( cBounds.right - 1, cFillRect.bottom - 2 ), os::Point(  cBounds.right - 1, cFillRect.bottom - 3 ) );
+
+	DrawLine( os::Point( 4, cFillRect.bottom ), os::Point( cBounds.right - 4, cFillRect.bottom ) );	
+
 }
 
 //----------------------------------------------------------------------------
