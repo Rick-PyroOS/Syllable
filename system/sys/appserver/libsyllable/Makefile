@@ -6,7 +6,7 @@ CATALOGS = da de es fr hu nl pl pt-br ru sv
 
 LIBBIN = /system/libraries
 
-LIBNAME = libsyllable.so.7
+LIBNAME = libos.so.1
 
 VPATH = ./ gui storage util translation gui/colorselector gui/fontrequester
 
@@ -62,7 +62,7 @@ deps: $(OBJDIR) catalogs $(DEPS)
 
 install: $(OBJDIR)/$(LIBNAME)
 	install -s $(OBJDIR)/$(LIBNAME) $(IMAGE)/$(LIBBIN)/$(LIBNAME)
-	ln -sf $(LIBNAME) $(IMAGE)/$(LIBBIN)/libsyllable.so
+	ln -sf $(LIBNAME) $(IMAGE)/$(LIBBIN)/libos.so
 	cp catalogs/libsyllable.catalog $(IMAGE)/system/resources/catalogs/
 	for CATALOG in $(CATALOGS); do \
 		echo $$CATALOG; \
