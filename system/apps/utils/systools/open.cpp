@@ -83,7 +83,7 @@ public:
 								os::Path path = os::Path(cOpts.GetFileArgs()[0]);
 								List(path.GetPath());
 							} else{
-								printf("You must pass arguments like: open --list/-l filename")
+								printf("You must pass arguments like: open --list/-l filename");
 							}
                             exit(0);
                             break;
@@ -94,7 +94,7 @@ public:
 								os::Path path = os::Path(cOpts.GetFileArgs()[0]);
 								RevealFile(path);
 							} else{
-								printf("You must pass arguments like: open --reveal/-r filename")
+								printf("You must pass arguments like: open --reveal/-r filename");
 							}
                             exit(0);
                             break;
@@ -107,7 +107,7 @@ public:
 								os::Path path = os::Path(cOpts.GetFileArgs()[0]);
 								OpenFile(path.GetPath(), "/system/bin/aedit");
 							} else{
-								printf("You must pass arguments like: open --edit/-e filename")
+								printf("You must pass arguments like: open --edit/-e filename");
 							}
                             exit(0);
                             break;
