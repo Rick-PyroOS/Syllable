@@ -13,6 +13,7 @@
 
 #include "button/view.h"
 #include "controls/view.h"
+#include "dates/view.h"
 #include "label/view.h"
 #include "lists/view.h"
 #include "menus/view.h"
@@ -45,6 +46,7 @@ private:
 	ButtonLayoutView* buttonView;
 
 	ControlsLayoutView* controlsLayoutView;
+	DatesLayoutView* datesLayoutView;
 	LabelsLayoutView* labelView;
 	ListsAndTreesLayoutView* listsAndTreesViewLayoutView;
 	MenusLayoutView* menuView;

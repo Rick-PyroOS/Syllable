@@ -397,6 +397,7 @@ void CalendarView::_Layout()
 	root->SetHAlignment(os::ALIGN_CENTER);
 	root->SetVAlignment(os::ALIGN_CENTER);
 	root->AddChild(m->m_pcDateView = new DateView(m->m_cDate),0.02f);
+	root->AddChild(new os::VLayoutSpacer("",5,5));
 	root->AddChild(m->m_pcView);
 	SetRoot(root);
 }

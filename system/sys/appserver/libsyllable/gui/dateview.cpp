@@ -11,7 +11,7 @@
 using namespace os;
 
 //Static months of year
-const static os::String MonthsOfYear[13] = {"","January","Febuary","March","April","May","June","July","August","September","October","November","December"};
+const static os::String MonthsOfYear[13] = {"","January","February","March","April","May","June","July","August","September","October","November","December"};
 
 //size of arrows
 os::IPoint ARROW_SIZE = os::IPoint(4,7);
