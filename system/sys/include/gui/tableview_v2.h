@@ -29,8 +29,8 @@
 
 */
 
-#ifndef __F_GUI_TABLEVIEW_H__
-#define __F_GUI_TABLEVIEW_H__
+#ifndef __F_GUI_TABLEVIEW_V2_H__
+#define __F_GUI_TABLEVIEW_V2_H__
 
 #include <list>
 #include <gui/view.h>
@@ -73,7 +73,7 @@ struct _TableRowCol
 	bool empty;
 };
 
-class	TableView : public View
+class	TableViewV2 : public View
 {
 public:
 	#define MAX( x, y ) ( x<y?y:x )
@@ -93,9 +93,9 @@ public:
 		NUMERIC,
 	} HEADER_ROW;
 
-	TableView( const os::Rect& cFrame, const os::String& cName, int nWidth, int nHeight,
-			   bool homogenous, uint32 nResizeMask = CF_FOLLOW_LEFT | CF_FOLLOW_TOP );
-	~TableView();
+	TableViewV2( const os::Rect& cFrame, const os::String& cName, int nWidth, int nHeight,
+			   bool homogenous, uint32 nResizeMask = os::CF_FOLLOW_LEFT | os::CF_FOLLOW_TOP );
+	~TableViewV2();
 
 	void FrameSized( const os::Point& cDelta );
 	os::Point GetPreferredSize( bool bLargest );
@@ -104,8 +104,8 @@ public:
 
 	void Resize( uint rows, uint columns );
 	
-	void SetHeaderRow(uint direction=os::TableView::TOP, std::list<TableChild*> row = std::list<TableChild*>());
-	void SetHeaderRow(uint direction=os::TableView::TOP, uint headerType=os::TableView::ALPHA);
+	void SetHeaderRow(uint direction=os::TableViewV2::TOP, std::list<TableChild*> row = std::list<TableChild*>());
+	void SetHeaderRow(uint direction=os::TableViewV2::TOP, uint headerType=os::TableViewV2::ALPHA);
 	
 
 	std::list<TableChild*> GetHeaderRow() const;

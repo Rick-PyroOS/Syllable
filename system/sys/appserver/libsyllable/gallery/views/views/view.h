@@ -5,6 +5,7 @@
 #include <gui/splitter.h>
 #include <gui/frameview.h>
 #include <gui/tableview.h>
+#include <gui/tableview_v2.h>
 #include "../../defines.h"
 
 
@@ -19,7 +20,7 @@ private:
 	void reset(os::alignment alignment, os::state state);
 private:
 	os::TableView* m_pcTableViewV1;
-	os::FrameView* m_pcTableViewV2;
+	os::TableViewV2* m_pcTableViewV2;
 	os::Splitter* m_pcSplitter;
 };
 

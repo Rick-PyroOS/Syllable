@@ -31,7 +31,7 @@
 
 #include <assert.h>
 #include <gui/window.h>
-#include "tableview.h"
+#include <gui/tableview_v2.h>
 #include <gui/font.h>
 #include <util/message.h>
 
@@ -53,9 +53,9 @@ using namespace std;
  * \sa os::View
  * \author Jonas Jarvoll
  *****************************************************************************/
-TableView :: TableView( const Rect& cFrame, const String& cName, 
+TableViewV2 :: TableViewV2( const Rect& cFrame, const String& cName,
                       	int nNumCols, int nNumRows, bool bHomogeneous, uint32 nResizeMask )
-    : View( cFrame, cName, nResizeMask, WID_WILL_DRAW )
+    : View( cFrame, cName, nResizeMask, os::WID_WILL_DRAW )
 {  
 	if( nNumRows == 0 )
 		nNumRows = 1;
@@ -76,13 +76,13 @@ TableView :: TableView( const Rect& cFrame, const String& cName,
 /** The destructor for TableView
  * \author Jonas Jarvoll
  *****************************************************************************/
-TableView :: ~TableView()
+TableViewV2 :: ~TableViewV2()
 {
 	delete m_Cols;
 	delete m_Rows;
 }
 
-void TableView :: FrameSized( const Point& cDelta )
+void TableViewV2 :: FrameSized( const Point& cDelta )
 {
 	Layout( GetBounds() );
 	Invalidate( GetBounds() );
@@ -96,7 +96,7 @@ void TableView :: FrameSized( const Point& cDelta )
  * \return os::Point - Returns the size of the widget
  * \author Jonas Jarvoll
  *****************************************************************************/
-Point TableView :: GetPreferredSize( bool bLargest )
+Point TableViewV2 :: GetPreferredSize( bool bLargest )
 {
 	Point requisition( 0.0f, 0.0f);
 
@@ -131,7 +131,7 @@ Point TableView :: GetPreferredSize( bool bLargest )
  *      The function forces a recalculation of the all the table cells.
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: Layout()
+void TableViewV2 :: Layout()
 {
 	Layout( GetBounds() );
 }
@@ -144,7 +144,7 @@ void TableView :: Layout()
  * \param columns - The number of columns
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: Resize( uint rows, uint columns )
+void TableViewV2 :: Resize( uint rows, uint columns )
 {
 	assert ( rows > 0 &&  rows < 65536 );
 	assert ( columns > 0 && columns < 65536);
@@ -228,7 +228,7 @@ void TableView :: Resize( uint rows, uint columns )
  * \param ypadding - The amount of padding above and below the child widget
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: Attach( View* child, uint left_attach, uint right_attach, uint top_attach, uint bottom_attach,
+void TableViewV2 :: Attach( View* child, uint left_attach, uint right_attach, uint top_attach, uint bottom_attach,
 						  int xoptions, int yoptions, uint xpadding, uint ypadding)
 {
 	if( right_attach >= m_NumCols )
@@ -265,7 +265,7 @@ void TableView :: Attach( View* child, uint left_attach, uint right_attach, uint
  * \param spacing - number of pixels that the spacing should take up
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: SetRowSpacing( uint row, uint spacing )
+void TableViewV2 :: SetRowSpacing( uint row, uint spacing )
 {
 	assert( row < m_NumRows );
   
@@ -284,7 +284,7 @@ void TableView :: SetRowSpacing( uint row, uint spacing )
  * \return The row spacing
  * \author Jonas Jarvoll
  *****************************************************************************/
-uint TableView :: GetRowSpacing( uint row )
+uint TableViewV2 :: GetRowSpacing( uint row )
 {
 	assert( row < m_NumRows - 1 );
  
@@ -298,7 +298,7 @@ uint TableView :: GetRowSpacing( uint row )
  * \param spacing - number of pixels that the spacing should take up
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: SetColumnSpacing( uint col, uint spacing )
+void TableViewV2 :: SetColumnSpacing( uint col, uint spacing )
 {
 	assert( col < m_NumCols );
   
@@ -317,7 +317,7 @@ void TableView :: SetColumnSpacing( uint col, uint spacing )
  * \return The colum spacing
  * \author Jonas Jarvoll
  *****************************************************************************/
-uint TableView :: GetColumnSpacing( uint col )
+uint TableViewV2 :: GetColumnSpacing( uint col )
 {
 	assert( col < m_NumCols - 1 );
  
@@ -330,7 +330,7 @@ uint TableView :: GetColumnSpacing( uint col )
  * \param spacing - the number of pixels of space to place between every row in the table
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: SetRowSpacings( uint spacing )
+void TableViewV2 :: SetRowSpacings( uint spacing )
 {
 	uint row;  
   
@@ -348,7 +348,7 @@ void TableView :: SetRowSpacings( uint spacing )
  * \return The default row spacing
  * \author Jonas Jarvoll
  *****************************************************************************/
-uint TableView :: GetDefaultRowSpacing()
+uint TableViewV2 :: GetDefaultRowSpacing()
 {
   return m_RowSpacing;
 }
@@ -359,7 +359,7 @@ uint TableView :: GetDefaultRowSpacing()
  * \param spacing - the number of pixels of space to place between every column in the table
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: SetColumnSpacings( uint spacing )
+void TableViewV2 :: SetColumnSpacings( uint spacing )
 {
 	uint col;  
   
@@ -377,7 +377,7 @@ void TableView :: SetColumnSpacings( uint spacing )
  * \return The default column spacing
  * \author Jonas Jarvoll
  *****************************************************************************/
-uint TableView :: GetDefaultColumnSpacing()
+uint TableViewV2 :: GetDefaultColumnSpacing()
 {
   return m_ColumnSpacing;
 }
@@ -389,7 +389,7 @@ uint TableView :: GetDefaultColumnSpacing()
  *                      is not your desired behaviour
  * \author Jonas Jarvoll
  *****************************************************************************/
-void TableView :: SetHomogeneous( bool homogeneous )
+void TableViewV2 :: SetHomogeneous( bool homogeneous )
 {
   if( homogeneous != m_Homogeneous)
     {
@@ -405,16 +405,16 @@ void TableView :: SetHomogeneous( bool homogeneous )
  * \return Returns true or false
  * \author Jonas Jarvoll
  *****************************************************************************/
-bool TableView :: GetHomogeneous()
+bool TableViewV2 :: GetHomogeneous()
 {
 	return m_Homogeneous;
 }
 
-void TableView::SetHeaderRow(uint nDirection,std::list<TableChild*> row){
+void TableViewV2::SetHeaderRow(uint nDirection,std::list<TableChild*> row){
 
 }
 
-void TableView::SetHeaderRow(uint nDirection, uint nHeaderType){
+void TableViewV2::SetHeaderRow(uint nDirection, uint nHeaderType){
 	for (int i=0; i<m_NumCols; i++){
 		switch(nHeaderType){
 			case ALPHA:
@@ -427,7 +427,7 @@ void TableView::SetHeaderRow(uint nDirection, uint nHeaderType){
 	}
 }
 
-std::list<TableChild*> TableView::GetHeaderRow() const{
+std::list<TableChild*> TableViewV2::GetHeaderRow() const{
 	return m_HeaderList;
 }
 
@@ -437,7 +437,7 @@ std::list<TableChild*> TableView::GetHeaderRow() const{
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void TableView :: Layout( Rect cBounds )
+void TableViewV2 :: Layout( Rect cBounds )
 {
 	GetPreferredSize( false );
 	SizeAllocateInit();
@@ -445,7 +445,7 @@ void TableView :: Layout( Rect cBounds )
 	SizeAllocatePass2();
 }
 
-void TableView :: SizeRequestInit()
+void TableViewV2 :: SizeRequestInit()
 {
 	TableChild* child;
 	int row, col;
@@ -473,7 +473,7 @@ void TableView :: SizeRequestInit()
 	}
 }
 
-void TableView :: SizeRequestPass1()
+void TableViewV2 :: SizeRequestPass1()
 {
 	TableChild* child;
 	int width;
@@ -504,7 +504,7 @@ void TableView :: SizeRequestPass1()
 	}
 }
 
-void TableView :: SizeRequestPass2()
+void TableViewV2 :: SizeRequestPass2()
 {
 	int max_width;
 	int max_height;
@@ -527,7 +527,7 @@ void TableView :: SizeRequestPass2()
 	}
 }
 
-void TableView :: SizeRequestPass3()
+void TableViewV2 :: SizeRequestPass3()
 {
 	TableChild *child;
 	int width, height;
@@ -637,7 +637,7 @@ void TableView :: SizeRequestPass3()
 	}
 }
 
-void TableView :: SizeAllocateInit()
+void TableViewV2 :: SizeAllocateInit()
 {
 	TableChild* child;
 	int row, col;
@@ -826,7 +826,7 @@ void TableView :: SizeAllocateInit()
 	}
 }
 
-void TableView :: SizeAllocatePass1()
+void TableViewV2 :: SizeAllocatePass1()
 {
 	int real_width;
 	int real_height;
@@ -1031,7 +1031,7 @@ void TableView :: SizeAllocatePass1()
 	}
 }
 
-void TableView :: SizeAllocatePass2()
+void TableViewV2 :: SizeAllocatePass2()
 {
 	TableChild* child;
 	int max_width;
