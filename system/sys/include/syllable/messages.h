@@ -112,6 +112,7 @@ enum {
 	M_CALENDAR_DATE_INVOKED,
 	M_MONTH_CHANGED,
 	M_YEAR_CHANGED,
+	M_CHECKROW_CHANGED,
 
     /* Add new libsyllable message codes here. */
     
