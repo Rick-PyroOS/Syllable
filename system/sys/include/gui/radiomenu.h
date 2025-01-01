@@ -53,7 +53,7 @@ public:
 	bool AddItem(os::RadioMenuItem*);
 	bool AddItem(os::RadioMenuItem*,int nIndex);
 protected:
-	void MouseUp( const Point & cPosition, uint32 nButtons, Message * pcData );	
+	void MouseDown(const os::Point &cPosition, uint32 nButtons);
 
 private:
 	bool				AddItem( const String& cLabel, Message* pcMessage, const String& cShortcut = "", Image* pcImage = NULL );

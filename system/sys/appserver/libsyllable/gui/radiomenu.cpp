@@ -243,17 +243,14 @@ RadioMenu::RadioMenu( Rect cFrame, const String& cName, MenuLayout_e eLayout,uin
 {
 }
 
-void RadioMenu::MouseUp( const Point & cPosition, uint32 nButtons, Message * pcData )
+void RadioMenu::MouseDown(const os::Point &cPosition, uint32 nButtons)
 {
-	
 	if( GetBounds().DoIntersect( cPosition ) )
 	{
 		RadioMenuItem *pcItem = (RadioMenuItem*)FindMarked();
-
 		for( int i = 0; i < GetItemCount(); i++ )
 		{
 			os::RadioMenuItem* pcSubItem = (RadioMenuItem*) GetItemAt(i);
-			
 			if (pcItem != pcSubItem)
 				pcSubItem->SetRadio( false );
 		}
@@ -261,7 +258,7 @@ void RadioMenu::MouseUp( const Point & cPosition, uint32 nButtons, Message * pcD
 		Flush();
 		Sync();
 	}
-	Menu::MouseUp(cPosition,nButtons,pcData);
+	Menu::MouseDown(cPosition,nButtons);
 }
 
 
