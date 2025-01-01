@@ -18,6 +18,7 @@ WidgetGalleryView::WidgetGalleryView(const os::Rect& cFrame) : os::View(cFrame, 
 
 	buttonView = new ButtonLayoutView(cFrame);
 	controlsLayoutView = new ControlsLayoutView(cFrame);
+	datesLayoutView = new DatesLayoutView(cFrame);
 	labelView = new LabelsLayoutView(cFrame);
 	listsAndTreesViewLayoutView = new ListsAndTreesLayoutView(cFrame);
 	menuView = new MenusLayoutView(cFrame);
@@ -31,7 +32,7 @@ WidgetGalleryView::WidgetGalleryView(const os::Rect& cFrame) : os::View(cFrame, 
 	m_pcTabView = new os::TabView(os::Rect(),"_main_view",os::CF_FOLLOW_ALL);
 	m_pcTabView->SetMessage(new os::Message(M_TAB_CHANGED));
 	m_pcTabView->AppendTab("Buttons", (View*)buttonView);
-//	m_pcTabView->AppendTab("Calendar and Time Selectors",(View*)dateTimeView);
+	m_pcTabView->AppendTab("Calendar and Time Selectors",(View*)datesLayoutView);
 	m_pcTabView->AppendTab("Controls", (View*)controlsLayoutView);
 	m_pcTabView->AppendTab("Dropdown and Popup Menus", (View*)menuView);
 	m_pcTabView->AppendTab("Labels", (View*)labelView);
