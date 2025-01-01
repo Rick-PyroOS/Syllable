@@ -113,6 +113,7 @@ enum {
 	M_MONTH_CHANGED,
 	M_YEAR_CHANGED,
 	M_CHECKROW_CHANGED,
+	M_CHECKNODE_CHANGED,
 
     /* Add new libsyllable message codes here. */
     
