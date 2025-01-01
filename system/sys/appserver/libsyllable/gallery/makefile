@@ -1,7 +1,7 @@
 #Makefile for WidgetGallery
 COPTS = -Wall -c -O2 -fexceptions
 
-OBJS = main.o application.o common.o mainwindow.o views/view.o views/button/view.o views/controls/view.o views/label/view.o views/lists/view.o views/menus/view.o views/textview/view.o views/views/view.o
+OBJS = main.o application.o common.o mainwindow.o views/view.o views/button/view.o views/controls/view.o views/dates/view.o views/label/view.o views/lists/view.o views/menus/view.o views/textview/view.o views/views/view.o
 OBJDIR := objs
 OBJS	:= $(addprefix $(OBJDIR)/,$(OBJS))
 
@@ -29,7 +29,7 @@ objs:
 
 "WidgetGallery": $(OBJS)
 	@echo Linking...
-	@$(CXX) $(OBJS) -o "WidgetGallery"  -lsyllable -lstdc++
+	@$(CXX) $(OBJS) -o "WidgetGallery"  -los -lstdc++
 	@echo Adding resources...
 	@rescopy "WidgetGallery" -r resources/icons/*
 	@addattrib "WidgetGallery" os::Category Other

@@ -6,7 +6,7 @@ CATALOGS = da de es fr hu nl pl pt-br ru sv
 
 LIBBIN = /system/libraries
 
-LIBNAME = libsyllable.so.7
+LIBNAME = libos.so.1
 
 VPATH = ./ gui storage util translation gui/colorselector gui/fontrequester
 
@@ -17,7 +17,10 @@ OBJS	= rect.o region.o desktop.o bitmap.o view.o tabview.o			\
 	  listview.o requesters.o layoutview.o			\
 	  radiobutton.o filerequester.o dropdownmenu.o checkmenu.o splitter.o \
 	  image.o imageview.o imagebutton.o treeview.o \
-      popupmenu.o iconview.o icondirview.o statusbar.o toolbar.o separator.o inputbox.o tooltip.o
+      popupmenu.o iconview.o icondirview.o statusbar.o \
+      toolbar.o separator.o inputbox.o tooltip.o \
+      calendarview.o dateview.o \
+      radiomenu.o \
 
 OBJS += colorselector.o colorview.o colorwheel.o gradientview.o
 OBJS += fontrequester.o fontrequesterview.o
@@ -62,7 +65,7 @@ deps: $(OBJDIR) catalogs $(DEPS)
 
 install: $(OBJDIR)/$(LIBNAME)
 	install -s $(OBJDIR)/$(LIBNAME) $(IMAGE)/$(LIBBIN)/$(LIBNAME)
-	ln -sf $(LIBNAME) $(IMAGE)/$(LIBBIN)/libsyllable.so
+	ln -sf $(LIBNAME) $(IMAGE)/$(LIBBIN)/libos.so
 	cp catalogs/libsyllable.catalog $(IMAGE)/system/resources/catalogs/
 	for CATALOG in $(CATALOGS); do \
 		echo $$CATALOG; \

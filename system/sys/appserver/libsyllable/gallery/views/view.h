@@ -9,10 +9,13 @@
 #include <gui/statusbar.h>
 #include <gui/layoutview.h>
 #include <gui/layoutview.h>
+#include <gui/radiomenu.h>
+
 #include "../defines.h"
 
 #include "button/view.h"
 #include "controls/view.h"
+#include "dates/view.h"
 #include "label/view.h"
 #include "lists/view.h"
 #include "menus/view.h"
@@ -38,13 +41,14 @@ private:
 	int32 m_nAlignment;
 	os::Menu* m_pcMenu;
 	os::Menu* alignmentMenu;
-	os::Menu* statesMenu;
+	os::RadioMenu* statesMenu;
 	os::ToolBar* m_pcToolBar;
 	os::StatusBar* m_pcStatusBar;
 	os::TabView* m_pcTabView;
 	ButtonLayoutView* buttonView;
 
 	ControlsLayoutView* controlsLayoutView;
+	DatesLayoutView* datesLayoutView;
 	LabelsLayoutView* labelView;
 	ListsAndTreesLayoutView* listsAndTreesViewLayoutView;
 	MenusLayoutView* menuView;
