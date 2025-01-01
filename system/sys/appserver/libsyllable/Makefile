@@ -14,7 +14,8 @@ OBJS	= rect.o region.o desktop.o bitmap.o view.o tabview.o			\
 	  window.o slider.o scrollbar.o spinner.o frameview.o			\
 	  checkbox.o textview.o button.o font.o stdbitmaps.o			\
 	  control.o stringview.o menu.o tableview.o sprite.o progressbar.o	\
-	  listview.o requesters.o layoutview.o			\
+	  listview.o checkrow.o \
+	  requesters.o layoutview.o	\
 	  radiobutton.o filerequester.o dropdownmenu.o checkmenu.o splitter.o \
 	  image.o imageview.o imagebutton.o treeview.o \
       popupmenu.o iconview.o icondirview.o statusbar.o \

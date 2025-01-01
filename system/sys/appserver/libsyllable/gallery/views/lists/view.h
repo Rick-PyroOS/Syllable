@@ -6,6 +6,7 @@
 #include <gui/listview.h>
 #include <gui/treeview.h>
 #include <gui/separator.h>
+#include <gui/checkrow.h>
 #include "../../defines.h"
 
 

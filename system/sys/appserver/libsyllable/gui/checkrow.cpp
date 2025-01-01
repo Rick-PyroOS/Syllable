@@ -121,13 +121,7 @@ CheckRow::CheckRow(os::Messenger* target) : os::ListViewStringRow()
 	m_bIsChecked = false;
 	if( s_pcCheckBitmap == NULL )
 	{
-		Rect cCheckBitmapRect;
-
-		cCheckBitmapRect.left = 0;
-		cCheckBitmapRect.top = 0;
-		cCheckBitmapRect.right = CHECK_W;
-		cCheckBitmapRect.bottom = CHECK_H;
-
+		Rect cCheckBitmapRect = Rect(0,0,CHECK_W,CHECK_H);
 		s_pcCheckBitmap = new Bitmap( (int)cCheckBitmapRect.Width(), (int)cCheckBitmapRect.Height(  ), CS_RGBA32, Bitmap::SHARE_FRAMEBUFFER );
 		memcpy( s_pcCheckBitmap->LockRaster(), nCheckData, ( unsigned int )( cCheckBitmapRect.Width(  ) * cCheckBitmapRect.Height(  ) * 4 ) );
 	}
@@ -218,8 +212,7 @@ void CheckRow::Paint( const Rect & cFrame, View * pcView, uint nColumn, bool bSe
 
 bool CheckRow::HitTest( View * pcView, const Rect & cFrame, int nColumn, Point cPos )
 {
-	os::Rect cCheckFrame = os::Rect(0,0,12,12);
-	if (cCheckFrame.DoIntersect(cPos))
+	if (os::Rect(0,0,12,12).DoIntersect(cPos))
 	{
 		Toggle(pcView);
 		return false;
@@ -229,11 +222,7 @@ bool CheckRow::HitTest( View * pcView, const Rect & cFrame, int nColumn, Point c
 
 void CheckRow::Toggle(os::View* pcView)
 {
-	if (m_bIsChecked)
-		m_bIsChecked = false;
-	else
-		m_bIsChecked = true;
-		
+	m_bIsChecked = !m_bIsChecked;
 	pcView->Flush();
 	pcView->Invalidate();
 	
@@ -251,9 +240,6 @@ bool CheckRow::IsChecked()
 {
 	return m_bIsChecked;
 }
-
-
-
 
 
 

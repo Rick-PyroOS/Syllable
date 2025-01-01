@@ -26,6 +26,14 @@ void ListsAndTreesLayoutView::layout(){
 		}
 		listView1->InsertRow(pcRow);
 	}
+
+	os::CheckRow* row = new os::CheckRow();
+	for (int i=0; i<3; i++) {
+		row->AppendString(os::String().Format("4x%d",i));
+	}
+	listView1->InsertRow(row);
+
+
 	node1->AddChild(listView1);
 	root->AddChild(node1);
 	root->AddChild( new os::Separator( os::Rect(), "separator", os::HORIZONTAL ), 0.0f );
