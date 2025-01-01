@@ -56,6 +56,14 @@ void ListsAndTreesLayoutView::layout(){
 			treeView1->InsertNode(node,false);
 		}
 	}
+
+	os::TreeViewCheckNode* checkNode = new os::TreeViewCheckNode();
+	for (int i=0; i<3; i++) {
+		checkNode->AppendString(os::String().Format("4x%d",i));
+	}
+	checkNode->SetIndent(0);
+	treeView1->InsertNode(checkNode,true);
+
 	node2->AddChild( treeView1 );
 	root->AddChild(node2);
 	insertNode(root);
