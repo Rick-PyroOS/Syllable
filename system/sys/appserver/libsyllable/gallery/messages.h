@@ -1,0 +1,15 @@
+#ifndef MESSAGES_H
+#define MESSAGES_H
+
+enum
+{
+	M_UNKNOWN = 0,
+	M_APP_QUIT,
+	M_TAB_CHANGED,
+	M_ALIGNMENT_CHANGED,
+	M_STATE_CHANGED,
+	M_STYLE_CHANGED,
+};
+
+#endif
+
