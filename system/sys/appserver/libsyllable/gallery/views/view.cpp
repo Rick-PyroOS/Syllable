@@ -6,7 +6,7 @@
 #include <gui/statusbar.h>
 #include <gui/layoutview.h>
 #include <util/application.h>
-
+#include <unistd.h>
 #include <iostream>
 
 WidgetGalleryView::WidgetGalleryView(const os::Rect& cFrame) : os::View(cFrame, "View",os::CF_FOLLOW_ALL) {
@@ -14,7 +14,6 @@ WidgetGalleryView::WidgetGalleryView(const os::Rect& cFrame) : os::View(cFrame, 
 	m_pcRootNode = new os::VLayoutNode("");
 	m_nAlignment = os::ALIGN_LEFT;
 	m_nState = os::NORMAL;
-
 
 	buttonView = new ButtonLayoutView(cFrame);
 	controlsLayoutView = new ControlsLayoutView(cFrame);
@@ -50,6 +49,10 @@ void WidgetGalleryView::_SetupMenus(){
 	m_pcMenu->SetName("_menu");
 	m_pcMenu->ResizeTo(GetBounds().Width(),25);
 
+	os::Menu* appMenu = new os::Menu(os::Rect(), "Application", os::ITEMS_IN_COLUMN, os::CF_FOLLOW_LEFT | os::CF_FOLLOW_RIGHT | os::CF_FOLLOW_TOP );
+	appMenu->AddItem("Splash Screen",new os::Message(M_SPLASH_SCREEN));
+
+
 	os::Menu* normalMenu = new os::Menu(os::Rect(), "Normal", os::ITEMS_IN_COLUMN, os::CF_FOLLOW_LEFT | os::CF_FOLLOW_RIGHT | os::CF_FOLLOW_TOP );
 
 	os::Menu* disabledMenu = new os::Menu(os::Rect(), "Disabled", os::ITEMS_IN_COLUMN, os::CF_FOLLOW_LEFT | os::CF_FOLLOW_RIGHT | os::CF_FOLLOW_TOP );
@@ -71,13 +74,10 @@ void WidgetGalleryView::_SetupMenus(){
 		iconMenu->AddItem(alignment.c_str(), alignmentMessage, "",GetImageFromResource(os::String().Format("align_%s.png", lower.c_str()),os::Point(16,16)));
 	}
 
-//	os::Menu* statesMenu = new Menu(os::Rect(), "States", ITEMS_IN_COLUMN, CF_FOLLOW_LEFT | CF_FOLLOW_RIGHT | CF_FOLLOW_TOP );
-
-
+	m_pcMenu->AddItem(appMenu);
 	m_pcMenu->AddItem(normalMenu);
 	m_pcMenu->AddItem(disabledMenu);
 	m_pcMenu->AddItem(iconMenu);
-//	m_pcMenu->AddItem(statesMenu);
 	m_pcRootNode->AddChild(m_pcMenu,0);
 }
 
@@ -137,6 +137,7 @@ void WidgetGalleryView::AllAttached(){
 
 	statesMenu->SetTargetForItems(this);
 	alignmentMenu->SetTargetForItems(this);
+	m_pcMenu->SetTargetForItems(this);
 
 	m_pcLayoutView->SetRoot(m_pcRootNode);
 	m_pcRootNode->Layout();
@@ -147,6 +148,18 @@ void WidgetGalleryView::AllAttached(){
 
 void WidgetGalleryView::HandleMessage(os::Message *pcMessage) {
 	switch (pcMessage->GetCode()) {
+
+		case M_SPLASH_SCREEN:{
+			os::Splash* splash = os::Splash::Go((os::BitmapImage*)GetImageFromResource("splash.png",os::Point(400,266)),"");
+			splash->SetTextColor(os::Color32_s(255,255,255,0));
+			for (int i=0; i<100; i++){
+				splash->SetText(os::String().Format("Progress: %.2f %%", (i/100.0f)*100));
+				splash->SetProgress(i / 100.0f);
+				usleep(50000);
+			}
+			splash->OkToQuit();
+			break;
+		}
 		case M_TAB_CHANGED: {
 			BaseView *view = (BaseView *) m_pcTabView->GetTabView(m_pcTabView->GetSelection());
 			view->reset((os::alignment)m_nAlignment,(os::state)m_nState);

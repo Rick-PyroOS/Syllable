@@ -10,6 +10,7 @@
 #include <gui/layoutview.h>
 #include <gui/layoutview.h>
 #include <gui/radiomenu.h>
+#include <gui/splash.h>
 
 #include "../defines.h"
 

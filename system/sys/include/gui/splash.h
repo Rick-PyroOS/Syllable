@@ -17,6 +17,8 @@ class Splash : public Window
 {
 public:
 	Splash(os::BitmapImage* pcImage=NULL,const os::String& cText="", bool bEnableProgress=true, float vProgress=0.0f);
+	Splash();
+
 	virtual bool OkToQuit();
 	
 	void SetText(const os::String& cText);
@@ -28,9 +30,9 @@ public:
 	void SetProgress(float vProgress);
 	void SetEnable(bool bEnable);
 	void SetFont(os::Font*);
-	
-	void Go();
 	void Quit(os::Window*);
+public:
+	static os::Splash* Go(os::BitmapImage* pcImage, const os::String& cText);
 private:
 	class Private;
 	Private* m;
