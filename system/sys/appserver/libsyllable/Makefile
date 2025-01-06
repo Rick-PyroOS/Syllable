@@ -25,6 +25,7 @@ OBJS	= rect.o region.o desktop.o bitmap.o view.o tabview.o			\
       toolbar.o separator.o inputbox.o tooltip.o \
       calendarview.o dateview.o \
       radiomenu.o \
+      splash.o
 
 OBJS += colorselector.o colorview.o colorwheel.o gradientview.o
 OBJS += fontrequester.o fontrequesterview.o
