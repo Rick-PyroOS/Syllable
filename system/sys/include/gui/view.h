@@ -269,6 +269,9 @@ public:
     View*		GetParent() const;
     ScrollBar*		GetVScrollBar() const;
     ScrollBar*		GetHScrollBar() const;
+	void			SetToolTip(const os::String& t) const;
+	os::String 		GetToolTip() const;
+
     Window*		GetWindow() const { return( (Window*)GetLooper() ); }
     String		GetTitle() const;
 
