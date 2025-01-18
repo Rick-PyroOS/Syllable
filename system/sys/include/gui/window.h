@@ -24,6 +24,7 @@
 #include <gui/bitmap.h>
 #include <gui/view.h>
 #include <util/looper.h>
+#include <graphics/graphics.h>
 
 namespace os
 {
@@ -167,6 +168,7 @@ private:
     friend	class	Bitmap;
     friend	class	MenuItem;
 	friend  class	ScreenOutput;
+	friend  class	graphics::GraphicsView;
 
     Window& operator=( const Window& );
     Window( const Window& );
