@@ -33,3 +33,10 @@ How can I see Syllable logs in QEMU window?
 
 You can change: ***/system/bin/dbterm 8 >> /var/log/kernel &*** to ***/system/bin/dbterm 1 >> /var/log/kernel &*** in /system/init.sh of your Syllable machine
 
+
+Building appserver/libos
+---
+
+You will need: 
+* pango-1.20.2
+* cairo-1.4.12
