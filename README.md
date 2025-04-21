@@ -36,7 +36,27 @@ You can change: ***/system/bin/dbterm 8 >> /var/log/kernel &*** to ***/system/bi
 
 Building appserver/libos
 ---
-
 You will need: 
-* pango-1.20.2
-* cairo-1.4.12
+* cairo-1.4.12 -> run `build cairo-1.4.12 && build install cairo-1.4.12`
+* pango-1.20.2  -> run `build pango-1.20.2 && build install pango-1.20.2`
+
+* librsvg -
+  * Run with: `build librsvg && build install librsvg`
+    
+  * Dependencies: 
+      * fontconfig 
+      * xml2 
+      * lz 
+      * dl
+      * pthread 
+      * libm 
+      * cairo -> 1.4.12
+      * pangocairo -> 1.20.2
+      * pangoft2 -> 1.20.2
+      * pango-1.0 -> 1.20.2
+      * gobject-2.0 -> 2.14.4
+      * gmodule-2.0  -> 2.14.4
+      * glib-2.0 -> 2.14.4
+
+
+
