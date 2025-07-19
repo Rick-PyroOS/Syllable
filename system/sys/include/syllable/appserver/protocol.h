@@ -144,7 +144,28 @@ enum
     EV_ADD_MONITOR,
     EV_REMOVE_MONITOR,
     EV_CALL,
-    EV_GET_CHILDREN
+    EV_GET_CHILDREN,
+    
+    GFX_BEGIN_UPDATE=40000,
+	GFX_CLEAR,
+	GFX_DRAW_ARC,
+	GFX_DRAW_BITMAP,
+	GFX_DRAW_CIRCLE,
+	GFX_DRAW_CURVE,
+	GFX_DRAW_ELLIPSE,
+	GFX_DRAW_LINE,
+	GFX_DRAW_RECTANGLE,
+	GFX_DRAW_TEXTLAYOUT,
+	GFX_END_UPDATE,
+	GFX_FILL_PATH,
+	GFX_REMOVE_CLIP,
+	GFX_SET_ANTIALIAS,
+	GFX_SET_CLIP,
+	GFX_SET_FILLSTYLE,
+	GFX_SET_FONT,
+	GFX_SET_OPERATOR,
+	GFX_SET_PENSTYLE,
+	GFX_STROKE_PATH,
 };
 
 
@@ -315,6 +336,124 @@ struct GRndRegion_s : GRndHeader_s
     int m_nClipCount;
 };
 
+struct GRndTextLayout_s : GRndHeader_s
+{
+    os::Point cPos;
+    double nWidth;
+    double nHeight;
+    int nWrapMode;
+    int nEllipsizeMode;
+    int nIndent;
+    int nSpacing;
+    bool bJustifyMode;
+    bool bAutoDirMode;
+    int nAlignmentMode;
+    bool bSingleParagraphMode;
+    int nTextType;
+    int nLengthFont;
+    int nLengthText;
+    char zString[1024];
+};
+
+struct GRndSetAliasMode_s : GRndHeader_s
+{
+    int nAliasMode;
+};
+
+struct GRndPath_s : GRndHeader_s
+{
+   int m_nNumData;
+   bool m_bUseMatrix;
+   double m_nMatrix[6];
+   double m_zData[6];
+};
+
+struct GRndFont_s : GRndHeader_s
+{
+    int nLength;
+    char zString[1024];
+};
+
+
+struct GRndPen_s : GRndHeader_s
+{
+    double m_nRed;
+    double m_nGreen;
+    double m_nBlue;
+    double m_nAlpha;
+    double m_nLineWidth;
+    double m_nLinewidth;
+    int m_nLineCap;
+    int m_nLineJoin;
+    double m_nMiterLimit;
+    double m_nDashOffset;
+    int m_nNoDashes;
+    double m_zDashes;
+};
+
+struct GRndFillStyle_s : GRndHeader_s
+{
+   int m_nNoColourStops;
+   int m_nType;
+   double m_zColourData[4];
+   int nType;
+};
+
+struct GRndRectangle_s : GRndHeader_s
+{
+	bool bFilled;
+	os::Rect cBound;
+	int nRadius;
+};
+
+struct GRndCurve_s : GRndHeader_s
+{
+	os::Point cControl1;
+	os::Point cControl2;
+	os::Point cFrom;
+	os::Point cTo;
+};
+
+struct GRndArc_s : GRndHeader_s
+{
+	os::Point cCenter;
+	double nEndAngle;
+	int nRadius;
+	double nStartAngle;
+};
+
+struct GRndEllipse_s : GRndHeader_s
+{
+	bool bFilled;
+	os::Point cCenter;
+	double nAngle;
+	int nMajor;
+	int nMinor;
+};
+
+struct GRndCircle_s : GRndHeader_s
+{
+	bool bFilled;
+	os::Point cCenter;
+	int nRadius;
+};
+
+struct GRndLine_s : GRndHeader_s
+{
+	os::Point cFrom;
+	os::Point cTo;
+};
+
+struct GRndClearRectangle_s : GRndHeader_s
+{
+	os::Rect cBound;
+	double nAlpha;
+	double nBlue;
+	double nGreen;
+	double nRed;
+};
+
+
 /***	Messages sendt to main thread of the display server	***/
 
 #define CLIPBOARD_FRAGMENT_SIZE (1024 * 32)
@@ -332,7 +471,6 @@ struct DR_GetClipboardDataReply_s
 {
     int		m_nTotalSize;
     int		m_nFragmentSize;
-    int		m_nOffset;
     uint8	m_anBuffer[CLIPBOARD_FRAGMENT_SIZE];
 };
 
@@ -342,9 +480,8 @@ struct DR_SetClipboardData_s
     char    m_zName[64];
     int     m_nTotalSize;
     int	    m_nFragmentSize;
-    int		m_nOffset;
     port_id m_hReply;		// Just used as an source ID so the server wont interleave multi-package commits
-    uint8	m_anBuffer[CLIPBOARD_FRAGMENT_SIZE];
+    uint8	  m_anBuffer[CLIPBOARD_FRAGMENT_SIZE];
 };
 
 struct DR_SetWindowDecorator_s
@@ -600,6 +737,3 @@ struct WR_LockFbReply_s
 
 }
 #endif	//	DEVICES_DISPLAY_PACKETS_H
-
-
-
