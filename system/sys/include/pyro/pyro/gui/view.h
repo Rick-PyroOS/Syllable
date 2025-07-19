@@ -436,10 +436,6 @@ public:
     void		GetFontHeight( font_height* psHeight ) const;
   
     void		Ping( int nSize = 0 ) const;
-    
-	void SetToolTip(const os::String& t);
-	os::String GetToolTip() const;
-    
 private:
     friend class Window;
     friend class ScrollBar;

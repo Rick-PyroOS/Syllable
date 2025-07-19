@@ -37,6 +37,7 @@
 #include <util/locker.h>
 #include <util/messenger.h>
 #include <util/message.h>
+#include <graphics/graphics.h>
 
 using namespace os;
 using namespace graphics;
