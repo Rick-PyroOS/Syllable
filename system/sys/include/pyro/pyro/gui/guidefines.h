@@ -344,7 +344,8 @@ enum {
 	M_YEAR_CHANGED,
 	M_MONTH_CHANGED,
 	M_CALENDAR_DATE_INVOKED,
-    
+    M_CHECKROW_CHANGED,
+    M_CHECKNODE_CHANGED,
     /* Add new libsyllable message codes here. */
     
     M_FIRST_EVENT = 1000000000,
