@@ -165,7 +165,7 @@ public:
 		cairo_set_miter_limit( psCairo, psMsg->m_nMiterLimit );
 
 		if( psMsg->m_nNoDashes > 0 )  // only set dash if there are any
-			cairo_set_dash( psCairo, psMsg->m_zDashes, psMsg->m_nNoDashes, psMsg->m_nDashOffset );
+			cairo_set_dash( psCairo, &psMsg->m_zDashes, psMsg->m_nNoDashes, psMsg->m_nDashOffset );
 		else // Disable dashes
 			cairo_set_dash( psCairo, NULL, 0, 0.0f );
 	}
