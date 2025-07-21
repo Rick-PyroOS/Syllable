@@ -6,7 +6,7 @@ CATALOGS = da de es fr hu nl pl pt-br ru sv
 
 LIBBIN = /system/libraries
 
-LIBNAME = libsyllable.so.8
+LIBNAME = libos.so.1
 
 VPATH = ./ gui storage util translation gui/colorselector gui/fontrequester graphics
 
@@ -56,7 +56,7 @@ $(OBJDIR):
 	mkdir $(OBJDIR)
 
 $(OBJDIR)/$(LIBNAME): $(OBJS)
-	$(CXX) -shared -Xlinker "-soname=$(LIBNAME)" $(OBJS) -lm -lcairo -lfontconfig $(shell freetype-config --libs) -lxml2 -lz -lpthread -lm -lpangocairo-1.0 -lpangoft2-1.0 -lpango-1.0 -ldl -lgobject-2.0 -lgmodule-2.0 -lglib-2.0 -o $(OBJDIR)/$(LIBNAME)
+	$(CXX) -shared -Xlinker "-soname=$(LIBNAME)" $(OBJS) -lcairo -lfontconfig $(shell freetype-config --libs) $(shell xml2-config --libs) -lpthread -lm -lpangocairo-1.0 -lpangoft2-1.0 -lpango-1.0 -ldl -lgobject-2.0 -lgmodule-2.0 -lglib-2.0 -lexpat -o $(OBJDIR)/$(LIBNAME)
 
 catalogs: catalogs/libsyllable.h
 

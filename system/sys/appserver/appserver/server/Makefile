@@ -3,7 +3,7 @@ SCREENSHOT = n
 CFLAGS   += -c -fexceptions -ffast-math $(shell freetype-config --cflags)
 CXXFLAGS += -c -fexceptions -ffast-math $(shell freetype-config --cflags)
 AOPTS    = -c
-LIBS     = -lsyllable 
+LIBS     = -los
 
 OBJS =  ddriver.o ddline.o ddmemory.o event.o vesadrv.o server.o input.o			\
 	config.o keyboard.o keymap.o defaultkeymap.o			\
