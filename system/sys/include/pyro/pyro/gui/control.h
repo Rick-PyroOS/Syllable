@@ -59,7 +59,9 @@ public:
     virtual void LabelChanged( const String& cNewLabel );
     virtual void EnableStatusChanged( bool bIsEnabled ) = 0;
     virtual bool Invoked( Message* pcMessage );
-    
+
+    //TODO: RGC - Use state instead of just enabled
+    //TODO: RGC - Use html states - :active, :focus, :hover, :target/?:visited?
     virtual void SetEnable( bool bEnabled );
     virtual bool IsEnabled( void ) const;
 
