@@ -41,6 +41,9 @@ You will need:
 * cairo-1.4.12 -> run `build cairo-1.4.12 && build install cairo-1.4.12`
 * pango-1.20.2  -> run `build pango-1.20.2 && build install pango-1.20.2`
 * librsvg - run `build librsvg-2.22.3 && build install librsvg-2.22.3`
+* glib-2.14.0 - run `build glib-2.14.0 && build install glib-2.14.0`
+* fontconfig-2.5.0 - run `build fontconfig-2.5.0 && build install fontconfig-2.5.0`
+* expat-2.0.0 - run `build expat-2.0.0 && build install expat-2.0.0`
 
 
 
