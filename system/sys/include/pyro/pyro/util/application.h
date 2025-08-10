@@ -162,7 +162,7 @@ private:
     int  CreateSprite( const Rect& cFrame, int nBitmapHandle, uint32* pnHandle );
     void DeleteSprite( uint32 nSprite );
     void MoveSprite( uint32 nSprite, const Point& cNewPos );
-
+    std::vector<graphics::theme::Theme> GetThemes() const;
 private:
     static Application*	 s_pcInstance;
 

@@ -47,7 +47,10 @@ public:
     
     bigtime_t	GetKeyDelay() const;
     bigtime_t	GetKeyRepeat() const;
-    
+
+    graphics::theme::Theme GetTheme() const;
+    graphics::theme::style::Style GetDefaultStyle() const;
+    void SetDefaultStyle(const graphics::theme::style::Style&) const;
 private:
     Message m_cConfig;
     bool    m_bModified;

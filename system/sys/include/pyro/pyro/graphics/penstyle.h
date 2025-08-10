@@ -46,21 +46,21 @@ enum eLineJoin
 /*																			 */
 ///////////////////////////////////////////////////////////////////////////////
 
-class Penstyle
+class PenStyle
 {
 public:
-	Penstyle();
-	Penstyle( const Colour& cPenColour );
-	Penstyle( const os::String cColourName );
-	Penstyle( const Colour& cPenColour, const double nLinewidth );
-	Penstyle( const os::String cColourName, const double nLinewidth  );
-	Penstyle( const Fillstyle& cFillstyle );
-	Penstyle( const Fillstyle& cFillstyle, const double nLinewidth  );
+	PenStyle();
+	PenStyle( const Colour& cPenColour );
+	PenStyle( const os::String cColourName );
+	PenStyle( const Colour& cPenColour, const double nLinewidth );
+	PenStyle( const os::String cColourName, const double nLinewidth  );
+	PenStyle( const FillStyle& cFillStyle );
+	PenStyle( const FillStyle& cFillStyle, const double nLinewidth  );
 
-	~Penstyle();
+	~PenStyle();
 
-	bool IsFillstyleType();
-	void GetFillstyle( Fillstyle& cFillstyle ); 
+	bool IsFillStyleType();
+	void GetFillStyle( FillStyle& cFillStyle );
 
 	void SetColour( const Colour& nPenColour );
 	void SetColour( const os::String cColourName );
@@ -83,7 +83,7 @@ public:
 	void SetLineCap( const enum eLineCap eLineCap );
 	enum eLineCap GetLineCap();
 
-	Penstyle& operator=( const Penstyle& cPenstyle );
+	PenStyle& operator=( const PenStyle& cPenStyle );
 private:
 	class _Private;
 	_Private* m;

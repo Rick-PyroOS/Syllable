@@ -34,7 +34,7 @@
 #include <gui/bitmap.h>
 #include <gui/tooltip.h>
 #include <appserver/protocol.h>
-
+#include <util/appserverconfig.h>
 #include <macros.h>
 
 using namespace os;
@@ -147,6 +147,7 @@ public:
 	Color32_s m_sFgColor;
 	Color32_s m_sBgColor;
 	Color32_s m_sEraseColor;
+    graphics::theme::style::Style* m_pcStyle;
 
 	Font *m_pcFont;
 
@@ -220,6 +221,7 @@ View::View( const Rect & cFrame, const String & cTitle, uint32 nResizeMask, uint
 	m->m_pcToolTip = NULL;
 
 	m->m_nTabOrder = -1;
+	m->m_pcStyle = NULL;
 	m->m_sBgColor = get_default_color( COL_NORMAL );
 	m->m_sEraseColor = get_default_color( COL_NORMAL );
 
@@ -325,6 +327,14 @@ void View::SetTabOrder( int nOrder )
 
 	m->m_nTabOrder = nOrder;
 	s_nNextTabOrder = std::max( nOrder, s_nNextTabOrder ) + 1;
+}
+
+void View::SetStyle(graphics::theme::style::Style* pcStyle){
+    m->m_pcStyle = pcStyle;
+}
+
+graphics::theme::style::Style* View::GetStyle() const{
+    return m->m_pcStyle;
 }
 
 /** Set popup menu for a View.
@@ -2047,8 +2057,11 @@ void View::Paint( const Rect & cUpdateRect )
  * \sa Invalidate(), Flush()
  * \author Jonas Jarvoll (jonas@pyro-os.org)
  *****************************************************************************/
-void View::Paint( graphics::Graphics& cGraphics, const Rect & cUpdateRect )
-{
+void View::Paint(const Rect& cUpdateRect, graphics::Graphics& cGraphics){
+    if (m->m_pcStyle == NULL){
+        graphics::theme::style::Style style = (new os::AppserverConfig())->GetDefaultStyle();
+        SetStyle(&style);
+    }
 }
 
 /** Flush the render queue.

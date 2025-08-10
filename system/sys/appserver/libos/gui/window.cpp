@@ -1607,7 +1607,7 @@ void Window::DispatchMessage( Message * pcMsg, Handler * pcHandler )
 
 						graphics::GraphicsView* pcGraphics = new graphics::GraphicsView( pcView );
 						pcGraphics->BeginUpdate();
-						pcView->Paint( *pcGraphics, cRect );
+						pcView->Paint( cRect,*pcGraphics);
 						pcGraphics->EndUpdate();
 						delete pcGraphics;
 					}

@@ -148,7 +148,7 @@ void GraphicsBackend :: RemoveClip()
 	cairo_reset_clip( m->psCairo );
 }
 
-void GraphicsBackend :: SetPen( Penstyle& cPen )
+void GraphicsBackend :: SetPen( PenStyle& cPen )
 {
 	Graphics::SetPen( cPen );
 
@@ -160,10 +160,10 @@ void GraphicsBackend :: SetPen( Penstyle& cPen )
 	}
 
 	// Check if the pen shall use a fillstyle to draw or not
-	if( cPen.IsFillstyleType() )
+	if( cPen.IsFillStyleType() )
 	{
-		Fillstyle style;
-		cPen.GetFillstyle( style );
+		FillStyle style;
+		cPen.GetFillStyle( style );
 		m->psPenPattern = style.GetCairoPattern();
 		cairo_set_source( m->psCairo, m->psPenPattern );
 	}
@@ -196,9 +196,9 @@ void GraphicsBackend :: SetPen( Penstyle& cPen )
 	}
 }
 
-void GraphicsBackend :: SetFillstyle( Fillstyle& cStyle )
+void GraphicsBackend :: SetFillStyle( FillStyle& cStyle )
 {
-	Graphics::SetFillstyle( cStyle );
+	Graphics::SetFillStyle( cStyle );
 
 	cairo_pattern_t* pattern = cStyle.GetCairoPattern();
 	cairo_set_source( m->psCairo, pattern );

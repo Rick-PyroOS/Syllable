@@ -26,6 +26,7 @@
 #include <gui/button.h>
 #include <gui/window.h>
 #include <gui/font.h>
+#include <graphics/theme/theme.h>
 
 #include <macros.h>
 
@@ -321,17 +322,21 @@ void Button::Paint( const Rect & cUpdateRect )
 	
 }
 
-void Button :: Paint( graphics::Graphics& cGraphics, const Rect & cUpdateRect )
-{	
+void Button::Paint(const Rect& cUpdateRect,graphics::Graphics& cGraphics){
+//    if (GetStyle() == NULL){
+//        dbprintf("Loading default theme for button");
+//        SetStyle(os::Application()->GetTheme()->GetButtonStyle());
+//    }
+
 	Rect cBounds = GetBounds();
 	cBounds.Resize( 0.5f, 0.5f, -0.5f, -0.5f );
 
-	graphics::Penstyle cText( "black" );
-	graphics::Penstyle cOuterBorder( "black", 1.0f );
-	graphics::Penstyle cInnerBorder( "#eeeeee", 1.0f );
-	graphics::FillstyleSolid cBackground( graphics::Colour( graphics::Colour::COL_NORMAL ) );
+	graphics::PenStyle cText( "black" );
+	graphics::PenStyle cOuterBorder( "black", 1.0f );
+	graphics::PenStyle cInnerBorder( "#eeeeee", 1.0f );
+	graphics::FillStyleSolid cBackground( graphics::Colour( graphics::Colour::COL_NORMAL ) );
 
-	// Set up appearence of the button based on the current status of the button
+	// Set up appearance of the button based on the current status of the button
 	if (IsEnabled())
 	{
 		if (m->m_bMouseOver)
@@ -350,7 +355,7 @@ void Button :: Paint( graphics::Graphics& cGraphics, const Rect & cUpdateRect )
 	cInnerShape.RoundRectangle( cBounds.Resize( 2, 2, -2, -2 ), 15 );
 
 	// Draw button background
-	cGraphics.SetFillstyle( cBackground );
+	cGraphics.SetFillStyle( cBackground );
 	cGraphics.FillShape( cOuterShape );
 
 	// Draw the outer border
@@ -363,15 +368,16 @@ void Button :: Paint( graphics::Graphics& cGraphics, const Rect & cUpdateRect )
 
 	// Draw focus if any
 	if( HasFocus() )
-	{		
-		graphics::Penstyle cFocus( "black", 1.0f );
-		cFocus.SetDashes( "border" );
-
-		graphics::Shape cFocusShape;
-		cFocusShape.RoundRectangle( cBounds.Resize( 2, 2, -2, -2 ), 15 );
-
-		cGraphics.SetPen( cFocus );
-		cGraphics.DrawShape( cFocusShape );
+	{
+		graphics::theme::style::BorderStyle style = graphics::theme::style::BorderStyle();
+		style.SetMargin(os::Rect(2,2,-2,-2));
+		style.SetPenStyleColour("red");
+        style.SetPenStyleWidth(1);
+		style.SetRadius(15);
+		style.SetLineStyle(graphics::theme::style::BorderStyle::BORDER);
+		graphics::PenStyle penStyle = style.GetPenStyle();
+		cGraphics.SetPen( penStyle );
+		cGraphics.DrawShape(style.GetShape(cBounds));
 	}
 
 	// And finally draw the text within the button

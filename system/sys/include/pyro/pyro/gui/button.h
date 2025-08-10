@@ -69,7 +69,7 @@ public:
     virtual void  KeyUp( const char* pzString, const char* pzRawString, uint32 nQualifiers );
     virtual void  Activated( bool bIsActive );
     virtual void  Paint( const Rect& cUpdateRect );
-	virtual void Paint( graphics::Graphics& cGraphics, const Rect & cUpdateRect );
+    virtual void  Paint(const Rect& cUpdateRect, graphics::Graphics& cGraphics);
 
     virtual void PostValueChange( const Variant& cNewValue );
     virtual void LabelChanged( const String& cNewLabel );

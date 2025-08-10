@@ -152,7 +152,7 @@ public:
 		cairo_set_antialias( psCairo, (cairo_antialias_t) psMsg->nAliasMode ); // FIXME: We better do this nicer
 	}
 
-	void _SetPenstyle( GRndPen_s* psMsg )
+	void _SetPenStyle( GRndPen_s* psMsg )
 	{
 		nRed = psMsg->m_nRed;
 		nBlue = psMsg->m_nBlue;
@@ -170,7 +170,7 @@ public:
 			cairo_set_dash( psCairo, NULL, 0, 0.0f );
 	}
 
-	void _SetFillstyle( GRndFillStyle_s* psMsg )
+	void _SetFillStyle( GRndFillStyle_s* psMsg )
 	{
 		// Release previous pattern
 		if( psPattern != NULL )
@@ -234,7 +234,7 @@ public:
 	{
 		if( psPattern == NULL )
 		{
-			dbprintf( "Graphics::_Fill Pattern emptu (forgot SetFillstyle?)\n" );
+			dbprintf( "Graphics::_Fill Pattern emptu (forgot SetFillStyle?)\n" );
 			return;
 		}
 
@@ -677,10 +677,10 @@ void GraphicsCairo :: DispatchCommand( GRndHeader_s* psHdr )
 		case GFX_SET_FONT:
 			break;
 		case GFX_SET_PENSTYLE:
-			my->_SetPenstyle( (GRndPen_s*) psHdr );
+			my->_SetPenStyle( (GRndPen_s*) psHdr );
 			break;
 		case GFX_SET_FILLSTYLE:
-			my->_SetFillstyle( (GRndFillStyle_s*) psHdr );
+			my->_SetFillStyle( (GRndFillStyle_s*) psHdr );
 			break;
 		case GFX_STROKE_PATH:
 			my->_DrawShape( (GRndPath_s*) psHdr );

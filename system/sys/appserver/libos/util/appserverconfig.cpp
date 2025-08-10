@@ -21,7 +21,7 @@
 #include <util/appserverconfig.h>
 #include <util/application.h>
 #include <util/messenger.h>
-
+#include <graphics/theme/theme.h>
 #include <appserver/protocol.h>
 
 #include <stdexcept>
@@ -122,4 +122,23 @@ bigtime_t AppserverConfig::GetKeyRepeat() const
 
 	m_cConfig.FindInt64( "key_repeat", &nDelay );
 	return ( nDelay );
+}
+
+graphics::theme::Theme AppserverConfig::GetTheme() const {
+    os::String cString = "";
+    m_cConfig.FindString("current_theme",&cString );
+    std::map<os::String,graphics::theme::Theme> themes = Application::GetInstance()->GetThemes();
+    std::map<os::String,graphics::theme::Theme>::iterator i = themes.find( cString );
+    return (cString.empty() && i != theme.end()) ? themes.at(i): graphics::theme::Theme::DEFAULT_THEME;
+}
+
+graphics::theme::style::Style AppserverConfig::GetDefaultStyle() const{
+    graphics::style::Theme theme = GetTheme();
+    os::String cDefaultStyle = "";
+    m_cConfig.FindString("default_style",&cDefaultStyle);
+    return cDefaultStyle == "dark" ? theme.GetDarkStyle() : theme.GetLightStyle();
+}
+
+void AppserverConfig::SetDefaultStyle(const graphics::theme::style::Style&){
+    assert("Not Implemented");
 }

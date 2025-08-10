@@ -228,7 +228,7 @@ void GraphicsView :: SetFont( const GFont& cFont )
 	}
 }
 
-void GraphicsView :: SetPen( Penstyle& cPen )
+void GraphicsView :: SetPen( PenStyle& cPen )
 {
 	Graphics::SetPen( cPen );
 
@@ -263,28 +263,28 @@ void GraphicsView :: SetPen( Penstyle& cPen )
 	}
 }
 
-void GraphicsView :: SetFillstyle( Fillstyle& cStyle )
+void GraphicsView :: SetFillStyle( FillStyle& cStyle )
 {
-	Graphics::SetFillstyle( cStyle );
+	Graphics::SetFillStyle( cStyle );
 
 	Window *pcWindow = m->pcView->GetWindow();
 
 	if( pcWindow != NULL )
 	{
 		int size = sizeof( GRndFillStyle_s );
-		Fillstyle::eFillstyleType type = cStyle.GetType();
+		FillStyle::eFillStyleType type = cStyle.GetType();
 
 		switch( type )
 		{
-			case Fillstyle :: FillNone:	// Nothing to do
+			case FillStyle :: FillNone:	// Nothing to do
 				return;
-			case Fillstyle :: FillSolid:
+			case FillStyle :: FillSolid:
 				size += sizeof( double ) * 4;
 				break;
-			case Fillstyle :: FillLinear:
+			case FillStyle :: FillLinear:
 				size += sizeof( double ) * cStyle.ColourStopCount() * 5 + sizeof( double ) * 4;
 				break;
-			case Fillstyle :: FillRadial:
+			case FillStyle :: FillRadial:
 				size += sizeof( double ) * cStyle.ColourStopCount() * 5 + sizeof( double ) * 6;
 				break;
 		}
@@ -293,9 +293,9 @@ void GraphicsView :: SetFillstyle( Fillstyle& cStyle )
 
 		switch( type )
 		{
-			case Fillstyle :: FillNone:
+			case FillStyle :: FillNone:
 				break;
-			case Fillstyle :: FillSolid:
+			case FillStyle :: FillSolid:
 			{
 				psCmd->nType = 0; // SOLID
 				Colour cColour;
@@ -307,7 +307,7 @@ void GraphicsView :: SetFillstyle( Fillstyle& cStyle )
 				psCmd->m_zColourData[ 3 ] = cColour.m_nAlpha;
 				break;
 			}
-			case Fillstyle :: FillLinear:
+			case FillStyle :: FillLinear:
 			{
 				psCmd->nType = 1; // LINEAR
 				Point cStart, cEnd;
@@ -332,7 +332,7 @@ void GraphicsView :: SetFillstyle( Fillstyle& cStyle )
 				}
 				break;
 			}
-			case Fillstyle :: FillRadial:
+			case FillStyle :: FillRadial:
 			{
 				psCmd->nType = 2; // RADIAL
 				Point cCenter1, cCenter2;

@@ -140,7 +140,7 @@ GraphicsImage :: GraphicsImage( IPoint size, const Colour& cColour ) : GraphicsB
 
 	GraphicsBackend::SetCairoSurface( surface );
 
-	Penstyle p( cColour );
+	PenStyle p( cColour );
 	SetPen( p );
 	FillRectangle( Rect( 0, 0, size.x + 1, size.y + 1 ) );
 }

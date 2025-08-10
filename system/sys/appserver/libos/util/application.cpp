@@ -46,6 +46,7 @@ class Application::Private
 	port_id m_hReplyPort;
 	std::vector < Window * >m_cWindows;
 	std::vector <os::KeyboardEvent> m_cKeyEvents;
+	std::vector <graphics::Theme> m_cThemes;
 	Locale m_cLocale;
 	Catalog* m_pcCatalog;
 };
@@ -1205,6 +1206,11 @@ os::String Application::GetApplicationPath()
 	cPath =  os::String(buffer);
 	
 	return cPath;
+}
+
+std::map<os::String,graphics::theme::Theme> Application::GetThemes() const{
+    std::map<os::String,graphics::theme::Theme> themes;
+    return themes;
 }
 
 

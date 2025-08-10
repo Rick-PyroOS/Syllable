@@ -221,8 +221,7 @@ public:
     virtual void	WindowActivated( bool bIsActive );
 
     virtual void	Paint( const Rect& cUpdateRect );
-    virtual void    Paint( graphics::Graphics& cGraphics, const Rect & cUpdateRect );
-    
+    virtual void    Paint( const Rect & cUpdateRect, graphics::Graphics& cGraphics);
     virtual void	MouseMove( const Point& cNewPos, int nCode, uint32 nButtons, Message* pcData );
     virtual void	MouseDown( const Point& cPosition, uint32 nButtons );
     virtual void	MouseUp( const Point& cPosition, uint32 nButtons, Message* pcData );
@@ -277,6 +276,9 @@ public:
 
     virtual int		GetTabOrder() const;
     virtual void	SetTabOrder( int nOrder = NEXT_TAB_ORDER );
+
+    virtual void    SetStyle(graphics::theme::style::Style*);
+    graphics::theme::style::Style* GetStyle() const;
 
 	virtual const ShortcutKey& GetShortcut() const;
 	virtual void SetShortcut( const ShortcutKey& cShortcut );

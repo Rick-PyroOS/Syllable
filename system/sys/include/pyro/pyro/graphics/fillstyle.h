@@ -29,14 +29,14 @@ namespace graphics
 /* F I L L S T Y L E   C L A S S  											 */
 /*																			 */
 ///////////////////////////////////////////////////////////////////////////////
-class Fillstyle
+class FillStyle
 {
 public:
-	enum eFillstyleType { FillNone, FillSolid, FillLinear, FillRadial };
+	enum eFillStyleType { FillNone, FillSolid, FillLinear, FillRadial };
 
-	Fillstyle();
-	Fillstyle( enum eFillstyleType type );
-	~Fillstyle();
+	FillStyle();
+	FillStyle( enum eFillStyleType type );
+	~FillStyle();
 
 	void AddColourStop( const double nOffset, const Colour& cColour );
 	void AddColourStop( const double nOffset, const os::String& cColourName );
@@ -44,9 +44,9 @@ public:
 	uint ColourStopCount() const;
 	void GetColourStop( uint nIndex, double& nOffset, Colour& cColour ) const;
 
-	Fillstyle& operator=( const Fillstyle& cFillstyle );
+	FillStyle& operator=( const FillStyle& cFillStyle );
 
-	eFillstyleType GetType();
+	eFillStyleType GetType();
 
 	void GetColour( Colour& cColour );
 	void GetLinearStartStop( os::Point& cStart, os::Point& cEnd );
@@ -63,11 +63,11 @@ protected:
 /* F I L L S T Y L E S O L I D   C L A S S  								 */
 /*																			 */
 ///////////////////////////////////////////////////////////////////////////////
-class FillstyleSolid : public Fillstyle
+class FillStyleSolid : public FillStyle
 {
 public:
-	FillstyleSolid( const Colour& nPenColour );
-	FillstyleSolid( const os::String cColourName );
+	FillStyleSolid( const Colour& nPenColour );
+	FillStyleSolid( const os::String cColourName );
 	
 	void SetColour( const Colour& cPenColour );
 	void SetColour( const os::String cColourName );
@@ -78,10 +78,10 @@ public:
 /* F I L L S T Y L E L I N E A R   C L A S S  								 */
 /*																			 */
 ///////////////////////////////////////////////////////////////////////////////
-class FillstyleLinear : public Fillstyle
+class FillStyleLinear : public FillStyle
 {
 public:
-	FillstyleLinear( const os::Point& cStart, const os::Point& cStop );
+	FillStyleLinear( const os::Point& cStart, const os::Point& cStop );
 	
 	
 };
@@ -91,10 +91,10 @@ public:
 /* F I L L S T Y L E R A D I A L   C L A S S  								 */
 /*																			 */
 ///////////////////////////////////////////////////////////////////////////////
-class FillstyleRadial : public Fillstyle
+class FillStyleRadial : public FillStyle
 {
 public:
-	FillstyleRadial( const os::Point& cCenter1, const double& nRadius1, 
+	FillStyleRadial( const os::Point& cCenter1, const double& nRadius1,
 					 const os::Point& cCenter2, const double& nRadius2 );
 	
 };

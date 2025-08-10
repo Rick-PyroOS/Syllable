@@ -37,13 +37,13 @@ using namespace graphics;
 ///////////////////////////////////////////////////////////////////////////////
 
 	
-class Penstyle :: _Private
+class PenStyle :: _Private
 {
 	
 public:
 	_Private()
 	{		
-		bUseFillstyle = false;
+		bUseFillStyle = false;
 		cColour = Colour( 1.0f, 0.0f, 0.0f, 1.0f );
 		nLinewidth = 2.0f;
 		eLineCap = CAIRO_LINE_CAP_BUTT;
@@ -94,7 +94,7 @@ public:
 		cList.push_back( 6.0f );
 		cList.push_back( 6.0f );
 		cList.push_back( 6.0f );
-		cStyles[ "divide" ] = cList;
+		cStyles[ "center" ] = cList;
 
 		// Border
 		cList.clear();
@@ -107,8 +107,8 @@ public:
 		cStyles[ "border" ] = cList;
 	}
 
-	bool bUseFillstyle;
-	Fillstyle cFillstyle;
+	bool bUseFillStyle;
+	FillStyle cFillStyle;
 
 	Colour cColour;
 	double nLinewidth;
@@ -121,7 +121,7 @@ public:
 	static map< string, vector< double > > cStyles;
 };
 
-map< string, vector< double > > Penstyle :: _Private :: cStyles;
+map< string, vector< double > > PenStyle :: _Private :: cStyles;
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -129,104 +129,104 @@ map< string, vector< double > > Penstyle :: _Private :: cStyles;
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-Penstyle :: Penstyle()
+PenStyle :: PenStyle()
 {
 	m = new _Private();
 }
 
-Penstyle :: Penstyle( const Colour& nPenColour )
+PenStyle :: PenStyle( const Colour& nPenColour )
 {
 	m = new _Private();
 	m->cColour = nPenColour;
 }
 
-Penstyle :: Penstyle( const String cColourName )
+PenStyle :: PenStyle( const String cColourName )
 {
 	m = new _Private();
 
 	m->cColour = Colour( cColourName );
 }
 
-Penstyle :: Penstyle( const Colour& nPenColour, const double nLinewidth )
+PenStyle :: PenStyle( const Colour& nPenColour, const double nLinewidth )
 {
 	m = new _Private();
 	m->cColour = nPenColour;
 	m->nLinewidth = nLinewidth;
 }
 
-Penstyle :: Penstyle( const String cColourName, const double nLinewidth )
+PenStyle :: PenStyle( const String cColourName, const double nLinewidth )
 {
 	m = new _Private();
 	m->cColour = Colour( cColourName );
 	m->nLinewidth = nLinewidth;
 }
 
-Penstyle :: Penstyle( const Fillstyle& cFillstyle )
+PenStyle :: PenStyle( const FillStyle& cFillStyle )
 {
 	m = new _Private();
-	m->bUseFillstyle = true;
-	m->cFillstyle = cFillstyle;
+	m->bUseFillStyle = true;
+	m->cFillStyle = cFillStyle;
 }
 
-Penstyle :: Penstyle( const Fillstyle& cFillstyle, const double nLinewidth  )
+PenStyle :: PenStyle( const FillStyle& cFillStyle, const double nLinewidth  )
 {
 	m = new _Private();
-	m->bUseFillstyle = true;
-	m->cFillstyle = cFillstyle;
+	m->bUseFillStyle = true;
+	m->cFillStyle = cFillStyle;
 	m->nLinewidth = nLinewidth;
 }
 
-Penstyle :: ~Penstyle()
+PenStyle :: ~PenStyle()
 {
 	delete m;
 }
 
-bool Penstyle :: IsFillstyleType()
+bool PenStyle :: IsFillStyleType()
 {
-	return m->bUseFillstyle;
+	return m->bUseFillStyle;
 }
 
-void Penstyle :: GetFillstyle( Fillstyle& cFillstyle )
+void PenStyle :: GetFillStyle( FillStyle& cFillStyle )
 {
-	cFillstyle = m->cFillstyle;
+	cFillStyle = m->cFillStyle;
 }
 
-void Penstyle :: SetColour( const Colour& nPenColour )
+void PenStyle :: SetColour( const Colour& nPenColour )
 {
 	m->cColour = nPenColour;
 }
 
-void Penstyle :: SetColour( const String cColourName )
+void PenStyle :: SetColour( const String cColourName )
 {
 	m->cColour = Colour( cColourName );	
 }
 
-void Penstyle :: GetColour( Colour& cColour )
+void PenStyle :: GetColour( Colour& cColour )
 {
 	cColour = m->cColour;
 }
 
-void Penstyle :: SetLinewidth( const double nWidth )
+void PenStyle :: SetLinewidth( const double nWidth )
 {
 	m->nLinewidth = nWidth;
 }
 
-double Penstyle :: GetLinewidth()
+double PenStyle :: GetLinewidth()
 {
 	return m->nLinewidth;
 }
 
-void Penstyle :: SetMiterLimit( const double nMiterLimit )
+void PenStyle :: SetMiterLimit( const double nMiterLimit )
 {
 	m->nMiterLimit = nMiterLimit;
 }
 
-double Penstyle :: GetMiterLimit()
+double PenStyle :: GetMiterLimit()
 {
 	return m->nMiterLimit;
 }
 
-void Penstyle :: SetDashes( const String& cStyle )
+void PenStyle :: SetDashes( const String& cStyle )
 {
 	if( cStyle == "" )
 		throw os::errno_exception( "No line style specified" );
@@ -241,7 +241,7 @@ void Penstyle :: SetDashes( const String& cStyle )
 	SetDashes( m->cStyles[ cStyle ], 0.0f );
 }
 
-void Penstyle :: SetDashes( vector< double > cDashList, const double nOffset )
+void PenStyle :: SetDashes( vector< double > cDashList, const double nOffset )
 {
 	if( cDashList.empty() )
 		ClearDashes();
@@ -252,19 +252,19 @@ void Penstyle :: SetDashes( vector< double > cDashList, const double nOffset )
 	}
 }
 
-void Penstyle :: ClearDashes()
+void PenStyle :: ClearDashes()
 {
 	m->nDashOffset = 0.0f;
 	m->cDashes.clear();
 }
 
-void Penstyle :: GetDashes( vector< double >& cDashList, double& nOffset )
+void PenStyle :: GetDashes( vector< double >& cDashList, double& nOffset )
 {
 	cDashList = m->cDashes;
 	nOffset = m->nDashOffset;
 }
 
-void Penstyle :: SetLineJoin( const enum eLineJoin eLineJoin )
+void PenStyle :: SetLineJoin( const enum eLineJoin eLineJoin )
 {
 	// Translate to Cairo
 	switch( eLineJoin )
@@ -283,7 +283,7 @@ void Penstyle :: SetLineJoin( const enum eLineJoin eLineJoin )
 	}
 }
 
-enum eLineJoin Penstyle :: GetLineJoin()
+enum eLineJoin PenStyle :: GetLineJoin()
 {
 	// Translate from Cairo
 	switch( m->eLineJoin )
@@ -299,7 +299,7 @@ enum eLineJoin Penstyle :: GetLineJoin()
 	throw String( "Invalid line join" );
 }
 
-void Penstyle :: SetLineCap( const enum eLineCap eLineCap )
+void PenStyle :: SetLineCap( const enum eLineCap eLineCap )
 {
 	// Translate to Cairo
 	switch( eLineCap )
@@ -318,7 +318,7 @@ void Penstyle :: SetLineCap( const enum eLineCap eLineCap )
 	}
 }
 
-enum eLineCap Penstyle :: GetLineCap()
+enum eLineCap PenStyle :: GetLineCap()
 {
 	// Translate from Cairo
 	switch( m->eLineCap )
@@ -335,9 +335,9 @@ enum eLineCap Penstyle :: GetLineCap()
 	throw String( "Invalid line cap" );
 }
 
-Penstyle& Penstyle :: operator=( const Penstyle& cPenstyle )
+PenStyle& PenStyle :: operator=( const PenStyle& cPenStyle )
 {
-	if( this == &cPenstyle )  // Selfassigment
+	if( this == &cPenStyle )  // Selfassigment
 		return *this;
 
 	if( m != NULL )
@@ -345,13 +345,13 @@ Penstyle& Penstyle :: operator=( const Penstyle& cPenstyle )
 
 	m = new _Private();
 
-	m->cColour = cPenstyle.m->cColour;
-	m->nLinewidth = cPenstyle.m->nLinewidth;
-	m->eLineCap = cPenstyle.m->eLineCap;
-	m->eLineJoin = cPenstyle.m->eLineJoin;
-	m->nMiterLimit = cPenstyle.m->nMiterLimit;
-	m->nDashOffset = cPenstyle.m->nDashOffset;
-	m->cDashes = cPenstyle.m->cDashes;
+	m->cColour = cPenStyle.m->cColour;
+	m->nLinewidth = cPenStyle.m->nLinewidth;
+	m->eLineCap = cPenStyle.m->eLineCap;
+	m->eLineJoin = cPenStyle.m->eLineJoin;
+	m->nMiterLimit = cPenStyle.m->nMiterLimit;
+	m->nDashOffset = cPenStyle.m->nDashOffset;
+	m->cDashes = cPenStyle.m->cDashes;
 
 	return *this;
 }

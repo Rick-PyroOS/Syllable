@@ -54,15 +54,15 @@ protected:
 	public:
 		_Private()
 		{		
-			cFillstyle = FillstyleSolid( "black" );
+			cFillStyle = FillStyleSolid( "black" );
 			eAlias = ANTIALIAS_DEFAULT;
 			eOperator = OPERATOR_SOURCE;
 		}
 
 		eAntiAlias eAlias;
 		enum eOperator eOperator;		
-		Penstyle cPen;
-		Fillstyle cFillstyle;
+		PenStyle cPen;
+		FillStyle cFillStyle;
 		GFont cFont;
 	};
 
@@ -86,8 +86,8 @@ public:
 	virtual void SetFont( const GFont& cFont );
 	void GetFont( GFont& cFont );
 
-	virtual void SetPen( Penstyle& cPen );
-	virtual void GetPen( Penstyle& cPen );
+	virtual void SetPen( PenStyle& cPen );
+	virtual void GetPen( PenStyle& cPen );
 
 	virtual void PopState() = 0;
 	virtual void PushState() = 0;
@@ -96,8 +96,8 @@ public:
 	virtual void GetTransform( Transform& cTransform ) = 0;
 	virtual void ResetTransform() = 0;
 
-	virtual void SetFillstyle( Fillstyle& cStyle );
-	virtual void GetFillstyle( Fillstyle& cStyle );
+	virtual void SetFillStyle( FillStyle& cStyle );
+	virtual void GetFillStyle( FillStyle& cStyle );
 
 	virtual void Clear( const Colour& cColour, const os::Rect& cBound ) = 0;
 

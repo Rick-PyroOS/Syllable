@@ -47,9 +47,9 @@ public:
 	void SetClip( const Shape& cShape );
 	void RemoveClip();
 
-	void SetPen( Penstyle& cPen );
+	void SetPen( PenStyle& cPen );
 
-	void SetFillstyle( Fillstyle& cStyle );
+	void SetFillStyle( FillStyle& cStyle );
 
 	void PopState();
 	void PushState();

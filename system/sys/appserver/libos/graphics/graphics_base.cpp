@@ -72,24 +72,24 @@ void Graphics :: GetFont( GFont& cFont )
 	cFont = m_Settings->cFont;
 }
 
-void Graphics :: SetPen( Penstyle& cPen )
+void Graphics :: SetPen( PenStyle& cPen )
 {
 	m_Settings->cPen = cPen;
 }
 
-void Graphics :: GetPen( Penstyle& cPen )
+void Graphics :: GetPen( PenStyle& cPen )
 {
 	cPen = m_Settings->cPen;
 }
 
-void Graphics :: SetFillstyle( Fillstyle& cStyle )
+void Graphics :: SetFillStyle( FillStyle& cStyle )
 {
-	m_Settings->cFillstyle = cStyle;
+	m_Settings->cFillStyle = cStyle;
 }
 
-void Graphics :: GetFillstyle( Fillstyle& cStyle )
+void Graphics :: GetFillStyle( FillStyle& cStyle )
 {
-	cStyle = m_Settings->cFillstyle;
+	cStyle = m_Settings->cFillStyle;
 }
 
 void Graphics :: DrawRectangle( const Point cP1, const Point cP2 )

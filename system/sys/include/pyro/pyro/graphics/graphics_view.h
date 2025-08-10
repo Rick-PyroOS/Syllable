@@ -53,9 +53,9 @@ public:
 
 	void SetFont( const GFont& cFont );
 
-	void SetPen( Penstyle& cPen );
+	void SetPen( PenStyle& cPen );
 
-	void SetFillstyle( Fillstyle& cStyle );
+	void SetFillStyle( FillStyle& cStyle );
 
 	void PopState();
 	void PushState();

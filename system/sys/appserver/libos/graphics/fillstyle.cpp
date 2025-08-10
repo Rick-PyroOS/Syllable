@@ -34,7 +34,7 @@ using namespace graphics;
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-class Fillstyle :: _Private
+class FillStyle :: _Private
 {
 public:
 	class _ColourStop
@@ -70,7 +70,7 @@ public:
 
 	vector< _ColourStop* > cColourStops;
 	
-	enum eFillstyleType eFillType;
+	enum eFillStyleType eFillType;
 	Colour cColour;
 	Point cStart;
 	Point cStop;
@@ -86,19 +86,19 @@ public:
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-Fillstyle :: Fillstyle()
+FillStyle :: FillStyle()
 {
 	m = new _Private();
 	m->eFillType = FillNone;
 }
 
-Fillstyle :: Fillstyle( enum eFillstyleType type )
+FillStyle :: FillStyle( enum eFillStyleType type )
 {
 	m = new _Private();
 	m->eFillType = type;
 }
 
-Fillstyle :: ~Fillstyle()
+FillStyle :: ~FillStyle()
 {
 	// Free our used colourstops
 	for( uint i = 0 ; i < ColourStopCount() ; i++ )
@@ -107,32 +107,32 @@ Fillstyle :: ~Fillstyle()
 	delete m;
 }
 
-void Fillstyle :: AddColourStop( const double nOffset, const Colour& cColour )
+void FillStyle :: AddColourStop( const double nOffset, const Colour& cColour )
 {
 	m->cColourStops.push_back( new _Private::_ColourStop( nOffset, cColour ) );
 }
 
-void Fillstyle :: AddColourStop( const double nOffset, const os::String& cColourName )
+void FillStyle :: AddColourStop( const double nOffset, const os::String& cColourName )
 {
 	_Private::_ColourStop cColourStop( nOffset, Colour( cColourName ) );
 	m->cColourStops.push_back( new _Private::_ColourStop( nOffset, Colour( cColourName ) ) );
 }
 
-uint Fillstyle :: ColourStopCount() const
+uint FillStyle :: ColourStopCount() const
 {
 	return m->cColourStops.size();
 }
 
-void Fillstyle :: GetColourStop( uint nIndex, double& nOffset, Colour& cColour ) const
+void FillStyle :: GetColourStop( uint nIndex, double& nOffset, Colour& cColour ) const
 {
 	_Private::_ColourStop* cColourStop = m->cColourStops[ nIndex ];
 	nOffset = cColourStop->m_nOffset;
 	cColour = cColourStop->m_cColour;
 }
 
-Fillstyle& Fillstyle :: operator=( const Fillstyle& cFillstyle )
+FillStyle& FillStyle :: operator=( const FillStyle& cFillStyle )
 {
-	if( this == &cFillstyle )  // Selfassigment
+	if( this == &cFillStyle )  // Selfassigment
 		return *this;
 
 	delete m;
@@ -140,35 +140,35 @@ Fillstyle& Fillstyle :: operator=( const Fillstyle& cFillstyle )
 	m = new _Private();
 
 	// Create duplicate of the colour list
-	for( uint i = 0 ; i < cFillstyle.ColourStopCount() ; i++ )
+	for( uint i = 0 ; i < cFillStyle.ColourStopCount() ; i++ )
 	{
-		_Private::_ColourStop* cColourStop = cFillstyle.m->cColourStops[ i ];
+		_Private::_ColourStop* cColourStop = cFillStyle.m->cColourStops[ i ];
 		m->cColourStops.push_back( new _Private::_ColourStop( cColourStop->m_nOffset, cColourStop->m_cColour ) );
 	}
 
-	m->eFillType = cFillstyle.m->eFillType;
-	m->cColour = cFillstyle.m->cColour;
-	m->cStart = cFillstyle.m->cStart;
-	m->cStop = cFillstyle.m->cStop;
-	m->cCenter1 = cFillstyle.m->cCenter1;
-	m->cCenter2 = cFillstyle.m->cCenter2;
-	m->nRadius1 = cFillstyle.m->nRadius1;
-	m->nRadius2 = cFillstyle.m->nRadius2;
+	m->eFillType = cFillStyle.m->eFillType;
+	m->cColour = cFillStyle.m->cColour;
+	m->cStart = cFillStyle.m->cStart;
+	m->cStop = cFillStyle.m->cStop;
+	m->cCenter1 = cFillStyle.m->cCenter1;
+	m->cCenter2 = cFillStyle.m->cCenter2;
+	m->nRadius1 = cFillStyle.m->nRadius1;
+	m->nRadius2 = cFillStyle.m->nRadius2;
 
 	return *this;
 }
 
-Fillstyle :: eFillstyleType Fillstyle :: GetType()
+FillStyle :: eFillStyleType FillStyle :: GetType()
 {
 	return m->eFillType;
 }
 
-void Fillstyle :: GetColour( Colour& cColour  )
+void FillStyle :: GetColour( Colour& cColour  )
 {
 	cColour = m->cColour;
 }
 
-void Fillstyle :: GetRadialStartStop( Point& cCenter1, double& nRadius1, Point& cCenter2, double& nRadius2 )
+void FillStyle :: GetRadialStartStop( Point& cCenter1, double& nRadius1, Point& cCenter2, double& nRadius2 )
 {
 	cCenter1 = m->cCenter1;
 	nRadius1 = m->nRadius1;
@@ -176,14 +176,14 @@ void Fillstyle :: GetRadialStartStop( Point& cCenter1, double& nRadius1, Point& 
 	nRadius2 = m->nRadius2;
 }
 
-void Fillstyle :: GetLinearStartStop( Point& cStart, Point& cEnd )
+void FillStyle :: GetLinearStartStop( Point& cStart, Point& cEnd )
 {
 	cStart = m->cStart;
 	cEnd = m->cStop;
 }
 
 
-cairo_pattern_t* Fillstyle :: GetCairoPattern() const
+cairo_pattern_t* FillStyle :: GetCairoPattern() const
 {
 	cairo_pattern_t* t = NULL;
 
@@ -236,22 +236,22 @@ cairo_pattern_t* Fillstyle :: GetCairoPattern() const
 /*																			 */
 ///////////////////////////////////////////////////////////////////////////////
 
-FillstyleSolid :: FillstyleSolid( const Colour& cColour ) : Fillstyle( Fillstyle::FillSolid )
+FillStyleSolid :: FillStyleSolid( const Colour& cColour ) : FillStyle( FillStyle::FillSolid )
 {
 	m->cColour = cColour;
 }
 
-FillstyleSolid :: FillstyleSolid( const os::String cColourName ) : Fillstyle( Fillstyle::FillSolid )
+FillStyleSolid :: FillStyleSolid( const os::String cColourName ) : FillStyle( FillStyle::FillSolid )
 {
 	m->cColour = Colour( cColourName );
 }
 
-void FillstyleSolid :: SetColour( const Colour& cPenColour )
+void FillStyleSolid :: SetColour( const Colour& cPenColour )
 {
 	m->cColour = cPenColour;
 }
 
-void FillstyleSolid :: SetColour( const os::String cColourName )
+void FillStyleSolid :: SetColour( const os::String cColourName )
 {
 	m->cColour = Colour( cColourName );
 }
@@ -262,7 +262,7 @@ void FillstyleSolid :: SetColour( const os::String cColourName )
 /*																			 */
 ///////////////////////////////////////////////////////////////////////////////
 
-FillstyleLinear :: FillstyleLinear( const Point& cStart, const Point& cStop ) : Fillstyle( Fillstyle::FillLinear )
+FillStyleLinear :: FillStyleLinear( const Point& cStart, const Point& cStop ) : FillStyle( FillStyle::FillLinear )
 {
 	m->cStart = cStart;
 	m->cStop = cStop;
@@ -275,8 +275,8 @@ FillstyleLinear :: FillstyleLinear( const Point& cStart, const Point& cStop ) : 
 ///////////////////////////////////////////////////////////////////////////////
 
 
-FillstyleRadial :: FillstyleRadial( const Point& cCenter1, const double& nRadius1, 
-								 	 const Point& cCenter2, const double& nRadius2 ) : Fillstyle( Fillstyle::FillRadial )
+FillStyleRadial :: FillStyleRadial( const Point& cCenter1, const double& nRadius1,
+								 	 const Point& cCenter2, const double& nRadius2 ) : FillStyle( FillStyle::FillRadial )
 {
 	m->cCenter1 = cCenter1;
 	m->nRadius1 = nRadius1;

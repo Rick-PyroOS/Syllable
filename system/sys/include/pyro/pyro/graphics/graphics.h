@@ -23,6 +23,10 @@
 #include "transform.h"
 #include "penstyle.h"
 #include "fillstyle.h"
+#include "theme/style/style.h"
+#include "theme/style/border.h"
+#include "theme/theme.h"
+
 #include "graphics_base.h"
 #include "graphics_view.h"
 #include "graphics_image.h"
