@@ -61,7 +61,7 @@ public:
     virtual bool Invoked( Message* pcMessage );
 
     //TODO: RGC - Use state instead of just enabled
-    //TODO: RGC - Use html states - :active, :focus, :hover, :target/?:visited?
+    //TODO: RGC - Use html states - :disabled, :active, :focus, :hover, :target?/:visited?/:checked?
     virtual void SetEnable( bool bEnabled );
     virtual bool IsEnabled( void ) const;
 
