@@ -16,5 +16,5 @@ NOTE: All ports will live in http://github.com/Rick-PyroOS/Syllable-Ports for no
 8.  [x] MPFR - 3.1.0?
 9.  [x] MPC - 1.1.0?
 10. [x] zstd - 1.0.0?
-11. [ ] isl - 0.24
+11. [x] isl - 0.24
 12. [ ] bison - 3.5.1?
