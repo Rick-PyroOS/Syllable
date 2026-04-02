@@ -18,3 +18,22 @@ NOTE: All ports will live in http://github.com/Rick-PyroOS/Syllable-Ports for no
 10. [x] zstd - 1.0.0?
 11. [x] isl - 0.24
 12. [x] bison - 3.5.1
+
+
+## Version upgrade path
+
+GCC 4.1.2 -> GCC 9.5 -> 15.2.0
+
+We will need to use:
+
+--disable-bootstrap
+--enable-languages=c,c++
+--with-arch=i586
+--enable-sjlj-exceptions
+--enable-shared
+--enable-threads
+--with-system-zlib
+--disable-libstdcxx-pch
+--disable-lto
+
+
