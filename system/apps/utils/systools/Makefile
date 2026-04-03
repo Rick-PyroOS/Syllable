@@ -5,7 +5,7 @@ OBJDIR = objs
 EXES = $(OBJDIR)/init $(OBJDIR)/ps $(OBJDIR)/ls_ports $(OBJDIR)/ls_sema	\
 	$(OBJDIR)/top $(OBJDIR)/nice $(OBJDIR)/semctl $(OBJDIR)/shutdown \
 	$(OBJDIR)/strace $(OBJDIR)/sysinfo $(OBJDIR)/unbuffer mkhome kill_all \
-	$(OBJDIR)/open $(OBJDIR)/cbcopy $(OBJDIR)/cbpaste $(OBJDIR)/alert1
+	$(OBJDIR)/open $(OBJDIR)/cbcopy $(OBJDIR)/cbpaste $(OBJDIR)/alert
 
 init_OBJS		= init.o
 ps_OBJS			= ps.o
