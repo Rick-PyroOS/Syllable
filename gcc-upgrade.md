@@ -19,6 +19,18 @@ NOTE: All ports will live in http://github.com/Rick-PyroOS/Syllable-Ports for no
 11. [x] isl - 0.24
 12. [x] bison - 3.5.1
 
+## Changes to syllable.h
+
+The file syllable.h is not compatible with 9.5.0 / 15...  
+
+1. TARGET_VERSION - modern gcc is deprecated. Our definition uses
+fprintf but modern GCC headers should not contain executable code
+2. We are missing TARGET_OS_CPP_BUILTINS - prior versions of relied on CPP spec to define the system macros, but modern GCC requires TARGET_OS_CPP_BUILTINS to include __sylalble__ as well as __SYLLABLE__  
+3.   
+
+## Changes to tmake_file
+
+
 
 ## Version upgrade path
 
