@@ -1,7 +1,7 @@
 # Set some global variables for the sub-Makefiles
 
 export ATHEOS_SRC := $(PWD)
-export ATHEOS_INCLUDE_PATH := $(PWD)/sys/include
+export ATHEOS_INCLUDE_PATH := $(PWD)/sys/include/syllable
 export ATHEOS_LIB_PATH := $(PWD)/libs
 
 export BUILD_TOOLS := $(ATHEOS_SRC)/build-tools

@@ -20,6 +20,9 @@
 #ifndef __F_FS_ATTRIBS_H__
 #define __F_FS_ATTRIBS_H__
 
+#include <atheos/types.h>
+#include <sys/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
