@@ -305,7 +305,6 @@ static void afs_add_jb_entry( AfsTransaction_s *psTrans, AfsHashEnt_s *psEntry )
  * XXX The entry points to it's transaction. This should at least be checked, and
  * probably asserted.
  * \par Warning:
- * \param
  * \return
  * \sa
  ****************************************************************************/
@@ -830,7 +829,6 @@ static void afs_force_flush_transaction( AfsVolume_s * psVolume, AfsTransaction_
  * write-to-disk for that transaction.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  ****************************************************************************/
@@ -1312,7 +1310,6 @@ static int afs_merge_transactions( AfsVolume_s * psVolume )
  * the volume.  Next, for each remaining hash entry, verify that it's being written back.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  ****************************************************************************/
@@ -1523,7 +1520,6 @@ int afs_checkpoint_journal( AfsVolume_s * psVolume )
  * \par Note:
  * \par Warning:
  * \param psVolume		AFS volume containing journal
- * \param
  * \return
  * \sa
  ****************************************************************************/
@@ -1668,7 +1664,6 @@ int afs_start_journal_flusher( AfsVolume_s * psVolume )
  * This should be cleaned up.  Just test for open transaction and panic, then write to
  * log, wait for space, and unlock.
  * \par Warning:
- * \param
  * \return
  * \sa
  ****************************************************************************/

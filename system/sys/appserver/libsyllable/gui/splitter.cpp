@@ -286,7 +286,6 @@ Splitter::Splitter( const Rect & cFrame, const String & cTitle, View * pView1, V
 * \par Notes:
 * You should call this method when you change the subviews' frames.
 * \par Warning:
-* \param  
 * \return
 * \sa
 * \bug
@@ -512,7 +511,6 @@ void Splitter::SetOrientation( orientation eOrientation )
 * want to place icons on the separator.
 * \par Notes:
 * \par Warning:
-* \param
 * \return
 * \sa
 * \bug
@@ -529,7 +527,6 @@ View *Splitter::SeparatorView() const
 * Return the separator position 
 * \par Notes:
 * \par Warning:
-* \param
 * \return the top(left) view height(width)
 * \sa
 * \bug
@@ -550,7 +547,6 @@ float Splitter::GetSplitPosition() const
 * \par Description:
 * \par Notes:
 * \par Warning:
-* \param
 * \return
 * \sa
 * \bug
@@ -585,7 +581,6 @@ void Splitter::SetSplitLimits( float fMinSize1, float fMinSize2 )
 * The layout is automatically refreshed.
 * \par Notes:
 * \par Warning:
-* \param
 * \return
 * \sa
 * \bug

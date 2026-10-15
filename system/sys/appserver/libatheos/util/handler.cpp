@@ -203,7 +203,6 @@ void Handler::SetName( const std::string& cName )
  *	able to dispatch messages until the hook returns so spending a
  *	long time in this members will make the GUI feel unresponsive.
  * \par Warning:
- * \param
  * \return
  * \par Error codes:
  * \sa

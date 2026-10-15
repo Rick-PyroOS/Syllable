@@ -35,7 +35,6 @@ using namespace os;
  *	Not much happens here. All paramaters are sendt ot the View() constructor
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)

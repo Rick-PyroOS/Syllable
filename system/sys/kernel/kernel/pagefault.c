@@ -476,7 +476,6 @@ static int handle_write_prot( MemArea_s *psArea, pte_t * pPte, uintptr_t nAddres
  *	The given address is NULL based and must be between psArea->a_nStart
  *	and psArea->a_nEnd
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

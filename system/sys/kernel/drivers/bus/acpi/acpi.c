@@ -199,7 +199,6 @@ void* acpi_bus_get_hooks( int nVersion )
  * \par Description: Initialize the pci busmanager.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

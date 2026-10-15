@@ -1162,7 +1162,6 @@ status_t wakeup_thread( thread_id hThread, bool bWakeupSuspended )
  * \par Locks Required:
  * \par Locks Taken:
  * \par Warning:
- * \param
  * \return
  * \sa
  ****************************************************************************/

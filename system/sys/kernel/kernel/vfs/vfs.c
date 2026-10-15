@@ -993,7 +993,6 @@ int sys_umask( int nMask )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)
@@ -1047,7 +1046,6 @@ int open_inode( bool bKernel, Inode_s *psInode, int nType, int nMode )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)
@@ -1178,7 +1176,6 @@ static int open_file( Inode_s **ppsParent, const char *pzName, int nNameLen, int
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)
@@ -1506,7 +1503,6 @@ static int copy_fd( bool bKernel, File_s *psFile )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)
@@ -1556,7 +1552,6 @@ static int create_pipe( bool bKernel, int *pnFiles )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)
@@ -1585,7 +1580,6 @@ int sys_pipe( int *pnFiles )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)
@@ -5337,7 +5331,6 @@ int Seek( int nFileDesc, int nDistance, int	nMode )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)

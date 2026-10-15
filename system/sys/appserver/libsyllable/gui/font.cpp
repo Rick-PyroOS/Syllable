@@ -686,7 +686,6 @@ status_t Font::GetDefaultFont( const String & cName, font_properties * psProps )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -701,7 +700,6 @@ status_t Font::SetDefaultFont( const String & cName, const font_properties & sPr
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -715,7 +713,6 @@ status_t Font::AddDefaultFont( const String & cName, const font_properties & sPr
 /** Get number of installed Font families
  * \par Description:
  *  Returns the number of Font families
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -730,7 +727,6 @@ int Font::GetFamilyCount()
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
