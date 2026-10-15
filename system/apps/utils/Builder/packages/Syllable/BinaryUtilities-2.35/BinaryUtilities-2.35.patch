@@ -1,0 +1,82 @@
+diff -ruN -x autom4te.cache -x elf_i386_syllable.sh binutils-2.35.original/bfd/config.bfd binutils-2.35/bfd/config.bfd
+--- binutils-2.35.original/bfd/config.bfd	2020-07-24 09:12:19.000000000 +0000
++++ binutils-2.35/bfd/config.bfd	2026-10-09 13:09:30.334401275 +0000
+@@ -722,6 +722,9 @@
+     targ_defvec=i386_elf32_vec
+     targ_selvecs="iamcu_elf32_vec i386_pe_vec i386_pei_vec"
+     ;;
++  i[3-7]86-*-syllable*)
++    targ_defvec=i386_elf32_vec
++    ;;
+   i[3-7]86-*-interix*)
+     targ_defvec=i386_pei_vec
+     targ_selvecs="i386_pe_vec"
+diff -ruN -x autom4te.cache -x elf_i386_syllable.sh binutils-2.35.original/gas/configure.tgt binutils-2.35/gas/configure.tgt
+--- binutils-2.35.original/gas/configure.tgt	2020-07-24 09:12:19.000000000 +0000
++++ binutils-2.35/gas/configure.tgt	2026-10-09 13:09:30.334924285 +0000
+@@ -216,6 +216,7 @@
+ 
+   i386-*-beospe*)			fmt=coff em=pe ;;
+   i386-*-beos*)				fmt=elf ;;
++  i386-*-syllable*)			fmt=elf ;;
+   i386-*-elfiamcu)			fmt=elf arch=iamcu ;;
+   i386-*-elf*)				fmt=elf ;;
+   i386-*-fuchsia*)			fmt=elf ;;
+diff -ruN -x autom4te.cache -x elf_i386_syllable.sh binutils-2.35.original/ld/Makefile.am binutils-2.35/ld/Makefile.am
+--- binutils-2.35.original/ld/Makefile.am	2020-07-24 09:12:20.000000000 +0000
++++ binutils-2.35/ld/Makefile.am	2026-10-09 13:09:30.335090673 +0000
+@@ -282,6 +282,7 @@
+ 	eelf32z80.c \
+ 	eelf_i386.c \
+ 	eelf_i386_be.c \
++	eelf_i386_syllable.c \
+ 	eelf_i386_fbsd.c \
+ 	eelf_i386_ldso.c \
+ 	eelf_i386_sol2.c \
+@@ -768,6 +769,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32z80.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_be.Pc@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_syllable.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_fbsd.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_ldso.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_sol2.Pc@am__quote@
+diff -ruN -x autom4te.cache -x elf_i386_syllable.sh binutils-2.35.original/ld/Makefile.in binutils-2.35/ld/Makefile.in
+--- binutils-2.35.original/ld/Makefile.in	2020-07-24 09:21:17.000000000 +0000
++++ binutils-2.35/ld/Makefile.in	2026-10-09 13:09:47.244437249 +0000
+@@ -765,6 +765,7 @@
+ 	eelf32z80.c \
+ 	eelf_i386.c \
+ 	eelf_i386_be.c \
++	eelf_i386_syllable.c \
+ 	eelf_i386_fbsd.c \
+ 	eelf_i386_ldso.c \
+ 	eelf_i386_sol2.c \
+@@ -1371,6 +1372,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_fbsd.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_ldso.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_sol2.Po@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_syllable.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_vxworks.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_iamcu.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_k1om.Po@am__quote@
+@@ -2363,6 +2365,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32z80.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_be.Pc@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_syllable.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_fbsd.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_ldso.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_sol2.Pc@am__quote@
+diff -ruN -x autom4te.cache -x elf_i386_syllable.sh binutils-2.35.original/ld/configure.tgt binutils-2.35/ld/configure.tgt
+--- binutils-2.35.original/ld/configure.tgt	2020-07-24 09:12:20.000000000 +0000
++++ binutils-2.35/ld/configure.tgt	2026-10-09 13:09:30.335395271 +0000
+@@ -396,6 +396,8 @@
+ 			;;
+ i[3-7]86-*-beos*)	targ_emul=elf_i386_be
+ 			;;
++i[3-7]86-*-syllable*)	targ_emul=elf_i386_syllable
++			;;
+ i[3-7]86-*-vxworks*)	targ_emul=elf_i386_vxworks
+ 			;;
+ i[3-7]86-*-chaos)	targ_emul=elf_i386_chaos

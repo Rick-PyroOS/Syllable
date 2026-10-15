@@ -1,0 +1,179 @@
+--- gcc-9.5.0.original/configure.ac
++++ gcc-9.5.0/configure.ac
+@@ -2529,7 +2529,7 @@
+   *-*-linux-android*)
+     target_makefile_frag="config/mt-android"
+     ;;
+-  *-*-linux* | *-*-gnu* | *-*-k*bsd*-gnu | *-*-kopensolaris*-gnu)
++  *-*-linux* | *-*-gnu* | *-*-k*bsd*-gnu | *-*-kopensolaris*-gnu | *-*-syllable*)
+     target_makefile_frag="config/mt-gnu"
+     ;;
+   *-*-aix4.[[3456789]]* | *-*-aix[[56789]].*)
+--- gcc-9.5.0.original/configure
++++ gcc-9.5.0/configure
+@@ -7008,7 +7008,7 @@
+   *-*-linux-android*)
+     target_makefile_frag="config/mt-android"
+     ;;
+-  *-*-linux* | *-*-gnu* | *-*-k*bsd*-gnu | *-*-kopensolaris*-gnu)
++  *-*-linux* | *-*-gnu* | *-*-k*bsd*-gnu | *-*-kopensolaris*-gnu | *-*-syllable*)
+     target_makefile_frag="config/mt-gnu"
+     ;;
+   *-*-aix4.[3456789]* | *-*-aix[56789].*)
+--- gcc-9.5.0.original/gcc/config.gcc
++++ gcc-9.5.0/gcc/config.gcc
+@@ -929,6 +929,25 @@
+   esac
+   target_has_targetdm=yes
+   ;;
++*-*-syllable*)
++  gas=yes
++  gnu_ld=yes
++  default_use_cxa_atexit=yes
++  use_gcc_stdint=wrap
++  tmake_file="t-slibgcc"
++  case ${enable_threads} in
++    "" | yes | posix)
++      thread_file='posix'
++      ;;
++    no | single)
++      # Let these non-posix thread selections fall through if requested
++      ;;
++    *)
++      echo 'Unknown thread configuration for Syllable'
++      exit 1
++      ;;
++  esac
++  ;;
+ *-*-*vms*)
+   extra_options="${extra_options} vms/vms.opt"
+   xmake_file=vms/x-vms
+@@ -1685,6 +1704,10 @@
+ 	gas=yes
+ 	gnu_ld=yes
+ 	;;
++i[34567]86-*-syllable*)
++	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h glibc-stdint.h i386/syllable.h"
++	extra_options="${extra_options} i386/syllable.opt"
++	;;
+ i[34567]86-*-linux* | i[34567]86-*-kfreebsd*-gnu | i[34567]86-*-gnu* | i[34567]86-*-kopensolaris*-gnu)
+ 			# Intel 80386's running GNU/*
+ 			# with ELF format using glibc 2
+--- gcc-9.5.0.original/libgcc/config.host
++++ gcc-9.5.0/libgcc/config.host
+@@ -273,6 +273,10 @@
+ *-*-rtems*)
+   tmake_file="$tmake_file t-rtems"
+   extra_parts="crtbegin.o crtend.o"
++  ;;
++*-*-syllable*)
++  tmake_file="$tmake_file t-crtstuff-pic t-libgcc-pic t-slibgcc t-slibgcc-gld t-slibgcc-elf-ver"
++  extra_parts="crtbegin.o crtend.o crtbeginS.o crtendS.o"
+   ;;
+ *-*-solaris2*)
+   # Unless linker support and dl_iterate_phdr are present,
+@@ -673,6 +677,9 @@
+ 	;;
+ x86_64-*-openbsd*)
+ 	;;
++i[34567]86-*-syllable*)
++	tmake_file="${tmake_file} i386/t-crtstuff"
++	;;
+ i[34567]86-*-linux*)
+ 	extra_parts="$extra_parts crtprec32.o crtprec64.o crtprec80.o crtfastmath.o"
+ 	tmake_file="${tmake_file} i386/t-crtpc t-crtfm i386/t-crtstuff t-dfprules"
+--- gcc-9.5.0.original/libstdc++-v3/configure.host
++++ gcc-9.5.0/libstdc++-v3/configure.host
+@@ -312,6 +312,9 @@
+   solaris2.1[0-9])
+     os_include_dir="os/solaris/solaris2.10"
+     ;;
++  syllable*)
++    os_include_dir="os/generic"
++    ;;
+   tpf)
+     os_include_dir="os/tpf"
+     ;;
+--- gcc-9.5.0.original/libtool.m4
++++ gcc-9.5.0/libtool.m4
+@@ -2594,6 +2594,18 @@
+   hardcode_into_libs=yes
+   # ldd complains unless libraries are executable
+   postinstall_cmds='chmod +x $lib'
++  ;;
++
++syllable*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
++  soname_spec='${libname}${release}${shared_ext}$major'
++  shlibpath_var=DLL_PATH
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=yes
++  dynamic_linker='Syllable ld.so'
+   ;;
+ 
+ sunos4*)
+@@ -3133,6 +3145,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++syllable*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
+ sysv5* | sco3.2v5* | sco5v6* | unixware* | OpenUNIX* | sysv4*uw2*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+--- gcc-9.5.0.original/libstdc++-v3/configure
++++ gcc-9.5.0/libstdc++-v3/configure
+@@ -6894,6 +6894,10 @@
+   ;;
+ 
+ solaris*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
++syllable*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
+@@ -11508,6 +11512,18 @@
+   hardcode_into_libs=yes
+   # ldd complains unless libraries are executable
+   postinstall_cmds='chmod +x $lib'
++  ;;
++
++syllable*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
++  soname_spec='${libname}${release}${shared_ext}$major'
++  shlibpath_var=DLL_PATH
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=yes
++  dynamic_linker='Syllable ld.so'
+   ;;
+ 
+ sunos4*)
+@@ -15194,6 +15210,18 @@
+   postinstall_cmds='chmod +x $lib'
+   ;;
+ 
++syllable*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
++  soname_spec='${libname}${release}${shared_ext}$major'
++  shlibpath_var=DLL_PATH
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=yes
++  dynamic_linker='Syllable ld.so'
++  ;;
++
+ sunos4*)
+   version_type=sunos
+   library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${shared_ext}$versuffix'
