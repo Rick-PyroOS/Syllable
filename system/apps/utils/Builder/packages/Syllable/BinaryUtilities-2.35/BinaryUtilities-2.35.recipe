@@ -1,0 +1,61 @@
+authors
+	Kaj de Vos
+	Arno Klenke
+	Kristian Van Der Vliet
+	Rick Caudill
+maintainers			Rick Caudill
+status				developing
+warnings
+	Only the cross build (Syllable-Build-System/toolchain) has been tested so far.
+notes
+	The patch carries the regenerated ld/Makefile.in, so no AutoConf/AutoMake run is needed.
+	The ld emulation keeps .ctors/.dtors out of .init_array, because the kernel loader only runs DT_INIT.
+
+inherits			gnu
+
+headline			Binary programming tools
+description
+	The GNU Binutils are a collection of binary tools. The main ones are ld, the GNU linker and as, the GNU assembler. Their main reason for existence is to give the GNU system the facility to compile and link programs.
+licenses			GPL LGPL
+
+home				www.gnu.org/software/binutils/
+packages			binutils/binutils-2.35
+
+build-needs
+	Make >= 3.80
+	BinaryUtilities
+install-needs		BinaryUtilities
+_conflicts
+;	Both BinaryUtilities and AutoConfigure have info/standards.info:
+	AutoConfigure
+	GNU-CompilerCollection
+
+configure-options
+	--with-sysroot=/
+	--disable-nls
+	--disable-werror
+	--disable-gdb
+	--disable-sim
+	--disable-readline
+	--disable-libdecnumber
+
+system-prefix-var	DESTDIR
+
+documentation
+	README COPYING3 COPYING3.LIB COPYING COPYING.LIB
+	binutils/NEWS binutils/ChangeLog binutils/MAINTAINERS
+
+; (LFS says the AutoConfigure one is newer:)
+delete-files		manuals/info/standards.info
+
+links
+;	Optimise wasteful duplicates:
+	../../programs/ar				i586-pc-syllable/bin/
+	../../programs/as				i586-pc-syllable/bin/
+	../../programs/ld				i586-pc-syllable/bin/
+	../../programs/ld.bfd			i586-pc-syllable/bin/
+	../../programs/nm				i586-pc-syllable/bin/
+	../../programs/objcopy			i586-pc-syllable/bin/
+	../../programs/objdump			i586-pc-syllable/bin/
+	../../programs/ranlib			i586-pc-syllable/bin/
+	../../programs/strip			i586-pc-syllable/bin/
