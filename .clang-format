@@ -1,0 +1,45 @@
+# Syllable house style, for Neovim (format-on-save of changed lines, Space cf)
+# and any other clang-format user.
+#
+# Tuned against a sample of 400 files from system/: each option is set to the
+# value that changes the existing code least. The tree is not consistent (GNU
+# apps, the AtheOS-era kernel and GNU-indent-styled appserver files all differ),
+# so formatting a whole old file will still change a lot. Format new code, or
+# a selection, rather than whole old files.
+#
+# Base: tabs at width 4, braces on their own line, spaces inside parentheses
+# ( like this ) and none before them. Long lines are never rewrapped and
+# #include order is never touched (it's fragile in this tree).
+BasedOnStyle: LLVM
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+BreakBeforeBraces: Allman
+ColumnLimit: 0
+SortIncludes: Never
+IncludeBlocks: Preserve
+SpaceBeforeParens: Never
+SpacesInParens: Custom
+SpacesInParensOptions:
+  InConditionalStatements: true
+  Other: true
+  InEmptyParentheses: false
+  InCStyleCasts: true
+PointerAlignment: Right
+DerivePointerAlignment: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+IndentCaseLabels: true
+NamespaceIndentation: None
+ReflowComments: false
+AlignTrailingComments: false
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: DontAlign
+MaxEmptyLinesToKeep: 5
+FixNamespaceComments: false

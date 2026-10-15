@@ -1,0 +1,25 @@
+# Shared clangd flags for the kernel and drivers. Read only by
+# tools/gen_compile_commands.py; re-run it after editing. Relative paths are
+# relative to the Syllable repo root. tools/sync_sysroot.py rewrites the
+# -isystem .sysroot lines (C headers only; the kernel gets no libstdc++).
+
+--target=i586-pc-linux-gnu
+-march=i586
+-fgnuc-version=4.1.2
+-U__linux__
+-U__linux
+-Ulinux
+-U__gnu_linux__
+-D__SYLLABLE__
+-D__ATHEOS__
+-D_X86_
+-D__KERNEL__
+-D__BUILD_KERNEL__
+-ffreestanding
+# Disables clang's own <stdint.h> so <kernel/stdint.h> wins.
+-D__CLANG_STDINT_H
+-nostdlibinc
+-Isystem/sys/kernel/kernel
+-Isystem/sys/include/syllable
+-isystem.sysroot/usr/gcc/include
+-isystem.sysroot/usr/include

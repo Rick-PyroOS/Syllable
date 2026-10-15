@@ -1,0 +1,208 @@
+{
+  "title": "Neovim: Shift Shift opens Find (iTerm2 and Ghostty)",
+  "rules": [
+    {
+      "description": "Double-tap Shift in iTerm2 or Ghostty sends F19, which Neovim maps to Find (like CLion's Shift Shift)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "description": "second left_shift tap: send F19",
+          "conditions": [
+            {
+              "type": "frontmost_application_if",
+              "bundle_identifiers": [
+                "^com\\.googlecode\\.iterm2$",
+                "^com\\.mitchellh\\.ghostty$"
+              ]
+            },
+            {
+              "type": "variable_if",
+              "name": "neovim_shift_tapped",
+              "value": 1
+            }
+          ],
+          "from": {
+            "key_code": "left_shift",
+            "modifiers": {
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "key_code": "left_shift",
+              "lazy": true
+            }
+          ],
+          "to_if_alone": [
+            {
+              "set_variable": {
+                "name": "neovim_shift_tapped",
+                "value": 0
+              }
+            },
+            {
+              "key_code": "f19"
+            }
+          ],
+          "parameters": {
+            "basic.to_if_alone_timeout_milliseconds": 400
+          }
+        },
+        {
+          "type": "basic",
+          "description": "first left_shift press: Shift as usual; a second tap within 400 ms with no key between counts",
+          "conditions": [
+            {
+              "type": "frontmost_application_if",
+              "bundle_identifiers": [
+                "^com\\.googlecode\\.iterm2$",
+                "^com\\.mitchellh\\.ghostty$"
+              ]
+            }
+          ],
+          "from": {
+            "key_code": "left_shift",
+            "modifiers": {
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "set_variable": {
+                "name": "neovim_shift_tapped",
+                "value": 1
+              }
+            },
+            {
+              "key_code": "left_shift"
+            }
+          ],
+          "to_delayed_action": {
+            "to_if_invoked": [
+              {
+                "set_variable": {
+                  "name": "neovim_shift_tapped",
+                  "value": 0
+                }
+              }
+            ],
+            "to_if_canceled": [
+              {
+                "set_variable": {
+                  "name": "neovim_shift_tapped",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          "parameters": {
+            "basic.to_delayed_action_delay_milliseconds": 400
+          }
+        },
+        {
+          "type": "basic",
+          "description": "second right_shift tap: send F19",
+          "conditions": [
+            {
+              "type": "frontmost_application_if",
+              "bundle_identifiers": [
+                "^com\\.googlecode\\.iterm2$",
+                "^com\\.mitchellh\\.ghostty$"
+              ]
+            },
+            {
+              "type": "variable_if",
+              "name": "neovim_shift_tapped",
+              "value": 1
+            }
+          ],
+          "from": {
+            "key_code": "right_shift",
+            "modifiers": {
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "key_code": "right_shift",
+              "lazy": true
+            }
+          ],
+          "to_if_alone": [
+            {
+              "set_variable": {
+                "name": "neovim_shift_tapped",
+                "value": 0
+              }
+            },
+            {
+              "key_code": "f19"
+            }
+          ],
+          "parameters": {
+            "basic.to_if_alone_timeout_milliseconds": 400
+          }
+        },
+        {
+          "type": "basic",
+          "description": "first right_shift press: Shift as usual; a second tap within 400 ms with no key between counts",
+          "conditions": [
+            {
+              "type": "frontmost_application_if",
+              "bundle_identifiers": [
+                "^com\\.googlecode\\.iterm2$",
+                "^com\\.mitchellh\\.ghostty$"
+              ]
+            }
+          ],
+          "from": {
+            "key_code": "right_shift",
+            "modifiers": {
+              "optional": [
+                "any"
+              ]
+            }
+          },
+          "to": [
+            {
+              "set_variable": {
+                "name": "neovim_shift_tapped",
+                "value": 1
+              }
+            },
+            {
+              "key_code": "right_shift"
+            }
+          ],
+          "to_delayed_action": {
+            "to_if_invoked": [
+              {
+                "set_variable": {
+                  "name": "neovim_shift_tapped",
+                  "value": 0
+                }
+              }
+            ],
+            "to_if_canceled": [
+              {
+                "set_variable": {
+                  "name": "neovim_shift_tapped",
+                  "value": 0
+                }
+              }
+            ]
+          },
+          "parameters": {
+            "basic.to_delayed_action_delay_milliseconds": 400
+          }
+        }
+      ]
+    }
+  ]
+}

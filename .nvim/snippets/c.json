@@ -1,0 +1,88 @@
+{
+  "for loop": {
+    "prefix": "for",
+    "description": "for loop over a count",
+    "body": [
+      "for( int ${1:i} = 0; $1 < ${2:nCount}; $1++ )",
+      "{",
+      "\t$0",
+      "}"
+    ]
+  },
+  "if": {
+    "prefix": "if",
+    "description": "if block",
+    "body": [
+      "if( ${1:bCondition} )",
+      "{",
+      "\t$0",
+      "}"
+    ]
+  },
+  "if else": {
+    "prefix": "ife",
+    "description": "if / else block",
+    "body": [
+      "if( ${1:bCondition} )",
+      "{",
+      "\t$2",
+      "}",
+      "else",
+      "{",
+      "\t$0",
+      "}"
+    ]
+  },
+  "while": {
+    "prefix": "while",
+    "description": "while loop",
+    "body": [
+      "while( ${1:bCondition} )",
+      "{",
+      "\t$0",
+      "}"
+    ]
+  },
+  "include guard": {
+    "prefix": "guard",
+    "description": "#ifndef include guard",
+    "body": [
+      "#ifndef __F_${1:NAME}_H__",
+      "#define __F_$1_H__",
+      "",
+      "$0",
+      "",
+      "#endif /* __F_$1_H__ */"
+    ]
+  },
+  "doc comment": {
+    "prefix": "doc",
+    "description": "Syllable doc comment (\\brief, \\par Description, \\sa, \\author)",
+    "body": [
+      "/** ${1:One line summary}",
+      " * \\par Description:",
+      " *\t${2:What it does and when to call it.}",
+      " * \\param ${3:pcName} ${4:what it is}",
+      " * \\return ${5:what it returns}",
+      " * \\sa ${6:RelatedFunction()}",
+      " * \\author ${7:Rick Caudill}",
+      " *****************************************************************************/"
+    ]
+  },
+  "license header": {
+    "prefix": "gpl",
+    "description": "GPL file header",
+    "body": [
+      "/*  ${1:$TM_FILENAME_BASE} - ${2:what this file is}",
+      " *  Copyright (C) $CURRENT_YEAR ${3:Rick Caudill}",
+      " *",
+      " *  This program is free software; you can redistribute it and/or",
+      " *  modify it under the terms of version 2 of the GNU Library",
+      " *  General Public License as published by the Free Software",
+      " *  Foundation.",
+      " */",
+      "",
+      "$0"
+    ]
+  }
+}

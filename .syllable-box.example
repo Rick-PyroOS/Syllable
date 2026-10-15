@@ -1,0 +1,9 @@
+# Copy to .syllable-box (git-ignored) to let tools/sync_sysroot.py copy the
+# box's C/C++ library headers into .sysroot/ for clangd. Leave it out if you
+# don't have a Syllable box: Syllable's own headers still come from the repo.
+
+host = root@192.168.1.10
+
+# Optional:
+# rsync_path = /usr/rsync/bin/rsync          # rsync's location on the box
+# ssh_options = -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa
