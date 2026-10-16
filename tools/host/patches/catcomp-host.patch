@@ -1,0 +1,70 @@
+--- a/catcomp.cpp
++++ b/catcomp.cpp
+@@ -153,6 +153,27 @@
+ 	return ret;
+ }
+ 
++// The English strings from resources/catcomp.cd, used when catcomp has no
++// catalog of its own (as when it is built as a host tool for another OS).
++static void LoadBuiltinCatalog()
++{
++	static const struct { uint32 nID; const char* pzString; } asStrings[] = {
++		{ MSG_SYNTAX_ERROR, "Syntax error on line %d." },
++		{ MSG_ID_NUMBER_MISSING, "ID number is missing." },
++		{ MSG_NO_TEXT_STRING, "No text string found." },
++		{ MSG_CANT_OPEN_FILE, "Can't open file %s!" },
++		{ MSG_HELP_COMPILE, "Compile catalog and header file." },
++		{ MSG_HELP_TRANSLATE, "Compile translated catalog to binary format." },
++		{ MSG_HELP_HELP, "Print this help message." },
++		{ MSG_CREATING_CATALOG_FILE, "Creating catalog file:" },
++		{ MSG_CREATING_HEADER_FILE, "Creating header file:" },
++		{ MSG_DESCR, "Tool used to create string catalogs used when translating software." },
++	};
++	for( uint i = 0; i < sizeof( asStrings ) / sizeof( asStrings[0] ); i++ ) {
++		g_pcStrings->SetString( asStrings[i].nID, asStrings[i].pzString );
++	}
++}
++
+ void LoadCatalog()
+ {
+ 	Locale cLocale;
+@@ -160,12 +181,16 @@
+ 
+ 	StreamableIO* pcCatalogStream = cLocale.GetLocalizedResourceStream( "catcomp.catalog" );
+ 	g_pcStrings = new Catalog();
+-	try {
+-		g_pcStrings->Load( pcCatalogStream );
+-	} catch(...) {
+-		cout << "Error: Can't find catalog" << endl;
+-		exit(100);
++	bool bLoaded = false;
++	if( pcCatalogStream != NULL ) {
++		try {
++			bLoaded = g_pcStrings->Load( pcCatalogStream ) == 0;
++		} catch(...) {
++		}
+ 	}
++	if( !bLoaded ) {
++		LoadBuiltinCatalog();
++	}
+ 	g_pcStrings->AddRef();
+ 	delete pcCatalogStream;
+ }
+@@ -257,7 +282,7 @@
+ 			 << ( String( pzFileName ) + String( ".catalog" ) ).c_str() << endl;
+ 
+ 		try {
+-			File	cFile( ( String( pzFileName ) + String( ".catalog" ) ), O_CREAT );
++			File	cFile( ( String( pzFileName ) + String( ".catalog" ) ), O_WRONLY | O_CREAT | O_TRUNC );
+ 			cStrings.Save( &cFile );
+ 		} catch( ... ) {
+ 			cout << "Error: Can't create new file." << endl;
+@@ -288,7 +313,7 @@
+ 			 << ( String( pzFileName ) + String( ".catalog" ) ).c_str() << endl;
+ 
+ 		try {
+-			File	cFile( ( String( pzFileName ) + String( ".catalog" ) ), O_CREAT );
++			File	cFile( ( String( pzFileName ) + String( ".catalog" ) ), O_WRONLY | O_CREAT | O_TRUNC );
+ 			cStrings.Save( &cFile );
+ 		} catch( ... ) {
+ 			cout << "Error: Can't create new file." << endl;
