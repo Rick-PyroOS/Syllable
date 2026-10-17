@@ -86,9 +86,9 @@ add_subdirectory(system/other/icons)
 # Layout, configuration, headers and boot scripts
 include(Layout)
 add_subdirectory(system/sys/include/syllable)
-add_subdirectory(system/other/init)
 add_subdirectory(system/other/config/etc)
 add_subdirectory(system/other/config/default)
+add_subdirectory(system/image)                      # etc, home, config, boot scripts
 
 # ---- Disk image ------------------------------------------------------------------
 include(Image)

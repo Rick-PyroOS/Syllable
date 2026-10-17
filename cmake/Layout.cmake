@@ -1,7 +1,6 @@
 # The boot volume's layout: the directory skeleton from the Builder profile
 # that defines the core system (its "tree" section and the links its
-# "prepare" section makes), plus the configuration files the profile's
-# "resources" section copies from Builder/resources.
+# "prepare" section makes).
 
 set(BUILDER ${PROJECT_SOURCE_DIR}/system/apps/utils/Builder)
 
@@ -36,10 +35,5 @@ install(CODE "
   file(CREATE_LINK usr/ \${root}/resources SYMBOLIC)
   file(CREATE_LINK index/ \${root}/usr/indexes SYMBOLIC)")
 
-# Configuration files from the profile's resources section
-install(FILES
-  ${BUILDER}/resources/configuration/passwd ${BUILDER}/resources/configuration/group
-  ${BUILDER}/resources/configuration/profile ${BUILDER}/resources/configuration/hosts
-  ${BUILDER}/resources/configuration/hostname ${BUILDER}/resources/configuration/resolv.conf
-  DESTINATION etc)
-install(FILES ${BUILDER}/resources/kernel.cfg DESTINATION system/config)
+# The profile's resources (configuration files, scripts, home directories)
+# are in system/image, installed as they are.
