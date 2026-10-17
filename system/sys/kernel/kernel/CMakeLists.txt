@@ -83,9 +83,15 @@ add_custom_command(OUTPUT ${KERNEL_SO}
           ${PROJECT_SOURCE_DIR}/cmake/scripts/link-kernel.sh
   COMMAND_EXPAND_LISTS VERBATIM
   COMMENT "Linking kernel.so")
-add_custom_target(kernel ALL DEPENDS ${KERNEL_SO})
-install(PROGRAMS ${KERNEL_SO} DESTINATION system)
-install(CODE "execute_process(COMMAND ${CMAKE_STRIP} --strip-all \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/kernel.so)")
+# The installed kernel is stripped (kernel.so here keeps its symbols for
+# debugging); stripped in the build tree, so installing is a plain copy that
+# only happens when the kernel changed.
+set(KERNEL_STRIPPED ${CMAKE_CURRENT_BINARY_DIR}/stripped/kernel.so)
+add_custom_command(OUTPUT ${KERNEL_STRIPPED}
+  COMMAND ${CMAKE_STRIP} --strip-all ${KERNEL_SO} -o ${KERNEL_STRIPPED}
+  DEPENDS ${KERNEL_SO})
+add_custom_target(kernel ALL DEPENDS ${KERNEL_SO} ${KERNEL_STRIPPED})
+install(PROGRAMS ${KERNEL_STRIPPED} DESTINATION system)
 
 # ---- libkernel.so --------------------------------------------------------------------
 
