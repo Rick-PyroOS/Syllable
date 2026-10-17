@@ -63,6 +63,8 @@ PY
   afs "$img" import --owner 0:0 "$root" /
 fi
 afs "$img" fsck --strict
+# replaced, not overwritten: the old ones may belong to another user
+rm -f "$out/syllable.manifest" "$state"
 afs "$img" manifest / > "$out/syllable.manifest"
 echo "$want" > "$state"
 echo "image: $img"

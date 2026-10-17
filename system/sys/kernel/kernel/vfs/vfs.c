@@ -525,6 +525,14 @@ static int lookup_parent_inode( Inode_s *psParent, const char *pzPath, const cha
 		{
 			if ( '/' == c )
 			{
+				/* A trailing slash ("dir/"): the last element is the name to
+				 * return, as without the slash.  Looking it up here returned
+				 * it as the parent together with its own name, so the caller
+				 * looked for "dir" inside "dir" (ENOENT). */
+				if ( pzPath[i + 1] == 0 && 0 != nLen )
+				{
+					break;
+				}
 				if ( 0 != nLen )
 				{
 					nError = cfs_locate_inode( psParent, pzCurName, nLen, &psInode, true );

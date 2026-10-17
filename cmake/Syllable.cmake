@@ -18,6 +18,34 @@
 #       Shared library, built and installed under its soname (as the Makefiles
 #       do), with LINKS (e.g. libfoo.so) as symlinks to it.
 #
+#   syllable_plugin(NAME SOURCES ... INSTALL dir [OUTPUT_NAME n] [INCLUDES ...]
+#                   [DEFINES ...] [OPTIONS ...] [LIBS ...])
+#       Add-on loaded by a program (appserver drivers, decorators): linked with
+#       -plugin -Bsymbolic -nodefaultlibs.
+#
+#   syllable_catalogs(TARGET NAME name DIR dir [LANGS lang...] [EMBED] [INSTALL dir])
+#       Compile DIR/NAME.cd (with its header DIR/NAME.h, which sources include
+#       as "DIR/NAME.h") and DIR/LANG/NAME.cd with the host catcomp, in the
+#       build tree.  EMBED adds them to TARGET's resources after it links;
+#       INSTALL installs them (NAME.catalog, LANG/NAME.catalog).
+#
+#   syllable_resources(TARGET FILES ...)
+#       Replace TARGET's resources with FILES after it links (host rescopy -r).
+#       Call before syllable_catalogs(... EMBED), as the Makefiles do.
+#
+#   syllable_attribute(PATH NAME VALUE)
+#       Set attribute NAME on the installed file PATH (relative to the boot
+#       volume) at install time (host addattrib: a user.* xattr, which afstool
+#       carries into AFS).
+
+# Userland targets see the Syllable headers through C_INCLUDE_PATH and
+# CPLUS_INCLUDE_PATH, as the Makefiles did: system headers (so GCC overlooks
+# what it overlooks in system headers), and, unlike -isystem, not wrapped in
+# extern "C" for C++ by this target's GCC.
+#
+# Every target helper also takes STRIP: strip it after linking (the
+# Makefiles' install -s / strip).
+
 # Header views.  Userland code includes the tree's headers as they are
 # (system/sys/include/syllable).  Kernel code was written when <syllable/...>
 # was the atheos/ headers (sys/include's own deps target did
@@ -45,13 +73,24 @@ macro(_syllable_common name)
   if(A_OUTPUT_NAME)
     set_target_properties(${name} PROPERTIES OUTPUT_NAME ${A_OUTPUT_NAME})
   endif()
+  if(A_STRIP)
+    # stripped in the build tree (the Makefiles' install -s), so installing is
+    # a plain copy that only happens when the target changed
+    add_custom_command(TARGET ${name} POST_BUILD COMMAND ${CMAKE_STRIP} $<TARGET_FILE:${name}>)
+  endif()
   if(A_INSTALL)
     install(TARGETS ${name} DESTINATION ${A_INSTALL})
   endif()
 endmacro()
 
+function(syllable_userland_headers target)
+  set_target_properties(${target} PROPERTIES
+    C_COMPILER_LAUNCHER "${CMAKE_COMMAND};-E;env;C_INCLUDE_PATH=${SYLLABLE_HEADERS}"
+    CXX_COMPILER_LAUNCHER "${CMAKE_COMMAND};-E;env;CPLUS_INCLUDE_PATH=${SYLLABLE_HEADERS}")
+endfunction()
+
 function(syllable_driver name)
-  cmake_parse_arguments(A "" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
+  cmake_parse_arguments(A "STRIP" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
   add_executable(${name} ${A_SOURCES})
   _syllable_common(${name})
   target_include_directories(${name} BEFORE PRIVATE ${SYLLABLE_KERNEL_HEADER_VIEW})
@@ -62,26 +101,98 @@ function(syllable_driver name)
 endfunction()
 
 function(syllable_program name)
-  cmake_parse_arguments(A "" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
+  cmake_parse_arguments(A "STRIP" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
   add_executable(${name} ${A_SOURCES})
   _syllable_common(${name})
-  target_include_directories(${name} SYSTEM PRIVATE ${SYLLABLE_HEADERS})
+  syllable_userland_headers(${name})
   target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fexceptions>)
 endfunction()
 
 function(syllable_library name)
-  cmake_parse_arguments(A "" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
+  cmake_parse_arguments(A "STRIP" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
   if(NOT A_SONAME)
     message(FATAL_ERROR "syllable_library(${name}): SONAME is required")
   endif()
   add_library(${name} SHARED ${A_SOURCES})
   set(A_OUTPUT_NAME)
   _syllable_common(${name})
-  target_include_directories(${name} SYSTEM PRIVATE ${SYLLABLE_HEADERS})
+  syllable_userland_headers(${name})
   target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fexceptions>)
   set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "" OUTPUT_NAME ${A_SONAME} NO_SONAME TRUE)
   target_link_options(${name} PRIVATE "-Wl,-soname=${A_SONAME}")
   foreach(link ${A_LINKS})
     install(CODE "file(CREATE_LINK ${A_SONAME} \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${A_INSTALL}/${link} SYMBOLIC)")
   endforeach()
+endfunction()
+
+function(syllable_plugin name)
+  cmake_parse_arguments(A "STRIP" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
+  add_executable(${name} ${A_SOURCES})
+  _syllable_common(${name})
+  syllable_userland_headers(${name})
+  target_link_options(${name} PRIVATE -plugin -Xlinker -Bsymbolic -nodefaultlibs)
+endfunction()
+
+# rescopy embeds resources with objcopy: the target's
+set(SYLLABLE_TOOL_PATH ${CMAKE_BINARY_DIR}/tool-path)
+file(MAKE_DIRECTORY ${SYLLABLE_TOOL_PATH})
+file(CREATE_LINK ${CMAKE_OBJCOPY} ${SYLLABLE_TOOL_PATH}/objcopy SYMBOLIC)
+set(SYLLABLE_RESCOPY_CMD ${CMAKE_COMMAND} -E env PATH=${SYLLABLE_TOOL_PATH}:$ENV{PATH} ${SYLLABLE_RESCOPY})
+
+function(syllable_resources target)
+  cmake_parse_arguments(A "" "" "FILES" ${ARGN})
+  set(files)
+  foreach(f ${A_FILES})
+    list(APPEND files ${CMAKE_CURRENT_SOURCE_DIR}/${f})
+  endforeach()
+  add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND ${SYLLABLE_RESCOPY_CMD} -r $<TARGET_FILE:${target}> ${files}
+    COMMENT "Adding resources to ${target}" VERBATIM)
+  add_dependencies(${target} hosttools)
+endfunction()
+
+function(syllable_catalogs target)
+  cmake_parse_arguments(A "EMBED" "NAME;DIR;INSTALL" "LANGS" ${ARGN})
+  set(src ${CMAKE_CURRENT_SOURCE_DIR}/${A_DIR})
+  set(bin ${CMAKE_CURRENT_BINARY_DIR}/${A_DIR})
+  set(outputs ${bin}/${A_NAME}.catalog ${bin}/${A_NAME}.h)
+  add_custom_command(OUTPUT ${outputs}
+    COMMAND ${CMAKE_COMMAND} -E copy ${src}/${A_NAME}.cd ${bin}/${A_NAME}.cd
+    COMMAND ${SYLLABLE_CATCOMP} -c ${A_NAME}.cd
+    WORKING_DIRECTORY ${bin}
+    DEPENDS ${src}/${A_NAME}.cd hosttools
+    COMMENT "Compiling ${A_DIR}/${A_NAME}.cd")
+  foreach(lang ${A_LANGS})
+    add_custom_command(OUTPUT ${bin}/${lang}/${A_NAME}.catalog
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${bin}/${lang}
+      COMMAND ${CMAKE_COMMAND} -E copy ${src}/${lang}/${A_NAME}.cd ${bin}/${lang}/${A_NAME}.cd
+      COMMAND ${SYLLABLE_CATCOMP} -t ${A_NAME}.cd
+      WORKING_DIRECTORY ${bin}/${lang}
+      DEPENDS ${src}/${lang}/${A_NAME}.cd hosttools
+      COMMENT "Compiling ${A_DIR}/${lang}/${A_NAME}.cd")
+    list(APPEND outputs ${bin}/${lang}/${A_NAME}.catalog)
+  endforeach()
+  add_custom_target(${target}_catalogs DEPENDS ${outputs})
+  add_dependencies(${target} ${target}_catalogs)
+  target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+  if(A_EMBED)
+    set(args -a $<TARGET_FILE:${target}> ${bin}/${A_NAME}.catalog)
+    foreach(lang ${A_LANGS})
+      list(APPEND args ${lang}/${A_NAME}.catalog=${bin}/${lang}/${A_NAME}.catalog)
+    endforeach()
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND ${SYLLABLE_RESCOPY_CMD} ${args}
+      COMMENT "Adding catalogs to ${target}" VERBATIM)
+  endif()
+  if(A_INSTALL)
+    install(FILES ${bin}/${A_NAME}.catalog DESTINATION ${A_INSTALL})
+    foreach(lang ${A_LANGS})
+      install(FILES ${bin}/${lang}/${A_NAME}.catalog DESTINATION ${A_INSTALL}/${lang})
+    endforeach()
+  endif()
+endfunction()
+
+function(syllable_attribute path name value)
+  install(CODE "execute_process(COMMAND ${SYLLABLE_ADDATTRIB}
+    \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${path} \"${name}\" \"${value}\" COMMAND_ERROR_IS_FATAL ANY)")
 endfunction()

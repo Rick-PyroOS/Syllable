@@ -19,7 +19,6 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(ExternalProject)
-include(Syllable)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/stage CACHE PATH "Boot volume tree" FORCE)
@@ -45,6 +44,8 @@ foreach(tool rescopy catcomp addattrib keymapconv bintohex)
   set(SYLLABLE_${T} ${SYLLABLE_HOST_DIR}/bin/${tool})
 endforeach()
 
+include(Syllable)                                   # helpers (use the host tools above)
+
 # ---- Components ------------------------------------------------------------------
 # They move over from their Makefiles component by component.
 
@@ -65,6 +66,22 @@ add_subdirectory(system/libs/libpthread)
 # Userland
 add_subdirectory(system/apps/utils/systools)        # init (the rest needs libsyllable)
 include(Ports)                                      # bash, coreutils
+
+# The desktop
+add_subdirectory(system/sys/appserver/libsyllable)
+add_subdirectory(system/sys/appserver/appserver/server)
+add_subdirectory(system/sys/appserver/appserver/drivers/input/keyboard)
+add_subdirectory(system/sys/appserver/appserver/drivers/input/ps2mouse)
+add_subdirectory(system/sys/appserver/appserver/drivers/decorators/photon)
+add_subdirectory(system/sys/appserver/registrar)
+add_subdirectory(system/sys/translators/png)
+add_subdirectory(system/apps/desktop/desktop)
+add_subdirectory(system/apps/desktop/dock)
+add_subdirectory(system/apps/utils/aterm)
+add_subdirectory(system/apps/utils/dlogin)
+add_subdirectory(system/other/fonts)
+add_subdirectory(system/other/keymaps)
+add_subdirectory(system/other/icons)
 
 # Layout, configuration, headers and boot scripts
 include(Layout)
