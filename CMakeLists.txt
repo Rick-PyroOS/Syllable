@@ -38,15 +38,40 @@ ExternalProject_Add(hosttools
   CMAKE_GENERATOR ${CMAKE_GENERATOR}
   BUILD_ALWAYS ON          # its own build is incremental; this just re-checks it
   BUILD_BYPRODUCTS ${SYLLABLE_HOST_DIR}/bin/rescopy ${SYLLABLE_HOST_DIR}/bin/catcomp
-                   ${SYLLABLE_HOST_DIR}/bin/addattrib ${SYLLABLE_HOST_DIR}/bin/keymapconv)
-foreach(tool rescopy catcomp addattrib keymapconv)
+                   ${SYLLABLE_HOST_DIR}/bin/addattrib ${SYLLABLE_HOST_DIR}/bin/keymapconv
+                   ${SYLLABLE_HOST_DIR}/bin/bintohex)
+foreach(tool rescopy catcomp addattrib keymapconv bintohex)
   string(TOUPPER ${tool} T)
   set(SYLLABLE_${T} ${SYLLABLE_HOST_DIR}/bin/${tool})
 endforeach()
 
 # ---- Components ------------------------------------------------------------------
-# Phase 1 samples; the rest moves over component by component.
+# They move over from their Makefiles component by component.
 
-add_subdirectory(system/sys/kernel/kernel)          # libkernel.so (kernel.so: phase 2)
+# Kernel and the drivers needed to boot from an ATA disk
+add_subdirectory(system/sys/kernel/kernel)
+add_subdirectory(system/sys/kernel/drivers/bus/pci)
+add_subdirectory(system/sys/kernel/drivers/bus/ata)
+add_subdirectory(system/sys/kernel/drivers/hcd/ata_pci)
+add_subdirectory(system/sys/kernel/drivers/disk/bios)
 add_subdirectory(system/sys/kernel/drivers/ps2)
+add_subdirectory(system/sys/kernel/fs/afs)
+
+# Libraries
+include(SyllablePorts)                              # glibc layout + syllable_port()
+add_subdirectory(system/libs/libdl)
+add_subdirectory(system/libs/libpthread)
+
+# Userland
 add_subdirectory(system/apps/utils/systools)        # init (the rest needs libsyllable)
+include(Ports)                                      # bash, coreutils
+
+# Layout, configuration, headers and boot scripts
+include(Layout)
+add_subdirectory(system/sys/include/syllable)
+add_subdirectory(system/other/init)
+add_subdirectory(system/other/config/etc)
+add_subdirectory(system/other/config/default)
+
+# ---- Disk image ------------------------------------------------------------------
+include(Image)

@@ -11,7 +11,9 @@ set(CMAKE_STATIC_LIBRARY_SUFFIX ".a")
 set(CMAKE_EXECUTABLE_SUFFIX "")
 
 foreach(lang C CXX)
-  set(CMAKE_SHARED_LIBRARY_${lang}_FLAGS "-fPIC")
+  # Syllable's GCC generates PIC by default (-no-fPIC turns it off), and the
+  # Makefiles never pass -fPIC
+  set(CMAKE_SHARED_LIBRARY_${lang}_FLAGS "")
   set(CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS "-shared")
   set(CMAKE_SHARED_LIBRARY_SONAME_${lang}_FLAG "-Wl,-soname,")
   set(CMAKE_SHARED_MODULE_CREATE_${lang}_FLAGS "-shared")

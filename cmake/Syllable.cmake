@@ -13,6 +13,11 @@
 #                    [DEFINES ...] [OPTIONS ...] [LIBS ...])
 #       Userland program.
 #
+#   syllable_library(NAME SONAME libfoo.so.N SOURCES ... INSTALL dir
+#                    [LINKS name...] [INCLUDES ...] [DEFINES ...] [OPTIONS ...] [LIBS ...])
+#       Shared library, built and installed under its soname (as the Makefiles
+#       do), with LINKS (e.g. libfoo.so) as symlinks to it.
+#
 # Header views.  Userland code includes the tree's headers as they are
 # (system/sys/include/syllable).  Kernel code was written when <syllable/...>
 # was the atheos/ headers (sys/include's own deps target did
@@ -28,8 +33,8 @@ file(CREATE_LINK ${SYLLABLE_HEADERS}/atheos ${SYLLABLE_KERNEL_HEADER_VIEW}/sylla
 # Where libkernel.so (the kernel's exported symbols, linked by -kernel) is built
 set(SYLLABLE_KERNEL_LIBDIR ${CMAKE_BINARY_DIR}/system/sys/kernel/kernel)
 
-set(_SYLLABLE_ONE INSTALL OUTPUT_NAME)
-set(_SYLLABLE_MULTI SOURCES INCLUDES DEFINES OPTIONS LIBS)
+set(_SYLLABLE_ONE INSTALL OUTPUT_NAME SONAME)
+set(_SYLLABLE_MULTI SOURCES INCLUDES DEFINES OPTIONS LIBS LINKS)
 
 # Settings shared by every kind of target (A_* from the caller's parse)
 macro(_syllable_common name)
@@ -62,4 +67,21 @@ function(syllable_program name)
   _syllable_common(${name})
   target_include_directories(${name} SYSTEM PRIVATE ${SYLLABLE_HEADERS})
   target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fexceptions>)
+endfunction()
+
+function(syllable_library name)
+  cmake_parse_arguments(A "" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
+  if(NOT A_SONAME)
+    message(FATAL_ERROR "syllable_library(${name}): SONAME is required")
+  endif()
+  add_library(${name} SHARED ${A_SOURCES})
+  set(A_OUTPUT_NAME)
+  _syllable_common(${name})
+  target_include_directories(${name} SYSTEM PRIVATE ${SYLLABLE_HEADERS})
+  target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fexceptions>)
+  set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "" OUTPUT_NAME ${A_SONAME} NO_SONAME TRUE)
+  target_link_options(${name} PRIVATE "-Wl,-soname=${A_SONAME}")
+  foreach(link ${A_LINKS})
+    install(CODE "file(CREATE_LINK ${A_SONAME} \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${A_INSTALL}/${link} SYMBOLIC)")
+  endforeach()
 endfunction()

@@ -5,6 +5,7 @@
 #   catcomp     system/apps/utils/catalog      compile .cd string catalogs
 #   addattrib   system/apps/utils/fsutils      set a file attribute (user.* xattr)
 #   keymapconv  system/apps/utils/keymapconv   compile .map keymaps
+#   bintohex    system/sys/kernel/kernel       the kernel's SMP trampoline as C data
 #
 # They are compiled unmodified (catcomp gets patches/catcomp-host.patch) with
 # the libsyllable sources they need.  include/ shadows the Syllable headers
@@ -60,6 +61,7 @@ endfunction()
 
 host_tool(rescopy ${UTILS}/rescopy/rescopy.cpp)
 host_tool(keymapconv ${UTILS}/keymapconv/keymapconv.cpp)
+host_tool(bintohex ${SYS}/sys/kernel/kernel/bintohex.c)
 
 host_tool(addattrib ${UTILS}/fsutils/addattrib.c)
 target_compile_definitions(addattrib PRIVATE O_NOTRAVERSE=0)
