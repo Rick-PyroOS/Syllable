@@ -32,6 +32,7 @@
 #include <kernel/stdlib.h>
 #include <kernel/isa_io.h>
 #include <kernel/kdebug.h>
+#include <kernel/time.h>
 #include <kernel/types.h>
 #include <kernel/device.h>
 #include <kernel/pci.h>

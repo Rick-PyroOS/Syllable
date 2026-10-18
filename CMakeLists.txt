@@ -83,6 +83,27 @@ add_subdirectory(system/other/fonts)
 add_subdirectory(system/other/keymaps)
 add_subdirectory(system/other/icons)
 
+# What start.sh and network-start.sh run: kernel debug log, media server,
+# network setup and the drivers they use
+add_subdirectory(system/apps/utils/debug)           # dbterm
+add_subdirectory(system/apps/utils/nettools)        # ifconfig, route, ping
+add_subdirectory(system/apps/utils/dhcpc)
+add_subdirectory(system/apps/utils/Preferences/Network)
+add_subdirectory(system/apps/utils/Preferences/Media)
+add_subdirectory(system/sys/media/libmedia)
+add_subdirectory(system/sys/media/mediaserver)
+foreach(drv serveraudio oss raw ac97_audio hd_audio screen cdda cdrom)
+  add_subdirectory(system/sys/media/drivers/${drv})
+endforeach()
+foreach(drv 3c509 3c59x dl2k dp83815 eepro100 ne2000 nvidia pcnet32 rtl8139 rtl8169 sis
+            skge tg3 tulip tun via)
+  add_subdirectory(system/sys/kernel/drivers/net/${drv})
+endforeach()
+foreach(drv audio/hda audio/i8xx audio/vt82xx sound/emu10k1 sound/es1370 sound/es1371
+            sound/maestro sound/sbpro sound/trident sound/via686a sound/ymfpci)
+  add_subdirectory(system/sys/kernel/drivers/${drv})
+endforeach()
+
 # Layout, configuration, headers and boot scripts
 include(Layout)
 add_subdirectory(system/sys/include/syllable)
