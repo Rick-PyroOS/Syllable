@@ -12,6 +12,10 @@
 #       run when cross compiling.  LINKS: TARGET (relative to PREFIX) to LINK
 #       (absolute); @DIR:/LINKDIR links every file in PREFIX/DIR.
 #       STYLE zlib: zlib's own configure (no --host, builds in its source).
+#       STYLE openssl: OpenSSL's Configure (linux-elf, static, no assembler),
+#       in its source.
+#       STYLE icu: ICU (source/configure), cross-built with a host ICU built
+#       first in the same tree (ICU needs its own tools at build time).
 #       DEST sysroot: a static, build-time-only library (the release's "stage"
 #       packages, e.g. FreeType): installed into the staging sysroot that later
 #       components compile against (SYLLABLE_STAGING), not onto the boot volume.
@@ -58,11 +62,15 @@ function(syllable_port name)
   if(A_DEST STREQUAL "sysroot")
     set(A_PREFIX ${SYLLABLE_STAGING})
     set(destdir "")
-    list(APPEND A_CONFIGURE --disable-shared --enable-static)
+    if(NOT A_STYLE STREQUAL "openssl")       # autoconf's options; OpenSSL's Configure has its own
+      list(APPEND A_CONFIGURE --disable-shared --enable-static)
+    endif()
   else()
     set(destdir ${dest})
   endif()
-  set(env ${CMAKE_COMMAND} -E env PATH=${_cross_bin}:${SYLLABLE_STAGING}/bin:$ENV{PATH}
+  # --unset=TARGET: the build image exports TARGET=i586-pc-syllable, which
+  # Makefiles that use their own TARGET variable (ICU) pick up
+  set(env ${CMAKE_COMMAND} -E env --unset=TARGET PATH=${_cross_bin}:${SYLLABLE_STAGING}/bin:$ENV{PATH}
       CC=i586-pc-syllable-gcc CXX=i586-pc-syllable-g++ AR=i586-pc-syllable-ar
       RANLIB=i586-pc-syllable-ranlib STRIP=i586-pc-syllable-strip CONFIG_SITE=${cache}
       CPPFLAGS=-I${SYLLABLE_STAGING}/include LDFLAGS=-L${SYLLABLE_STAGING}/lib)
@@ -70,11 +78,56 @@ function(syllable_port name)
     set(configure ${env} CFLAGS=-O2 <SOURCE_DIR>/configure --prefix=${A_PREFIX} ${A_CONFIGURE})
     set(install ${env} make install prefix=${destdir}${A_PREFIX})
     set(in_source BUILD_IN_SOURCE ON)
+  elseif(A_STYLE STREQUAL "openssl")
+    # Configure takes the compiler from CC; no-asm: its x86 assembler is ELF/Linux
+    set(configure ${env} perl <SOURCE_DIR>/Configure linux-elf no-shared no-asm no-threads
+                  --prefix=${A_PREFIX} --openssldir=${A_PREFIX}/ssl ${A_CONFIGURE})
+    set(install ${env} make install_sw INSTALL_PREFIX=${destdir})
+    set(in_source BUILD_IN_SOURCE ON)
+    # -j1: OpenSSL 0.9.8's Makefiles are not parallel-safe.  EX_LIBS empty: its
+    # programs would link -ldl, which is not in the sysroot; only the static
+    # libraries are used, and their users link -ldl themselves.
+    set(A_MAKE_ARGS -j1 EX_LIBS= build_libs ${A_MAKE_ARGS})
+    set(install ${CMAKE_COMMAND} -E make_directory ${destdir}${A_PREFIX}/lib ${destdir}${A_PREFIX}/include/openssl
+        COMMAND ${CMAKE_COMMAND} -E copy libssl.a libcrypto.a ${destdir}${A_PREFIX}/lib
+        COMMAND sh -c "cp -L include/openssl/*.h $0/include/openssl/" ${destdir}${A_PREFIX})
+  elseif(A_STYLE STREQUAL "icu")
+    # ICU 3.6 cannot fully cross-build: its data step runs the target's own
+    # tools.  So a host ICU is built first (tools and data), only the libraries
+    # (common, stubdata) are cross-built, and the host's data archive becomes
+    # libsicudata.a through genccode (an assembler file of the data).
+    set(host <BINARY_DIR>/host)
+    set(hostenv env -u TARGET LD_LIBRARY_PATH=${host}/lib)
+    set(configure
+      ${CMAKE_COMMAND} -E make_directory ${host}
+      COMMAND ${CMAKE_COMMAND} -E chdir ${host} env -u TARGET CC=/usr/bin/gcc CXX=/usr/bin/g++
+              CFLAGS=-O1 "CXXFLAGS=-O1 -std=gnu++98 -Wno-narrowing" sh <SOURCE_DIR>/source/configure
+              --disable-threads --disable-extras --disable-samples --disable-tests
+      COMMAND ${CMAKE_COMMAND} -E chdir ${host} env -u TARGET make -j1    # its data Makefile races in parallel
+      COMMAND ${env} sh <SOURCE_DIR>/source/configure --build=x86_64-pc-linux-gnu
+              --host=i586-pc-syllable --prefix=${A_PREFIX} --with-cross-build=${host}
+              ${A_CONFIGURE})
+    set(A_BUILD_COMMAND
+      ${CMAKE_COMMAND} -E make_directory <BINARY_DIR>/lib <BINARY_DIR>/bin   # the top-level make would
+      COMMAND ${env} make -j${SYLLABLE_JOBS} -C common
+      COMMAND ${env} make -C stubdata
+      COMMAND ${hostenv} ${host}/bin/genccode -a gcc -e icudt36 -d <BINARY_DIR>
+              <SOURCE_DIR>/source/data/in/icudt36l.dat   # the full data, as shipped
+      COMMAND ${env} i586-pc-syllable-gcc -c <BINARY_DIR>/icudt36l_dat.s -o <BINARY_DIR>/icudt36l_dat.o
+      COMMAND ${env} i586-pc-syllable-ar rcs <BINARY_DIR>/lib/libsicudata.a <BINARY_DIR>/icudt36l_dat.o)
+    set(install ${env} make -C common install DESTDIR=${destdir}
+        COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/lib/libsicudata.a ${destdir}${A_PREFIX}/lib)
+    set(in_source "")
   else()
     set(configure ${env} <SOURCE_DIR>/configure --build=x86_64-pc-linux-gnu
                   --host=i586-pc-syllable --prefix=${A_PREFIX} --disable-nls ${A_CONFIGURE})
     set(install ${env} make install DESTDIR=${destdir} ${A_MAKE_ARGS})
     set(in_source "")
+  endif()
+  if(A_BUILD_COMMAND)
+    set(build ${A_BUILD_COMMAND})
+  else()
+    set(build ${env} make -j${SYLLABLE_JOBS} ${A_MAKE_ARGS})
   endif()
   set(after_install "")
   if(NOT A_DEST STREQUAL "sysroot")
@@ -97,7 +150,7 @@ function(syllable_port name)
     ${in_source}
     PATCH_COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/apply-port.sh <SOURCE_DIR> ${SYLLABLE_BUILDER_PORTS}/${A_PORT}
     CONFIGURE_COMMAND ${configure}
-    BUILD_COMMAND ${env} make -j${SYLLABLE_JOBS} ${A_MAKE_ARGS}
+    BUILD_COMMAND ${build}
     INSTALL_COMMAND ${CMAKE_COMMAND} -E rm -rf ${dest}
             COMMAND ${install}
             ${after_install}

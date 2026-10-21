@@ -1,0 +1,7 @@
+add_subdirectory(desktop)
+add_subdirectory(dock)
+add_subdirectory(dock_plugins)
+add_subdirectory(file_browser)
+# Assistant: work in progress, does not compile yet (view.cpp: SetCookie()
+# needs an os::Variant; ApplicationProvider lacks WriteCache())
+#add_subdirectory(assistant)

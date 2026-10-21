@@ -23,18 +23,22 @@
 #       Add-on loaded by a program (appserver drivers, decorators): linked with
 #       -plugin -Bsymbolic -nodefaultlibs.
 #
-#   syllable_catalogs(TARGET NAME name DIR dir [LANGS lang...] [EMBED] [INSTALL dir])
+#   syllable_catalogs(TARGET NAME name DIR dir [LANGS lang...] [EMBED] [INSTALL dir]
+#                     [EXT ext] [MAIN file])
 #       Compile DIR/NAME.cd (with its header DIR/NAME.h, which sources include
 #       as "DIR/NAME.h") and DIR/LANG/NAME.cd with the host catcomp, in the
 #       build tree.  EMBED adds them to TARGET's resources after it links;
-#       INSTALL installs them (NAME.catalog, LANG/NAME.catalog).
+#       INSTALL installs them (NAME.catalog, LANG/NAME.catalog).  EXT: the
+#       source extension (default cd; some apps use catfish).  MAIN: the main
+#       catalog's source, if it is not DIR/NAME.EXT.
 #
-#   syllable_resources(TARGET FILES ...)
-#       Replace TARGET's resources with FILES after it links (host rescopy -r).
+#   syllable_resources(TARGET [FILES ...] [ADD name=file ...])
+#       Replace TARGET's resources with FILES after it links (host rescopy -r),
+#       then add the ADD resources under their own names (rescopy -a).
 #       Call before syllable_catalogs(... EMBED), as the Makefiles do.
 #
 #   syllable_attribute(PATH NAME VALUE)
-#       Set attribute NAME on the installed file PATH (relative to the boot
+#       Set attribute NAME on the installed file or directory PATH (relative to the boot
 #       volume) at install time (host addattrib: a user.* xattr, which afstool
 #       carries into AFS).
 
@@ -140,43 +144,72 @@ file(CREATE_LINK ${CMAKE_OBJCOPY} ${SYLLABLE_TOOL_PATH}/objcopy SYMBOLIC)
 set(SYLLABLE_RESCOPY_CMD ${CMAKE_COMMAND} -E env PATH=${SYLLABLE_TOOL_PATH}:$ENV{PATH} ${SYLLABLE_RESCOPY})
 
 function(syllable_resources target)
-  cmake_parse_arguments(A "" "" "FILES" ${ARGN})
+  cmake_parse_arguments(A "" "" "FILES;ADD" ${ARGN})
   set(files)
   foreach(f ${A_FILES})
     list(APPEND files ${CMAKE_CURRENT_SOURCE_DIR}/${f})
   endforeach()
-  add_custom_command(TARGET ${target} POST_BUILD
-    COMMAND ${SYLLABLE_RESCOPY_CMD} -r $<TARGET_FILE:${target}> ${files}
-    COMMENT "Adding resources to ${target}" VERBATIM)
+  set(added)
+  foreach(spec ${A_ADD})
+    string(REGEX REPLACE "^([^=]*)=(.*)$" "\\1=${CMAKE_CURRENT_SOURCE_DIR}/\\2" spec "${spec}")
+    list(APPEND added ${spec})
+  endforeach()
+  # -a only adds to an existing resource section, so the first step is -r
+  set(mode -r)
+  if(files)
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND ${SYLLABLE_RESCOPY_CMD} -r $<TARGET_FILE:${target}> ${files}
+      COMMENT "Adding resources to ${target}" VERBATIM)
+    set(mode -a)
+  endif()
+  if(added)
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND ${SYLLABLE_RESCOPY_CMD} ${mode} $<TARGET_FILE:${target}> ${added}
+      COMMENT "Adding named resources to ${target}" VERBATIM)
+  endif()
+  set_property(TARGET ${target} PROPERTY SYLLABLE_HAS_RESOURCES TRUE)
   add_dependencies(${target} hosttools)
 endfunction()
 
 function(syllable_catalogs target)
-  cmake_parse_arguments(A "EMBED" "NAME;DIR;INSTALL" "LANGS" ${ARGN})
+  cmake_parse_arguments(A "EMBED" "NAME;DIR;INSTALL;EXT;MAIN" "LANGS" ${ARGN})
+  if(NOT A_EXT)
+    set(A_EXT cd)
+  endif()
   set(src ${CMAKE_CURRENT_SOURCE_DIR}/${A_DIR})
   set(bin ${CMAKE_CURRENT_BINARY_DIR}/${A_DIR})
+  set(main ${src}/${A_NAME}.${A_EXT})
+  if(A_MAIN)
+    set(main ${CMAKE_CURRENT_SOURCE_DIR}/${A_MAIN})
+  endif()
   set(outputs ${bin}/${A_NAME}.catalog ${bin}/${A_NAME}.h)
   add_custom_command(OUTPUT ${outputs}
-    COMMAND ${CMAKE_COMMAND} -E copy ${src}/${A_NAME}.cd ${bin}/${A_NAME}.cd
-    COMMAND ${SYLLABLE_CATCOMP} -c ${A_NAME}.cd
+    COMMAND ${CMAKE_COMMAND} -E copy ${main} ${bin}/${A_NAME}.${A_EXT}
+    COMMAND ${SYLLABLE_CATCOMP} -c ${A_NAME}.${A_EXT}
     WORKING_DIRECTORY ${bin}
-    DEPENDS ${src}/${A_NAME}.cd hosttools
-    COMMENT "Compiling ${A_DIR}/${A_NAME}.cd")
+    DEPENDS ${main} hosttools
+    COMMENT "Compiling ${A_DIR}/${A_NAME}.${A_EXT}")
   foreach(lang ${A_LANGS})
     add_custom_command(OUTPUT ${bin}/${lang}/${A_NAME}.catalog
       COMMAND ${CMAKE_COMMAND} -E make_directory ${bin}/${lang}
-      COMMAND ${CMAKE_COMMAND} -E copy ${src}/${lang}/${A_NAME}.cd ${bin}/${lang}/${A_NAME}.cd
-      COMMAND ${SYLLABLE_CATCOMP} -t ${A_NAME}.cd
+      COMMAND ${CMAKE_COMMAND} -E copy ${src}/${lang}/${A_NAME}.${A_EXT} ${bin}/${lang}/${A_NAME}.${A_EXT}
+      COMMAND ${SYLLABLE_CATCOMP} -t ${A_NAME}.${A_EXT}
       WORKING_DIRECTORY ${bin}/${lang}
-      DEPENDS ${src}/${lang}/${A_NAME}.cd hosttools
-      COMMENT "Compiling ${A_DIR}/${lang}/${A_NAME}.cd")
+      DEPENDS ${src}/${lang}/${A_NAME}.${A_EXT} hosttools
+      COMMENT "Compiling ${A_DIR}/${lang}/${A_NAME}.${A_EXT}")
     list(APPEND outputs ${bin}/${lang}/${A_NAME}.catalog)
   endforeach()
   add_custom_target(${target}_catalogs DEPENDS ${outputs})
   add_dependencies(${target} ${target}_catalogs)
   target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
   if(A_EMBED)
-    set(args -a $<TARGET_FILE:${target}> ${bin}/${A_NAME}.catalog)
+    # -r if syllable_resources() gave the target no resource section yet
+    get_property(has TARGET ${target} PROPERTY SYLLABLE_HAS_RESOURCES)
+    set(mode -a)
+    if(NOT has)
+      set(mode -r)
+    endif()
+    set(args ${mode} $<TARGET_FILE:${target}> ${bin}/${A_NAME}.catalog)
     foreach(lang ${A_LANGS})
       list(APPEND args ${lang}/${A_NAME}.catalog=${bin}/${lang}/${A_NAME}.catalog)
     endforeach()
@@ -193,6 +226,6 @@ function(syllable_catalogs target)
 endfunction()
 
 function(syllable_attribute path name value)
-  install(CODE "execute_process(COMMAND ${SYLLABLE_ADDATTRIB}
-    \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${path} \"${name}\" \"${value}\" COMMAND_ERROR_IS_FATAL ANY)")
+  install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/set-attribute.sh ${SYLLABLE_ADDATTRIB}
+    \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${path}\" \"${name}\" \"${value}\" COMMAND_ERROR_IS_FATAL ANY)")
 endfunction()

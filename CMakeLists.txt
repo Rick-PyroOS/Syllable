@@ -47,62 +47,14 @@ endforeach()
 include(Syllable)                                   # helpers (use the host tools above)
 
 # ---- Components ------------------------------------------------------------------
-# They move over from their Makefiles component by component.
-
-# Kernel and the drivers needed to boot from an ATA disk
-add_subdirectory(system/sys/kernel/kernel)
-add_subdirectory(system/sys/kernel/drivers/bus/pci)
-add_subdirectory(system/sys/kernel/drivers/bus/ata)
-add_subdirectory(system/sys/kernel/drivers/hcd/ata_pci)
-add_subdirectory(system/sys/kernel/drivers/disk/bios)
-add_subdirectory(system/sys/kernel/drivers/ps2)
-add_subdirectory(system/sys/kernel/fs/afs)
-
-# Libraries
+# Ports first: later components compile against what they stage
 include(SyllablePorts)                              # glibc layout + syllable_port()
-add_subdirectory(system/libs/libdl)
-add_subdirectory(system/libs/libpthread)
+include(Ports)                                      # bash, coreutils, zlib, FreeType, image libraries
 
-# Userland
-add_subdirectory(system/apps/utils/systools)        # init (the rest needs libsyllable)
-include(Ports)                                      # bash, coreutils
+add_subdirectory(system)                            # everything else, area by area
 
-# The desktop
-add_subdirectory(system/sys/appserver/libsyllable)
-add_subdirectory(system/sys/appserver/appserver/server)
-add_subdirectory(system/sys/appserver/appserver/drivers/input/keyboard)
-add_subdirectory(system/sys/appserver/appserver/drivers/input/ps2mouse)
-add_subdirectory(system/sys/appserver/appserver/drivers/decorators/photon)
-add_subdirectory(system/sys/appserver/registrar)
-add_subdirectory(system/sys/translators/png)
-add_subdirectory(system/apps/desktop/desktop)
-add_subdirectory(system/apps/desktop/dock)
-add_subdirectory(system/apps/utils/aterm)
-add_subdirectory(system/apps/utils/dlogin)
-add_subdirectory(system/other/fonts)
-add_subdirectory(system/other/keymaps)
-add_subdirectory(system/other/icons)
-
-# What start.sh and network-start.sh run: kernel debug log, media server,
-# network setup and the drivers they use
-add_subdirectory(system/apps/utils/debug)           # dbterm
-add_subdirectory(system/apps/utils/nettools)        # ifconfig, route, ping
-add_subdirectory(system/apps/utils/dhcpc)
-add_subdirectory(system/apps/utils/Preferences/Network)
-add_subdirectory(system/apps/utils/Preferences/Media)
-add_subdirectory(system/sys/media/libmedia)
-add_subdirectory(system/sys/media/mediaserver)
-foreach(drv serveraudio oss raw ac97_audio hd_audio screen cdda cdrom)
-  add_subdirectory(system/sys/media/drivers/${drv})
-endforeach()
-foreach(drv 3c509 3c59x dl2k dp83815 eepro100 ne2000 nvidia pcnet32 rtl8139 rtl8169 sis
-            skge tg3 tulip tun via)
-  add_subdirectory(system/sys/kernel/drivers/net/${drv})
-endforeach()
-foreach(drv audio/hda audio/i8xx audio/vt82xx sound/emu10k1 sound/es1370 sound/es1371
-            sound/maestro sound/sbpro sound/trident sound/via686a sound/ymfpci)
-  add_subdirectory(system/sys/kernel/drivers/${drv})
-endforeach()
+# Ports that need a component of the tree (defined after the ports)
+add_dependencies(curl libdl)                        # static libcrypto's dlopen()
 
 # Layout, configuration, headers and boot scripts
 include(Layout)

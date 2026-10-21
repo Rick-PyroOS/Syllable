@@ -16,3 +16,12 @@ if [ -d "$port/patches" ]; then
       cp "$port/patches/$f" "$f"
     done
 fi
+# Builder's patch-config: config.sub/config.guess that predate Syllable are
+# replaced with automake's, which know i586-pc-syllable
+new=/opt/syllable/host/share/automake-1.15
+find . -name config.sub | while read -r sub; do
+  if ! sh "$sub" i586-pc-syllable >/dev/null 2>&1; then
+    cp "$new/config.sub" "$sub"
+    cp "$new/config.guess" "$(dirname "$sub")/config.guess"
+  fi
+done

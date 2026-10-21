@@ -1,0 +1,6 @@
+add_subdirectory(acpi)
+add_subdirectory(agp)
+add_subdirectory(ata)
+add_subdirectory(pci)
+add_subdirectory(scsi)
+add_subdirectory(usb)

@@ -7,6 +7,7 @@ syllable_port(bash
   PREFIX /system/resources/BASh/4.0
   CONFIGURE --without-bash-malloc
   CACHE ${PROJECT_SOURCE_DIR}/cmake/ports/bash.cache
+  MAKE_ARGS -j1                        # its readline Makefile races in parallel
   LINKS bin/bash:/bin/bash bin/bash:/bin/sh)
 
 # Only lib and src: the man pages are made by running the built programs,
@@ -42,6 +43,67 @@ syllable_port(libpng
   SHA256 682960b55527b54bada90e959c2d42679444a1db43677c77eb645a29645f86d1
   DEST sysroot DEPENDS zlib BYPRODUCTS ${SYLLABLE_STAGING}/lib/libpng.a)
 
+# ---- Webster's libraries: static, build-time only --------------------------------
+
+syllable_port(openssl
+  PORT openssl-0.9.8e
+  URL https://www.openssl.org/source/old/0.9.x/openssl-0.9.8zh.tar.gz
+  SHA256 f1d9f3ed1b85a82ecf80d0e2d389e1fda3fca9a4dba0bf07adbf231e1a5e2fd6
+  STYLE openssl DEST sysroot BYPRODUCTS ${SYLLABLE_STAGING}/lib/libssl.a ${SYLLABLE_STAGING}/lib/libcrypto.a)
+
+# cURL (Transferrer, Webster).  The release has it as a shared system package;
+# its libtool does not know Syllable, so it is static, build-time only here.
+syllable_port(curl
+  PORT cURL-7.18.2
+  URL https://curl.se/download/archeology/curl-7.18.2.tar.gz
+  SHA256 55a711ad1d703f8b9c3ca80e5b859b5222f64566f9a3b82ac6773055ef8cee71
+  CONFIGURE --with-ssl=${SYLLABLE_STAGING} --without-libssh2 --disable-ldap --disable-manual
+            --with-zlib=${SYLLABLE_STAGING} --without-ca-bundle
+            ac_cv_file___dev_urandom_=yes   # a cross build cannot check; Syllable has it
+            LIBS=-ldl                       # static libcrypto needs dlopen()
+  DEST sysroot DEPENDS zlib openssl BYPRODUCTS ${SYLLABLE_STAGING}/lib/libcurl.a)   # and libdl (CMakeLists.txt)
+
+syllable_port(libxml2
+  PORT libxml2-2.6.29
+  URL http://xmlsoft.org/sources/old/libxml2-2.6.29.tar.gz
+  SHA256 e34a19e0b9d7ac03874acffd624f181c85a98fb976dc84411d6cd1bdda965992
+  CONFIGURE --without-threads --without-python --with-zlib=${SYLLABLE_STAGING}
+  DEST sysroot DEPENDS zlib BYPRODUCTS ${SYLLABLE_STAGING}/lib/libxml2.a)
+
+syllable_port(sqlite
+  PORT sqlite-3.5.5
+  URL https://www.sqlite.org/sqlite-3.5.5.tar.gz
+  SHA256 c430ec6dca870d7c4af35b07cbdf90a20b8a857cc90c7c93c31c6896a8b5270d
+  CONFIGURE --disable-threadsafe --disable-tcl
+  DEST sysroot BYPRODUCTS ${SYLLABLE_STAGING}/lib/libsqlite3.a)
+
+syllable_port(icu
+  PORT icu-3.6
+  URL https://sourceforge.net/projects/icu/files/ICU4C/3.6/icu4c-3_6-src.tgz/download
+  SHA256 5135e8d69d6206d320515df7aeee7027711ab1aef9d8dbf29571a97a9746b041
+  STYLE icu CONFIGURE --disable-threads --disable-64bit-libs --disable-extras
+                      --disable-samples --disable-tests
+  DEST sysroot BYPRODUCTS ${SYLLABLE_STAGING}/lib/libsicuuc.a ${SYLLABLE_STAGING}/lib/libsicudata.a)
+
+# Image libraries for the translators, static like FreeType and LibPNG
+syllable_port(libjpeg
+  PORT LibJPEG-8a
+  URL https://www.ijg.org/files/jpegsrc.v8a.tar.gz
+  SHA256 bf86a5eaafa79b5d60feb27bee08df2db4c9ca2fb40d453e7a2080f7663a713b
+  DEST sysroot BYPRODUCTS ${SYLLABLE_STAGING}/lib/libjpeg.a)
+syllable_port(giflib
+  PORT GIFLib-4.1.6
+  URL https://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-4.1.6/giflib-4.1.6.tar.bz2
+  SHA256 e1c1ced9c5bc8f93ef0faf0a8c7717abf784d10a7b270d2285e8e1f3b93f2bed
+  DEST sysroot BYPRODUCTS ${SYLLABLE_STAGING}/lib/libgif.a)
+syllable_port(libtiff
+  PORT libtiff-3.8.2
+  URL https://download.osgeo.org/libtiff/old/tiff-3.8.2.tar.gz
+  SHA256 be88f037080b93ce0a337b2b3ca5e8195f76885deb6c558cc3aa872ee848fc76
+  CONFIGURE --without-x --disable-cxx
+  MAKE_ARGS "SUBDIRS=port libtiff"
+  DEST sysroot DEPENDS zlib libjpeg BYPRODUCTS ${SYLLABLE_STAGING}/lib/libtiff.a)
+
 # Targets to link against
 add_library(syllable_z INTERFACE)
 target_link_libraries(syllable_z INTERFACE ${SYLLABLE_STAGING}/lib/libz.so)
@@ -60,3 +122,33 @@ target_include_directories(syllable_png SYSTEM INTERFACE ${SYLLABLE_STAGING}/inc
 target_link_libraries(syllable_png INTERFACE ${SYLLABLE_STAGING}/lib/libpng.a syllable_z)
 add_dependencies(syllable_png libpng)
 add_library(syllable::png ALIAS syllable_png)
+
+foreach(lib jpeg gif tiff)
+  add_library(syllable_${lib} INTERFACE)
+  target_include_directories(syllable_${lib} SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+  target_link_libraries(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/lib/lib${lib}.a)
+  add_library(syllable::${lib} ALIAS syllable_${lib})
+endforeach()
+add_dependencies(syllable_jpeg libjpeg)
+add_dependencies(syllable_gif giflib)
+add_dependencies(syllable_tiff libtiff)
+target_link_libraries(syllable_tiff INTERFACE syllable_jpeg syllable_z)
+
+add_library(syllable_curl INTERFACE)
+target_include_directories(syllable_curl SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+# librt: clock_gettime (glibc 2.7)
+target_link_libraries(syllable_curl INTERFACE ${SYLLABLE_STAGING}/lib/libcurl.a syllable_z rt)
+add_dependencies(syllable_curl curl)
+add_library(syllable::curl ALIAS syllable_curl)
+
+foreach(lib ssl crypto xml2 sqlite3)
+  add_library(syllable_${lib} INTERFACE)
+  target_include_directories(syllable_${lib} SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+  target_link_libraries(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/lib/lib${lib}.a)
+  add_library(syllable::${lib} ALIAS syllable_${lib})
+endforeach()
+add_dependencies(syllable_ssl openssl)
+add_dependencies(syllable_crypto openssl)
+add_dependencies(syllable_xml2 libxml2)
+add_dependencies(syllable_sqlite3 sqlite)
+target_link_libraries(syllable_curl INTERFACE syllable_ssl syllable_crypto libdl)
