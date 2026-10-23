@@ -1,7 +1,7 @@
 # Third-party software: Builder ports (Builder/packages/<PORT>) cross-built
 # with their own configure scripts, and glibc from the toolchain's sysroot.
 #
-#   syllable_port(NAME PORT dir URL url SHA256 hash PREFIX /system/resources/...
+#   syllable_port(NAME PORT dir URL url... SHA256 hash PREFIX /system/resources/...
 #                 [CONFIGURE args...] [CACHE file] [MAKE_ARGS args...]
 #                 [LINKS target:link ...] [STYLE zlib] [DEST sysroot] [SYSROOT]
 #                 [DEPENDS ports...] [BYPRODUCTS files...]
@@ -9,6 +9,7 @@
 #       Downloads and checks the source, applies the port, configures for
 #       i586-pc-syllable with PREFIX, builds, installs into the build tree and
 #       strips it; `cmake --install` copies it into the boot volume.
+#       URL can list mirrors: each is tried in turn until one downloads.
 #       CACHE is a CONFIG_SITE file answering the configure checks that cannot
 #       run when cross compiling.  LINKS: TARGET (relative to PREFIX) to LINK
 #       (absolute); @DIR:/LINKDIR links every file in PREFIX/DIR.
@@ -30,7 +31,10 @@ set(SYLLABLE_BUILDER_PORTS ${PROJECT_SOURCE_DIR}/system/apps/utils/Builder/packa
 set(SYLLABLE_STAGING ${CMAKE_BINARY_DIR}/sysroot/usr)
 file(MAKE_DIRECTORY ${SYLLABLE_STAGING}/include ${SYLLABLE_STAGING}/lib ${SYLLABLE_STAGING}/bin)
 get_filename_component(_cross_bin ${CMAKE_C_COMPILER} DIRECTORY)
-cmake_host_system_information(RESULT SYLLABLE_JOBS QUERY NUMBER_OF_LOGICAL_CORES)
+# Parallel jobs inside each port's (and Webster's) make; ninja's -j doesn't
+# reach them.  sb configure -DSYLLABLE_JOBS=2 on a shared machine.
+cmake_host_system_information(RESULT _cores QUERY NUMBER_OF_LOGICAL_CORES)
+set(SYLLABLE_JOBS ${_cores} CACHE STRING "Parallel jobs for the ports' and Webster's make")
 
 function(_syllable_links prefix)
   foreach(spec ${ARGN})
@@ -56,8 +60,8 @@ function(_syllable_links prefix)
 endfunction()
 
 function(syllable_port name)
-  cmake_parse_arguments(A "SYSROOT" "PORT;URL;SHA256;PREFIX;CACHE;STYLE;DEST"
-                        "CONFIGURE;MAKE_ARGS;LINKS;DEPENDS;BYPRODUCTS;BUILD_TARGETS;INSTALL_TARGETS" ${ARGN})
+  cmake_parse_arguments(A "SYSROOT" "PORT;SHA256;PREFIX;CACHE;STYLE;DEST"
+                        "URL;CONFIGURE;MAKE_ARGS;LINKS;DEPENDS;BYPRODUCTS;BUILD_TARGETS;INSTALL_TARGETS" ${ARGN})
   if(NOT A_INSTALL_TARGETS)
     set(A_INSTALL_TARGETS install)
   endif()
@@ -185,6 +189,8 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/ports/glibc/stamp
 add_custom_target(glibc ALL DEPENDS ${CMAKE_BINARY_DIR}/ports/glibc/stamp)
 install(DIRECTORY ${_glibc_dest}/ DESTINATION ${SYLLABLE_GLIBC_PREFIX} USE_SOURCE_PERMISSIONS)
 file(GLOB _glibc_libs RELATIVE ${_glibc_src}/lib ${_glibc_src}/lib/lib*.so.*)
+# /system/libraries may not exist yet: on a fresh stage this runs before Layout
+install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/libraries)")
 foreach(lib ${_glibc_libs})
   install(CODE "file(CREATE_LINK /boot/${SYLLABLE_GLIBC_PREFIX}/lib/${lib}
     \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/libraries/${lib} SYMBOLIC)")

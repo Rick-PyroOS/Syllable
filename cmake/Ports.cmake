@@ -1,8 +1,10 @@
-# Third-party ports on the boot volume (see SyllablePorts.cmake)
+# Third-party ports on the boot volume (see SyllablePorts.cmake).  GNU sources
+# list mirrors.kernel.org first: ftp.gnu.org often refuses connections.
 
 syllable_port(bash
   PORT BASh-4.0
-  URL https://ftp.gnu.org/gnu/bash/bash-4.0.tar.gz
+  URL https://mirrors.kernel.org/gnu/bash/bash-4.0.tar.gz
+      https://ftp.gnu.org/gnu/bash/bash-4.0.tar.gz
   SHA256 9793d394f640a95030c77d5ac989724afe196921956db741bcaf141801c50518
   PREFIX /system/resources/BASh/4.0
   CONFIGURE --without-bash-malloc
@@ -14,7 +16,8 @@ syllable_port(bash
 # which are Syllable programs
 syllable_port(coreutils
   PORT coreutils-6.4
-  URL https://ftp.gnu.org/gnu/coreutils/coreutils-6.4.tar.bz2
+  URL https://mirrors.kernel.org/gnu/coreutils/coreutils-6.4.tar.bz2
+      https://ftp.gnu.org/gnu/coreutils/coreutils-6.4.tar.bz2
   SHA256 75a6b82bb7e3d07bec5b9bd0fcdfdfdfb88f32728e5089972001b50e4148b87b
   PREFIX /system/resources/coreutils/6.4
   MAKE_ARGS "SUBDIRS=lib src"
@@ -163,7 +166,8 @@ target_link_libraries(syllable_curl INTERFACE syllable_ssl syllable_crypto libdl
 set(_gcc95 ${SYLLABLE_TOOLCHAIN_ROOT}/bin/i586-pc-syllable)
 syllable_port(gdbserver
   PORT gdbserver-18.1
-  URL https://ftp.gnu.org/gnu/gdb/gdb-18.1.tar.xz
+  URL https://mirrors.kernel.org/gnu/gdb/gdb-18.1.tar.xz
+      https://ftp.gnu.org/gnu/gdb/gdb-18.1.tar.xz
   SHA256 cd9fc3fe2b47743840e42c1592d3d87f8302eb18639c0b8b4ba0898002e2348f
   PREFIX /system/resources/gdbserver/18.1
   CONFIGURE --disable-gdb --disable-sim --disable-binutils --disable-ld --disable-gas
