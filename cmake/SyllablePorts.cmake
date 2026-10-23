@@ -4,7 +4,8 @@
 #   syllable_port(NAME PORT dir URL url SHA256 hash PREFIX /system/resources/...
 #                 [CONFIGURE args...] [CACHE file] [MAKE_ARGS args...]
 #                 [LINKS target:link ...] [STYLE zlib] [DEST sysroot] [SYSROOT]
-#                 [DEPENDS ports...] [BYPRODUCTS files...])
+#                 [DEPENDS ports...] [BYPRODUCTS files...]
+#                 [BUILD_TARGETS targets...] [INSTALL_TARGETS targets...])
 #       Downloads and checks the source, applies the port, configures for
 #       i586-pc-syllable with PREFIX, builds, installs into the build tree and
 #       strips it; `cmake --install` copies it into the boot volume.
@@ -21,6 +22,9 @@
 #       components compile against (SYLLABLE_STAGING), not onto the boot volume.
 #       SYSROOT: a system package whose headers and libraries later components
 #       also need at build time (e.g. zlib).
+#       BUILD_TARGETS / INSTALL_TARGETS: the make targets to build and to
+#       install with (default: all, and install), for a tree of which only a
+#       part is wanted (gdbserver from the gdb tree: all-gdbserver).
 
 set(SYLLABLE_BUILDER_PORTS ${PROJECT_SOURCE_DIR}/system/apps/utils/Builder/packages)
 set(SYLLABLE_STAGING ${CMAKE_BINARY_DIR}/sysroot/usr)
@@ -53,7 +57,10 @@ endfunction()
 
 function(syllable_port name)
   cmake_parse_arguments(A "SYSROOT" "PORT;URL;SHA256;PREFIX;CACHE;STYLE;DEST"
-                        "CONFIGURE;MAKE_ARGS;LINKS;DEPENDS;BYPRODUCTS" ${ARGN})
+                        "CONFIGURE;MAKE_ARGS;LINKS;DEPENDS;BYPRODUCTS;BUILD_TARGETS;INSTALL_TARGETS" ${ARGN})
+  if(NOT A_INSTALL_TARGETS)
+    set(A_INSTALL_TARGETS install)
+  endif()
   set(dest ${CMAKE_BINARY_DIR}/ports/${name}/dest)
   set(cache /dev/null)
   if(A_CACHE)
@@ -121,13 +128,13 @@ function(syllable_port name)
   else()
     set(configure ${env} <SOURCE_DIR>/configure --build=x86_64-pc-linux-gnu
                   --host=i586-pc-syllable --prefix=${A_PREFIX} --disable-nls ${A_CONFIGURE})
-    set(install ${env} make install DESTDIR=${destdir} ${A_MAKE_ARGS})
+    set(install ${env} make ${A_INSTALL_TARGETS} DESTDIR=${destdir} ${A_MAKE_ARGS})
     set(in_source "")
   endif()
   if(A_BUILD_COMMAND)
     set(build ${A_BUILD_COMMAND})
   else()
-    set(build ${env} make -j${SYLLABLE_JOBS} ${A_MAKE_ARGS})
+    set(build ${env} make -j${SYLLABLE_JOBS} ${A_MAKE_ARGS} ${A_BUILD_TARGETS})
   endif()
   set(after_install "")
   if(NOT A_DEST STREQUAL "sysroot")

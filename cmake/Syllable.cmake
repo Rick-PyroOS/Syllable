@@ -49,6 +49,13 @@
 #
 # Every target helper also takes STRIP: strip it after linking (the
 # Makefiles' install -s / strip).
+#
+# SYLLABLE_DEBUG_INFO (sb configure -DSYLLABLE_DEBUG_INFO=ON): userland
+# programs, libraries and plugins are built with debug info (DWARF 2, which
+# the Mac's gdb reads; GCC 4.1.2's plain -g is stabs) and are not stripped, so
+# gdb through gdbserver shows their source.  ./sb image mirrors the stage to
+# out/sysroot for the Mac's gdb.
+option(SYLLABLE_DEBUG_INFO "Userland built with debug info and not stripped" OFF)
 
 # Header views.  Userland code includes the tree's headers as they are
 # (system/sys/include/syllable).  Kernel code was written when <syllable/...>
@@ -77,7 +84,9 @@ macro(_syllable_common name)
   if(A_OUTPUT_NAME)
     set_target_properties(${name} PROPERTIES OUTPUT_NAME ${A_OUTPUT_NAME})
   endif()
-  if(A_STRIP)
+  if(SYLLABLE_DEBUG_INFO AND _syllable_userland)
+    target_compile_options(${name} PRIVATE -gdwarf-2)
+  elseif(A_STRIP)
     # stripped in the build tree (the Makefiles' install -s), so installing is
     # a plain copy that only happens when the target changed
     add_custom_command(TARGET ${name} POST_BUILD COMMAND ${CMAKE_STRIP} $<TARGET_FILE:${name}>)
@@ -107,6 +116,7 @@ endfunction()
 function(syllable_program name)
   cmake_parse_arguments(A "STRIP" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
   add_executable(${name} ${A_SOURCES})
+  set(_syllable_userland TRUE)
   _syllable_common(${name})
   syllable_userland_headers(${name})
   target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fexceptions>)
@@ -119,6 +129,7 @@ function(syllable_library name)
   endif()
   add_library(${name} SHARED ${A_SOURCES})
   set(A_OUTPUT_NAME)
+  set(_syllable_userland TRUE)
   _syllable_common(${name})
   syllable_userland_headers(${name})
   target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fexceptions>)
@@ -132,6 +143,7 @@ endfunction()
 function(syllable_plugin name)
   cmake_parse_arguments(A "STRIP" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
   add_executable(${name} ${A_SOURCES})
+  set(_syllable_userland TRUE)
   _syllable_common(${name})
   syllable_userland_headers(${name})
   target_link_options(${name} PRIVATE -plugin -Xlinker -Bsymbolic -nodefaultlibs)

@@ -152,3 +152,24 @@ add_dependencies(syllable_crypto openssl)
 add_dependencies(syllable_xml2 libxml2)
 add_dependencies(syllable_sqlite3 sqlite)
 target_link_libraries(syllable_curl INTERFACE syllable_ssl syllable_crypto libdl)
+
+# ---- Development ------------------------------------------------------------------
+
+# gdbserver (gdb 18.1 with the Syllable target, Builder/packages/gdbserver-18.1):
+# lets another machine's gdb debug programs here.  It needs C++17, so it is
+# built with GCC 9.5.0 whichever compiler builds the system, and links its C++
+# runtime statically (the system's is GCC 4.1.2's).  It only runs on a debug
+# image (./sb image --debug: system/index/tasks/start/gdbserver).
+set(_gcc95 ${SYLLABLE_TOOLCHAIN_ROOT}/bin/i586-pc-syllable)
+syllable_port(gdbserver
+  PORT gdbserver-18.1
+  URL https://ftp.gnu.org/gnu/gdb/gdb-18.1.tar.xz
+  SHA256 cd9fc3fe2b47743840e42c1592d3d87f8302eb18639c0b8b4ba0898002e2348f
+  PREFIX /system/resources/gdbserver/18.1
+  CONFIGURE --disable-gdb --disable-sim --disable-binutils --disable-ld --disable-gas
+            --disable-gprof --disable-gold --disable-libctf --disable-readline
+            --without-zstd --without-xxhash --enable-gdbserver
+            CC=${_gcc95}-gcc CXX=${_gcc95}-g++
+            "LDFLAGS=-static-libstdc++ -static-libgcc"
+  BUILD_TARGETS all-gdbserver INSTALL_TARGETS install-gdbserver
+  LINKS bin/gdbserver:/system/development/bin/gdbserver)

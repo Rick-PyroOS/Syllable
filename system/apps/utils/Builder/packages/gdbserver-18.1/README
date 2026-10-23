@@ -1,0 +1,13 @@
+gdbserver 18.1 for Syllable: GDB's remote debugging server, so the gdb on
+another machine (the Mac's i386-elf-gdb, through Neovim's Debug) can debug
+programs running here.
+
+gdbserver-18.1.patch adds the Syllable target (gdbserver/syllable-low.{h,cc}:
+Syllable's ptrace, with its new threads traced from the start and
+PTRACE_GETIMAGES for the library list), its configure.srv entry, and a fix
+for Syllable's struct rusage (gdbsupport/run-time-clock.cc).  Needs the
+kernel's ptrace changes K1, K2 and K4.
+
+Built by cmake/Ports.cmake with GCC 9.5.0 (C++17), its C++ runtime linked in
+statically.  Started at boot only on a debug image (./sb image --debug):
+system/image/system/index/tasks/start/gdbserver.

@@ -1,0 +1,9 @@
+# gdbserver, for debugging programs here from another machine's gdb: only on a
+# debug image.  Syllable-Build-System's ./sb image --debug writes "on" to
+# /system/config/debug-gdbserver (a plain ./sb image writes "off"), and
+# ./sb run --gdbserver forwards the Mac's localhost:2345 here.
+# --multi: gdb starts and stops the programs itself.  start.sh sources this.
+if [ "$(cat /system/config/debug-gdbserver 2>/dev/null)" = on ] && [ -x /system/development/bin/gdbserver ]
+then
+	/system/development/bin/gdbserver --multi 0.0.0.0:2345 > /dev/null 2>&1 &
+fi
