@@ -18,7 +18,9 @@
 -- With Ollama (the default endpoint), the checks start it when it isn't
 -- running: the Ollama app on a Mac, else "ollama serve" in the background,
 -- left running after Neovim quits. Settings (Cmd+,) > "Start Ollama when
--- model checks need it" turns that off.
+-- model checks need it" turns that off. Turning the checks off (Space tm or
+-- Settings) stops the model: the checks server quits, the model is unloaded
+-- and an "ollama serve" started here is stopped.
 --
 -- Silence a finding you've checked with a comment, like semgrep's nosemgrep:
 --   foo( new Bar );   // nomodel                 every check, this line
@@ -105,6 +107,7 @@ end
 -- isn't; then done(). Another endpoint (vim.g.rick_mcp_url) is left alone.
 local OLLAMA = "http://127.0.0.1:11434"
 local ollama_tried = false
+local ollama_pid -- an "ollama serve" this Neovim started (stopped again when the checks are turned off)
 local function ensure_ollama(done)
   local url = vim.g.rick_mcp_url or "http://localhost:11434/v1"
   if ollama_tried or not url:find(":11434") or not require("config.prefs").get("ollama_autostart")
@@ -122,7 +125,8 @@ local function ensure_ollama(done)
     if app then
       vim.system({ "open", "-g", "-a", "Ollama" })
     elseif vim.fn.executable("ollama") == 1 then
-      pcall(vim.system, { "ollama", "serve" }, { detach = true, stdout = false, stderr = false })
+      local ok, proc = pcall(vim.system, { "ollama", "serve" }, { detach = true, stdout = false, stderr = false })
+      if ok and proc then ollama_pid = proc.pid end
     else
       vim.notify("Local model checks: Ollama isn't installed (brew install ollama, then ollama pull qwen2.5-coder:7b)",
         vim.log.levels.WARN)
@@ -349,6 +353,7 @@ function M.run(buf)
   with_server(function()
     tool("list_checks", {}, function(list, err)
       if not list then return warn(err) end
+      if type(list.model) == "string" then client.model = list.model end
       if type(list.note) == "string" and list.note ~= "" and not noted then
         noted = true
         vim.notify("Local model checks: " .. list.note)
@@ -421,6 +426,28 @@ function M.ask_fix(buf, d)
   end)
 end
 
+-- Turning the checks off stops the model working: the checks server goes
+-- (Ollama drops the requests it was answering), the model is unloaded from
+-- memory, and an "ollama serve" this Neovim started is stopped. The Ollama
+-- app itself keeps running, idle.
+local function shutdown()
+  for buf in pairs(bufs) do stop(buf) end
+  client.pending = {} -- no "the checks server stopped" warnings for what was cancelled
+  if client.proc then pcall(function() client.proc:kill(15) end) end
+  client.proc, client.ready, client.partial, client.waiting = nil, false, "", {}
+  local model, pid = client.model, ollama_pid
+  ollama_pid = nil
+  local function stop_serve() if pid then pcall(vim.uv.kill, pid, 15) end end
+  local url = vim.g.rick_mcp_url or "http://localhost:11434/v1"
+  if model and url:find(":11434") and vim.fn.executable("curl") == 1 then
+    vim.system({ "curl", "-s", "--noproxy", "*", "-m", "5", OLLAMA .. "/api/generate", "-d",
+      vim.json.encode({ model = model, keep_alive = 0 }) }, { text = true }, stop_serve)
+  else
+    stop_serve()
+  end
+  ollama_tried = false -- turning them on again starts Ollama again if needed
+end
+
 function M.toggle()
   M.enabled = not M.enabled
   pcall(vim.fn.mkdir, vim.fs.dirname(state_file), "p")
@@ -433,7 +460,7 @@ function M.toggle()
       if vim.api.nvim_buf_is_loaded(buf) then M.run(buf) end
     end
   else
-    for buf in pairs(bufs) do stop(buf) end
+    shutdown()
     vim.diagnostic.reset(M.ns)
   end
   vim.notify("Local model checks: " .. (M.enabled and "on" or "off"))

@@ -147,8 +147,22 @@ local function delete_if_unused(buf)
   end
 end
 
+-- Before a tab closes: out of Insert mode, and with auto-save on, its
+-- unsaved typing saved (it saves on leaving Insert mode anyway), so the close
+-- doesn't stop on a "save changes?" question that can't show from a click.
+local function settle(buf)
+  buf = buf or vim.api.nvim_get_current_buf()
+  if vim.fn.mode():find("^[iR]") then vim.cmd.stopinsert() end
+  if vim.g.autosave and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].modified and vim.bo[buf].buftype == ""
+    and vim.api.nvim_buf_get_name(buf) ~= "" then
+    pcall(vim.api.nvim_buf_call, buf, function() vim.cmd("silent! noautocmd update") end)
+  end
+end
+
 -- Close buf's tab in win's row.
 function M.close(buf, win)
+  if buf == 0 or buf == nil then buf = vim.api.nvim_get_current_buf() end
+  settle(buf)
   win = win or M.main()
   if not M.is_split() or not win then return Snacks.bufdelete(buf) end
   local row = M.tabs(win)
@@ -210,6 +224,7 @@ end
 function M.close_current()
   local win = vim.api.nvim_get_current_win()
   local buf = vim.api.nvim_get_current_buf()
+  settle(buf)
   if not M.is_split() or not is_editor(win) then return Snacks.bufdelete(buf) end
   M.close(buf, win)
 end
@@ -342,7 +357,9 @@ end
 local function terminals()
   local out = {}
   for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-    if vim.api.nvim_win_get_config(win).relative == "" and vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "terminal" then
+    local buf = vim.api.nvim_win_get_buf(win)
+    -- The Run panel (config/run.lua) has a title row of its own: its tabs.
+    if vim.api.nvim_win_get_config(win).relative == "" and vim.bo[buf].buftype == "terminal" and not vim.b[buf].rick_run then
       local g = geometry(win)
       g.term = true
       out[#out + 1] = g

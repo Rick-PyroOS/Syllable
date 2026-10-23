@@ -25,7 +25,7 @@ args = args.parse_args()
 CMD, SHIFT, ALT, CTRL = 0x100000, 0x20000, 0x80000, 0x40000
 NUMPAD, FN = 0x200000, 0x800000          # macOS flags iTerm records on arrow / F keys
 UP, DOWN, BS, CR = 0xF700, 0xF701, 0x7F, 0x0D
-F2, F3, F7, F9, F12, F19 = 0xF705, 0xF706, 0xF70A, 0xF70C, 0xF70F, 0xF716
+F2, F3, F7, F8, F9, F10, F12, F19 = 0xF705, 0xF706, 0xF70A, 0xF70B, 0xF70C, 0xF70D, 0xF70F, 0xF716
 ESC_SEQ, HEX = 10, 11                    # iTerm "Send Escape Sequence" / "Send Hex Code"
 
 def csi_mods(mods):                      # xterm/CSI u modifier number
@@ -82,7 +82,15 @@ key("j", CMD)                                                   # live templates
 # Build
 special(F9, CMD, "[20;9~", flags=(FN, 0))                       # build
 special(F9, CMD | SHIFT, "[20;10~", flags=(FN, 0))              # recompile this file
-special(F2, CMD, "[12;9~", flags=(FN, 0))                       # stop the build
+special(F2, CMD, "[12;9~", flags=(FN, 0))                       # stop the build (and run / debug)
+# Run and debug (lua/config/run.lua, debug.lua)
+special(F10, SHIFT, "[21;2~", flags=(FN, 0))                    # run
+special(F9, SHIFT, "[20;2~", flags=(FN, 0))                     # debug
+special(F8, CMD, "[19;9~", flags=(FN, 0))                       # toggle breakpoint
+special(F8, CMD | SHIFT, "[19;10~", flags=(FN, 0))              # show breakpoints
+special(F8, SHIFT, "[19;2~", flags=(FN, 0))                     # step out
+special(F8, ALT, "[19;3~", flags=(FN, 0))                       # evaluate
+key("r", CMD | ALT)                                             # resume
 # Settings
 key(",", CMD)                                                   # settings (instead of iTerm's)
 special(BS, CMD, "[127;9u")                                     # delete line

@@ -67,35 +67,111 @@ vim.g.thread_model = {
 
 require("config.threads").setup()
 
--- Build (Cmd+F9, Space rb) with Syllable-Build-System/os/pyro, which builds in
--- Docker (syllable-os-x86) from a copy of system/ in the pyro-work volume.
--- `pyro build` only copies system/ the first time, so sync first: it brings
--- your edits over and keeps the objs/ folders, so make rebuilds only what changed.
--- Compiler errors name the container's paths; build_path_map turns them into
--- this checkout's. Docker must be running.
-local pyro = vim.fs.dirname(root) .. "/Syllable-Build-System/os/pyro"
-vim.g.build_cmd = pyro .. " sync && " .. pyro .. " build"
+-- Build, Run and Debug with Syllable-Build-System's ./sb, the CMake build in
+-- Docker (the syllable-os-x86 image; Docker must be running). The checkout is
+-- mounted read-only at /src and the build tree is the syllable-build volume at
+-- /build, so compiler errors name those paths: build_path_map turns them into
+-- this checkout's (and debug.lua uses it for the debugger's source paths).
+--   Build (Cmd+F9, Space rb): ./sb build, which rebuilds what changed. Recompile
+--     (Cmd+Shift+F9, Space rf) does the same: CMake builds targets, not files.
+--   Run (Shift+F10, Space rr): ./sb image --debug (build, install, update the
+--     disk image, with gdbserver starting at boot) then ./sb run --gdbserver,
+--     QEMU in a window; the serial console (out/run-serial.log) is a tab in the
+--     Run panel. Programs can be debugged while it runs.
+--   Debug (Shift+F9, Space rd), by the file you're in:
+--     - a kernel file (system/sys/kernel): QEMU stopped at the first
+--       instruction, its gdb stub on localhost:1234, the kernel's symbols
+--       (out/kernel.so);
+--     - a program's file: that program (its CMakeLists.txt's syllable_program),
+--       started in Syllable through gdbserver (localhost:2345) with the copy in
+--       out/sysroot for its symbols. If Run's Syllable is up, it is debugged
+--       there; if not, Debug starts one. :SyllableDebugApp picks the program
+--       for files that aren't in one.
+--   Source-level debugging of programs needs a build with debug info, once:
+--     ./sb configure -DSYLLABLE_DEBUG_INFO=ON
+--   and i386-elf-gdb (brew install i386-elf-gdb).
+-- The old pyro build (Syllable-Build-System/os, being retired) is no longer used.
+local sbs = vim.fs.dirname(root) .. "/Syllable-Build-System"
+vim.g.build_dir = sbs
+vim.g.build_cmd = "./sb build"
+vim.g.build_file_cmd = "./sb build"
 vim.g.build_path_map = {
-  ["/work/src/"] = root .. "/system/",                                         -- the build copy of system/
-  ["/work/kinc/syllable/"] = root .. "/system/sys/include/syllable/atheos/",  -- kernel-side <syllable/...>
-  ["/repo/"] = vim.fs.dirname(root) .. "/",                                    -- Rick-PyroOS, read-only
+  ["/src/"] = root .. "/",                                                     -- the checkout, read-only
+  ["/repo/"] = vim.fs.dirname(root) .. "/",                                    -- Rick-PyroOS
 }
--- Recompile (Cmd+Shift+F9, Space rf): pyro builds components, not single files,
--- so this builds the component (os/components) the current file belongs to.
-vim.g.build_file_cmd = function()
-  local file = vim.api.nvim_buf_get_name(0)
-  local rel = vim.fs.relpath(root .. "/system", file)
-  local best, best_len = nil, 0
-  local manifest = vim.fs.dirname(root) .. "/Syllable-Build-System/os/components"
-  for _, l in ipairs(vim.fn.filereadable(manifest) == 1 and vim.fn.readfile(manifest) or {}) do
-    local name, kind, path = l:gsub("#.*", ""):match("^(%S+)%s+(%S+)%s+(%S+)")
-    if rel and kind == "make" and (rel == path or rel:sub(1, #path + 1) == path .. "/") and #path > best_len then
-      best, best_len = name, #path
+vim.g.run_dir = sbs
+vim.g.run_cmd = "./sb image --debug && ./sb run --gdbserver"
+vim.g.run_logs = { "out/run-serial.log" }
+
+-- The program a source file belongs to: the syllable_program() in the nearest
+-- CMakeLists.txt above it with an INSTALL folder. { name, guest, local }:
+-- its path inside Syllable and its copy with symbols in out/sysroot.
+local function program_of(file)
+  local dir = file ~= "" and vim.fs.dirname(file) or nil
+  while dir and vim.startswith(dir, root .. "/system") do
+    local cm = dir .. "/CMakeLists.txt"
+    if vim.uv.fs_stat(cm) then
+      local text = table.concat(vim.fn.readfile(cm), " ")
+      local args = text:match("syllable_program%s*%((.-)%)")
+      if args then
+        local target = args:match("^%s*([%w_%-]+)")
+        local out = args:match("OUTPUT_NAME%s+([%w_%-%.]+)") or target
+        local inst = args:match("INSTALL%s+([%w_%-%./]+)")
+        if inst then
+          return { name = out, guest = "/boot/" .. inst .. "/" .. out, ["local"] = sbs .. "/out/sysroot/" .. inst .. "/" .. out }
+        end
+      end
     end
+    local up = vim.fs.dirname(dir)
+    if up == dir then break end
+    dir = up
   end
-  if not best then
-    vim.notify("This file isn't in a pyro component (Syllable-Build-System/os/components): building everything")
-    return vim.g.build_cmd
-  end
-  return pyro .. " sync && " .. pyro .. " build " .. best
 end
+
+local function is_kernel(file) return vim.startswith(file, root .. "/system/sys/kernel/") end
+
+-- What Shift+F9 debugs: the kernel, the current file's program, or the one
+-- picked last with :SyllableDebugApp.
+local function debug_what()
+  local file = vim.api.nvim_buf_get_name(0)
+  if is_kernel(file) then return "kernel" end
+  return program_of(file) or vim.g.syllable_debug_app
+end
+
+vim.g.debug_gdb = "i386-elf-gdb"
+vim.g.debug_gdb_init = {
+  "set architecture i386",
+  -- Libraries: the image's, with symbols (gdbserver names them by file name)
+  "set sysroot " .. sbs .. "/out/sysroot",
+  "set solib-search-path " .. sbs .. "/out/sysroot/system/libraries:" .. sbs .. "/out/libraries",
+}
+vim.g.debug_target = function() return debug_what() == "kernel" and "localhost:1234" or nil end
+vim.g.debug_remote = function()
+  local w = debug_what()
+  return type(w) == "table" and "localhost:2345" or nil
+end
+vim.g.debug_remote_exec = function()
+  local w = debug_what()
+  return type(w) == "table" and w.guest or nil
+end
+vim.g.debug_program = function()
+  local w = debug_what()
+  if w == "kernel" then return sbs .. "/out/kernel.so" end
+  if type(w) == "table" then return w["local"] end
+  vim.notify("Debug: open a file of the program to debug (or :SyllableDebugApp), or a kernel file", vim.log.levels.WARN)
+end
+vim.g.debug_cmd = function()
+  return debug_what() == "kernel" and "./sb image && ./sb run --gdb" or "./sb image --debug && ./sb run --gdbserver"
+end
+
+-- :SyllableDebugApp: pick the program Shift+F9 debugs from files outside one.
+vim.api.nvim_create_user_command("SyllableDebugApp", function()
+  local apps, seen = {}, {}
+  for _, cm in ipairs(vim.fs.find("CMakeLists.txt", { path = root .. "/system", type = "file", limit = math.huge })) do
+    local p = program_of(cm)
+    if p and not seen[p.guest] then seen[p.guest] = true; apps[#apps + 1] = p end
+  end
+  table.sort(apps, function(a, b) return a.name:lower() < b.name:lower() end)
+  vim.ui.select(apps, { prompt = "Debug which program?", format_item = function(p) return p.name .. "  " .. p.guest end },
+    function(p) if p then vim.g.syllable_debug_app = p; vim.notify("Shift+F9 debugs " .. p.guest) end end)
+end, { desc = "Pick the program Shift+F9 debugs" })

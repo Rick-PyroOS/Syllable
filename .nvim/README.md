@@ -196,6 +196,11 @@ Shift opens Find" > Enable. The taps must be within 0.4 s with no other key betw
 | `Cmd+Alt+T` | surround with if / while / for / try / `{ }` / `#ifdef` ... (`Space cs`) |
 | `Cmd+J` | insert a live template |
 | `Cmd+F9`, `Cmd+Shift+F9`, `Cmd+F2` | build in the background (`Space rb`), recompile this file (`Space rf`), stop the build (`Space rs`); `Space ro` shows / hides the Build panel |
+| `Shift+F10`, `Shift+F9` | run (`Space rr`) / debug (`Space rd`), building first; what runs is the project's `vim.g.run_cmd` / `vim.g.debug_cmd` (`lua/config/run.lua`). Output shows in a Run panel with a tab per log (`Space rl` shows / hides it) |
+| `Cmd+F2` | stop whatever is running: the program, the debugger and the build (`Space rs`) |
+| click a line number, `Cmd+F8` | toggle a breakpoint (`Space rp`; `Space rP` for a conditional one); `Cmd+Shift+F8` lists them |
+| `F8`, `F7`, `Shift+F8`, `F9` | while debugging: step over, step into, step out, resume (also `Cmd+Alt+R`) |
+| `Alt+F8` | while debugging: evaluate the expression under the cursor or the selection (`Space re`) |
 | `Cmd+,` | settings: every toggle in one list |
 | `Alt+Enter` | intention actions (code actions) |
 | `Shift+F6`, `Cmd+P`, `F1` | rename, parameter info, quick documentation (press `Cmd+P` again, also while typing, or `F1` again to go into the popup and select and copy with `y`; `q` goes back). Underlined names in these popups are links: click one, or press Enter or `Ctrl-]` on it, to go to its definition (`Ctrl-o` comes back; several matches give a list) |

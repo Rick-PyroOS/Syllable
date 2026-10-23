@@ -64,6 +64,8 @@ require("config.clion_keys")
 require("config.findbar").setup() -- after clion_keys: takes over / , Cmd+F and Cmd+R when the find bar is on
 require("config.find_in_files").setup() -- Find / Replace in Files popup (Cmd+Shift+F, Cmd+Shift+R)
 require("config.build").setup() -- after clion_keys: F2 / Shift+F2 also walk build errors
+require("config.run").setup() -- after build: Cmd+F2 stops run, debug and build
+require("config.debug").setup() -- after diff: F7 steps into while debugging
 require("config.panels").setup()
 require("config.quit")
 require("config.autosave")

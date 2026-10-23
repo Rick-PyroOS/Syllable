@@ -85,6 +85,17 @@ function M.setup()
       vim.keymap.set("n", "<LeftRelease>", "<LeftRelease><Cmd>startinsert<CR>", { buffer = ev.buf, desc = "Back to typing" })
     end,
   })
+  -- The same from any click that ends in Normal mode in a terminal panel, even
+  -- if something else maps <LeftRelease> there (on_key sees every key).
+  local RELEASE = vim.keycode("<LeftRelease>")
+  vim.on_key(function(k, typed)
+    if (typed ~= "" and typed or k) ~= RELEASE then return end
+    vim.schedule(function()
+      if vim.bo.buftype == "terminal" and vim.fn.mode() == "n" and vim.api.nvim_win_get_config(0).relative == "" then
+        vim.cmd.startinsert()
+      end
+    end)
+  end, vim.api.nvim_create_namespace("rick_panels_click"))
   vim.api.nvim_create_autocmd("WinEnter", {
     group = group,
     callback = function()

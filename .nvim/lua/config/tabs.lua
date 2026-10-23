@@ -279,6 +279,19 @@ function M.setup()
       end
       drop_release = true
       return ""
+    elseif k == LEFT_MOUSE and vim.fn.getmousepos().screenrow == 1 and vim.o.showtabline ~= 0 then
+      -- A tab with unsaved typing shows ● where its ✕ was, and bufferline
+      -- doesn't make the ● clickable: clicking it closes the tab too (after
+      -- saving, with auto-save on; split_tabs.close does that).
+      local col = vim.fn.getmousepos().screencol
+      local item = tab_at(col)
+      if item and item.id and vim.api.nvim_buf_is_valid(item.id) and vim.bo[item.id].modified
+        and vim.fn.screenstring(1, col) == ((require("bufferline.config").options or {}).modified_icon or "●") then
+        local buf = item.id
+        vim.schedule(function() require("config.split_tabs").close(buf) end)
+        drop_release = true
+        return ""
+      end
     elseif k == LEFT_RELEASE and drop_release then
       drop_release = false
       return ""
