@@ -171,6 +171,17 @@ static status_t access_vm( Thread_s *psThread, uintptr_t nAddr, uint32 *pnValue,
 }
 
 
+/* Hand over a thread's memory clone (access_vm) so the caller can delete it
+ * once it no longer holds the scheduler lock; untrace() then finds none. */
+static area_id take_vm_clone( Thread_s *psThread )
+{
+	area_id hArea = psThread->tr_hPTraceVMClone;
+
+	psThread->tr_hPTraceVMClone = 0;
+	psThread->tr_nPTraceVMCloneBase = 0;
+	return hArea;
+}
+
 static int ptrace_traceme( Thread_s *psCurrentThread, Thread_s *psTargetThread,
                            void *pAddr, void *pData )
 {
@@ -488,6 +499,7 @@ int sys_ptrace( int nRequest, thread_id hThread, void *pAddr, void *pData )
 	Thread_s *psCurrentThread = CURRENT_THREAD;
 	ptrace_func_ptr f = NULL;
 	int nCpuFlags, nResult = 0;
+	area_id hVMClone = 0;
 
 #ifdef PTRACE_DEBUG	/* a debugger makes thousands of calls: only when asked for */
 	printk( "sys_ptrace: request = %d, tid = %d, addr = %p, data = %p\n",
@@ -544,19 +556,46 @@ int sys_ptrace( int nRequest, thread_id hThread, void *pAddr, void *pData )
 
 	if ( nRequest == PTRACE_KILL )
 	{
+		hVMClone = take_vm_clone( psTargetThread );
 		nResult = f( psCurrentThread, psTargetThread, pAddr, pData );
 		goto out;
 	}
 
 	/* all other functions require the target thread to be stopped */
-	if ( psTargetThread->tr_nState == TS_STOPPED )
-		nResult = f( psCurrentThread, psTargetThread, pAddr, pData );
-	else
+	if ( psTargetThread->tr_nState != TS_STOPPED )
+	{
 		nResult = -ESRCH;
+		goto out;
+	}
+
+	/*
+	 * Reading and writing the target's memory clones its pages into a kernel
+	 * area (clone_from_inactive_ctx), which takes semaphores and can sleep:
+	 * not with cli() / sched_lock() held (that is Schedule() under
+	 * g_sSchedSpinLock, and the system livelocks at the debugger's first
+	 * breakpoint).  The checks above are done; a stopped thread can't go away
+	 * under us (see ptrace_getimages), so these run after unlocking.
+	 */
+	if ( nRequest == PTRACE_PEEKTEXT || nRequest == PTRACE_PEEKDATA ||
+	     nRequest == PTRACE_POKETEXT || nRequest == PTRACE_POKEDATA )
+	{
+		sched_unlock();
+		put_cpu_flags( nCpuFlags );
+		return f( psCurrentThread, psTargetThread, pAddr, pData );
+	}
+
+	if ( nRequest == PTRACE_DETACH )
+		hVMClone = take_vm_clone( psTargetThread );
+	nResult = f( psCurrentThread, psTargetThread, pAddr, pData );
 
 out:
 	sched_unlock();
 	put_cpu_flags( nCpuFlags );
+
+	/* The memory clone of a detached or killed thread: delete_area() takes
+	 * semaphores too, so after unlocking. */
+	if ( hVMClone > 0 )
+		delete_area( hVMClone );
 
 #ifdef PTRACE_DEBUG
 	printk( "sys_ptrace: result = %d\n", nResult );

@@ -5,5 +5,9 @@
 # --multi: gdb starts and stops the programs itself.  start.sh sources this.
 if [ "$(cat /system/config/debug-gdbserver 2>/dev/null)" = on ] && [ -x /system/development/bin/gdbserver ]
 then
-	/system/development/bin/gdbserver --multi 0.0.0.0:2345 > /dev/null 2>&1 &
+	# Programs started through gdbserver inherit its environment: this runs
+	# from start.sh before anyone logs in, so give them root's login
+	# environment (without HOME, programs such as FileBrowser abort).
+	( cd /home/root && HOME=/home/root USER=root LOGNAME=root SHELL=/bin/bash \
+	  /system/development/bin/gdbserver --multi 0.0.0.0:2345 > /var/log/gdbserver.log 2>&1 & )
 fi

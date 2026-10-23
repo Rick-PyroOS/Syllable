@@ -171,5 +171,6 @@ syllable_port(gdbserver
             --without-zstd --without-xxhash --enable-gdbserver
             CC=${_gcc95}-gcc CXX=${_gcc95}-g++
             "LDFLAGS=-static-libstdc++ -static-libgcc"
+  CACHE ${PROJECT_SOURCE_DIR}/cmake/ports/gdbserver.cache   # libc's getcwd (see there)
   BUILD_TARGETS all-gdbserver INSTALL_TARGETS install-gdbserver
   LINKS bin/gdbserver:/system/development/bin/gdbserver)
