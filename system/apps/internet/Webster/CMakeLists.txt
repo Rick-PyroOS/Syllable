@@ -49,17 +49,36 @@ ExternalProject_Add(webster
   # make has already chosen its built-in yacc rule (grammar.y -> grammar.c, as
   # C) before bison writes the .cpp.  -r: only Webster's own rules.
   BUILD_COMMAND ${_env} make -r -C JavaScriptCore -f Makefile.syllable gensources
-        COMMAND ${_env} make -r -j8 -C JavaScriptCore -f Makefile.syllable
+        COMMAND ${_env} make -r -j${SYLLABLE_JOBS} -C JavaScriptCore -f Makefile.syllable
         COMMAND ${_env} make -r -C WebCore -f Makefile.syllable gensources
-        COMMAND ${_env} make -r -j8 -C WebCore -f Makefile.syllable
-        COMMAND ${_env} make -r -j8 -C WebView
-        COMMAND ${_env} make -r -j8 -C ABrowse_NG
+        COMMAND ${_env} make -r -j${SYLLABLE_JOBS} -C WebCore -f Makefile.syllable
+        COMMAND ${_env} make -r -j${SYLLABLE_JOBS} -C WebView
+        COMMAND ${_env} make -r -j${SYLLABLE_JOBS} -C ABrowse_NG
   INSTALL_COMMAND ""
   BUILD_BYPRODUCTS ${_web}/ABrowse_NG/Webster
   LOG_BUILD ON LOG_OUTPUT_ON_FAILURE ON)
 
-install(PROGRAMS ${_web}/ABrowse_NG/Webster DESTINATION applications/Webster)
-install(PROGRAMS ${_web}/JavaScriptCore/objs/libjavascriptcore.so.1 ${_web}/WebCore/objs/libwebcore.so.1
-                 ${_web}/WebView/libwebview.so.1
-        DESTINATION applications/Webster/lib)
+# Stripped, as the Makefiles' install -s did (libwebcore ~18 MB -> ~8 MB), into
+# a copy so the build tree keeps its timestamps and make relinks nothing.  With
+# SYLLABLE_DEBUG_INFO they are installed as built, for the debugger.
+set(_webster_files ${_web}/ABrowse_NG/Webster ${_web}/JavaScriptCore/objs/libjavascriptcore.so.1
+                   ${_web}/WebCore/objs/libwebcore.so.1 ${_web}/WebView/libwebview.so.1)
+if(SYLLABLE_DEBUG_INFO)
+  set(_inst ${_webster_files})
+else()
+  set(_stripped ${CMAKE_CURRENT_BINARY_DIR}/stripped)
+  set(_inst)
+  set(_strip_commands COMMAND ${CMAKE_COMMAND} -E make_directory ${_stripped})
+  foreach(f ${_webster_files})
+    get_filename_component(n ${f} NAME)
+    list(APPEND _inst ${_stripped}/${n})
+    list(APPEND _strip_commands COMMAND ${CMAKE_STRIP} -o ${_stripped}/${n} ${f})
+  endforeach()
+  ExternalProject_Add_Step(webster strip ${_strip_commands}
+    DEPENDEES build DEPENDERS install BYPRODUCTS ${_inst} COMMENT "Stripping Webster")
+endif()
+list(GET _inst 0 _webster_bin)
+list(SUBLIST _inst 1 -1 _webster_libs)
+install(PROGRAMS ${_webster_bin} DESTINATION applications/Webster)
+install(PROGRAMS ${_webster_libs} DESTINATION applications/Webster/lib)
 syllable_attribute(applications/Webster/Webster os::Category Internet)
