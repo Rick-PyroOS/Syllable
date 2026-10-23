@@ -22,7 +22,7 @@ install(CODE "execute_process(COMMAND chmod -R o-rwx
 # Folder and program icons, as in the release (os::Icon attributes naming a
 # file in /system/icons)
 syllable_attribute(applications os::Icon /system/icons/applications.png)
-syllable_attribute(applications/Preferences os::Icon /system/icons/settings.png)
+syllable_attribute(applications/preferences os::Icon /system/icons/settings.png)
 syllable_attribute(home os::Icon /system/icons/home.png)
 syllable_attribute(home/.template os::Icon /system/icons/home.png)
 syllable_attribute(home/root os::Icon /system/icons/home.png)
