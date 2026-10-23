@@ -23,6 +23,7 @@
 --   vim.g.debug_remote      = "localhost:2345"   -- gdb connects (extended-remote) and starts it there
 --   vim.g.debug_remote_exec = "/path/on/target"  -- the program's path on that system
 --                                                  (debug_program is the local copy with symbols)
+--   vim.g.debug_connect_timeout = 300           -- seconds gdb keeps trying to reach it
 -- vim.g.build_path_map (config/build.lua) also maps the source paths in the
 -- debug info, so a program built in a container opens your files.
 -- With nothing set, Run says what to set.

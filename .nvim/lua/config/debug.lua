@@ -98,7 +98,10 @@ local function gdb_args(opts)
   if opts.remote then
     -- gdb retries the connection while gdbserver starts (a test connect
     -- would end a gdbserver --multi that has no program yet).
-    vim.list_extend(args, { "-ex", "set tcp connect-timeout 60", "-ex", "target extended-remote " .. opts.remote })
+    -- debug_connect_timeout: seconds; building and booting the system first
+    -- can take minutes.
+    vim.list_extend(args, { "-ex", "set tcp connect-timeout " .. (vim.g.debug_connect_timeout or 300),
+      "-ex", "target extended-remote " .. opts.remote })
     if opts.remote_exec then vim.list_extend(args, { "-ex", "set remote exec-file " .. opts.remote_exec }) end
   end
   return args
