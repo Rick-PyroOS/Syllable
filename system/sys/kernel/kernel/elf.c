@@ -2442,6 +2442,36 @@ static void do_get_image_info( image_info * psInfo, ElfImageInst_s *psInst )
 }
 
 /*****************************************************************************
+ * NAME: get_process_image_info
+ * DESC: Like get_image_info(), for another process's image: the nIndex'th
+ *       slot of its image context.  For ptrace's PTRACE_GETIMAGES, so a
+ *       debugger can find where each library of the program it traces is
+ *       loaded.
+ * NOTE: Returns -ENOENT for an empty slot and -EINVAL past the last one.
+ *       Takes the context's lock: call with interrupts enabled.
+ * SEE ALSO: get_image_info(), ptrace.c
+ ****************************************************************************/
+
+int get_process_image_info( Process_s *psProc, int nIndex, image_info * psInfo )
+{
+	ImageContext_s *psCtx = psProc->pr_psImageContext;
+	int nError = 0;
+
+	if ( nIndex < 0 || nIndex >= MAX_IMAGE_COUNT )
+		return ( -EINVAL );
+	if ( psCtx == NULL )
+		return ( -ENOENT );
+
+	LOCK( psCtx->ic_hLock );
+	if ( psCtx->ic_psInstances[nIndex] == NULL )
+		nError = -ENOENT;
+	else
+		do_get_image_info( psInfo, psCtx->ic_psInstances[nIndex] );
+	UNLOCK( psCtx->ic_hLock );
+	return ( nError );
+}
+
+/*****************************************************************************
  * NAME:
  * DESC:
  * NOTE:

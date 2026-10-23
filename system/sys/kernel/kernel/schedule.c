@@ -1200,9 +1200,15 @@ static Thread_s *find_dead_child( pid_t hPid, pid_t hGroup, int nOptions )
 	{
 		if ( psChild->tr_hParent == psThread->tr_hThreadID && ( psChild->tr_nState == TS_ZOMBIE || psChild->tr_nState == TS_STOPPED ) )
 		{
-			if (  ( psChild->tr_nState == TS_STOPPED ) &&
-			     !( atomic_read( &psChild->tr_nPTraceFlags ) & PT_PTRACED ) &&
-			      ( psChild->tr_nExitCode == 0 || ( nOptions & WUNTRACED ) == 0 ) )
+			/* A stopped child is reported once: sys_wait4() clears its exit
+			 * code when it does.  An untraced one only with WUNTRACED; a
+			 * ptraced one always (its debugger waits for it), but not again
+			 * while it stays stopped, or waitpid( -1 ) would keep returning
+			 * the same stopped thread and never another one's event. */
+			if ( ( psChild->tr_nState == TS_STOPPED ) &&
+			     ( psChild->tr_nExitCode == 0 ||
+			       ( !( atomic_read( &psChild->tr_nPTraceFlags ) & PT_PTRACED ) &&
+			         ( nOptions & WUNTRACED ) == 0 ) ) )
 			{
 				continue;
 			}

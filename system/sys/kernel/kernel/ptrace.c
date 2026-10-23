@@ -31,6 +31,7 @@
 #include <inc/smp.h>
 #include <inc/areas.h>
 #include <inc/ptrace.h>
+#include <inc/image.h>
 
 
 static ptrace_func_t ptrace_traceme;
@@ -428,6 +429,59 @@ static int ptrace_setfpxregs( Thread_s *psCurrentThread,
 }
 
 
+/*
+ * PTRACE_GETIMAGES: the images loaded in the target's process (path, text
+ * and data addresses), so a debugger can place each library's symbols.
+ * pAddr: how many image_info structs pData has room for.  Returns the count.
+ * Handled outside sys_ptrace's cli() / sched_lock(): reading the image
+ * context takes a semaphore.
+ */
+static int ptrace_getimages( thread_id hThread, void *pAddr, void *pData )
+{
+	Thread_s *psCurrentThread = CURRENT_THREAD;
+	Thread_s *psTargetThread;
+	Process_s *psProc = NULL;
+	image_info sInfo;
+	int nMax = (int) (uintptr_t) pAddr;
+	int nCpuFlags, nError = 0, nCount = 0, i;
+
+	if ( nMax < 0 )
+		return -EINVAL;
+	if ( nMax > 0 && verify_mem_area( pData, nMax * sizeof( image_info ), true ) < 0 )
+		return -EFAULT;
+
+	nCpuFlags = cli();
+	sched_lock();
+	psTargetThread = get_thread_by_handle( hThread );
+	if ( psTargetThread == NULL )
+		nError = -ESRCH;
+	else if ( !( atomic_read( &psTargetThread->tr_nPTraceFlags ) & PT_PTRACED ) ||
+	          psTargetThread->tr_hParent != psCurrentThread->tr_hThreadID )
+		nError = -EPERM;
+	else if ( psTargetThread->tr_nState != TS_STOPPED )
+		nError = -ESRCH;	/* a stopped thread's process can't go away under us */
+	else
+		psProc = psTargetThread->tr_psProcess;
+	sched_unlock();
+	put_cpu_flags( nCpuFlags );
+	if ( nError < 0 )
+		return nError;
+
+	for ( i = 0; i < MAX_IMAGE_COUNT && nCount < nMax; ++i )
+	{
+		nError = get_process_image_info( psProc, i, &sInfo );
+		if ( nError == -ENOENT )
+			continue;
+		if ( nError < 0 )
+			break;
+		nError = memcpy_to_user( (image_info *) pData + nCount, &sInfo, sizeof( sInfo ) );
+		if ( nError < 0 )
+			return nError;
+		nCount++;
+	}
+	return nCount;
+}
+
 int sys_ptrace( int nRequest, thread_id hThread, void *pAddr, void *pData )
 {
 	Thread_s *psTargetThread;
@@ -435,8 +489,13 @@ int sys_ptrace( int nRequest, thread_id hThread, void *pAddr, void *pData )
 	ptrace_func_ptr f = NULL;
 	int nCpuFlags, nResult = 0;
 
+#ifdef PTRACE_DEBUG	/* a debugger makes thousands of calls: only when asked for */
 	printk( "sys_ptrace: request = %d, tid = %d, addr = %p, data = %p\n",
 	        nRequest, hThread, pAddr, pData );
+#endif
+
+	if ( nRequest == PTRACE_GETIMAGES )
+		return ptrace_getimages( hThread, pAddr, pData );
 
 	if ( ( nRequest >= 0 ) && ( nRequest <= MAX_REQUEST ) )
 		f = g_pPTraceFunc[nRequest];
@@ -499,7 +558,9 @@ out:
 	sched_unlock();
 	put_cpu_flags( nCpuFlags );
 
+#ifdef PTRACE_DEBUG
 	printk( "sys_ptrace: result = %d\n", nResult );
+#endif
 	return nResult;
 }
 

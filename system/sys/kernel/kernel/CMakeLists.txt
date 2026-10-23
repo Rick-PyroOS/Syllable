@@ -2,8 +2,16 @@
 # -kernel links drivers against) and the eth_if network interface driver.
 # Flags, object order and the link follow the original Makefile.
 
+# SYLLABLE_KERNEL_DEBUG: line info (DWARF 2) for a debugger. kernel.so keeps it; the
+# installed kernel is stripped either way, so the boot image is the same size.
+# Turn it off with  sb configure -DSYLLABLE_KERNEL_DEBUG=OFF.
+option(SYLLABLE_KERNEL_DEBUG "Build the kernel with debug info (-g)" ON)
+set(KERNEL_DEBUG_FLAGS)
+if(SYLLABLE_KERNEL_DEBUG)
+  set(KERNEL_DEBUG_FLAGS -gdwarf-2)      # GCC 4.1.2's plain -g is stabs, which gdb 18 can't read
+endif()
 set(KERNEL_FLAGS
-  -Wall -O2 -std=gnu99 -fno-optimize-sibling-calls -Wstrict-prototypes
+  -Wall -O2 ${KERNEL_DEBUG_FLAGS} -std=gnu99 -fno-optimize-sibling-calls -Wstrict-prototypes
   -D__KERNEL__ -D__BUILD_KERNEL__ -ffreestanding -no-fPIC
   -mpreferred-stack-boundary=2 -fno-strict-aliasing)
 

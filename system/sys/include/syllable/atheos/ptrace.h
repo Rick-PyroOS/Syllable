@@ -47,6 +47,13 @@ extern "C" {
 
 #define FRAME_SIZE	17	
 
+/* Syllable's own ptrace request: the images (the executable and its
+ * libraries) loaded in the traced thread's process, so a debugger knows where
+ * each library is.  addr is the number of image_info structs data has room
+ * for; returns how many it filled in (see <atheos/image.h>).  The target must
+ * be traced by the caller and stopped. */
+#define PTRACE_GETIMAGES	0x4200
+
 
 typedef struct {
 	uint32 cwd;

@@ -46,6 +46,9 @@
 #define PTRACE_SETFPXREGS	19
 #define PTRACE_SYSCALL		24
 
+/* Syllable's own requests, in Linux's range for OS-specific ones */
+#define PTRACE_GETIMAGES	0x4200	/* addr: room for that many image_info, data: the array; returns the count */
+
 #define PT_PTRACED			0x00000001
 #define PT_ALLOW_SIGNAL		0x00000002
 
