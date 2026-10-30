@@ -102,11 +102,11 @@ __libc_start_main (int (*main) (int, char **, char **), char** argv,
   __libc_argc = argc;
   __libc_argv = argv;
 
+  /* This runs the program's own DT_INIT (_init) too, after its libraries'.
+     init (__libc_csu_init) would only call _init a second time, running
+     every static constructor twice; with __cxa_atexit (GCC 9.5) each
+     destructor is then registered twice and runs twice at exit.  */
   __init_main_image();
-
-  /* Call the initialisor of the program, if any */
-  if (init)
-    (*init) ();
 
   /* Register our own destructor to allow us to properly tear down the image */
   __cxa_atexit((void (*) (void *)) deinit_images, NULL, NULL );
