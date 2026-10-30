@@ -1,7 +1,8 @@
-# System fonts: the base set and Bitstream Vera
+# System fonts: the base set, Bitstream Vera, and LCD2 (the release's
+# LCD-Fonts package; Icni's score display asks for "LCD2" "Normal")
 file(GLOB BASE_FONTS ${CMAKE_CURRENT_SOURCE_DIR}/base/*)
 file(GLOB VERA_FONTS ${CMAKE_CURRENT_SOURCE_DIR}/vera/*.ttf)
-install(FILES ${BASE_FONTS} ${VERA_FONTS} DESTINATION system/fonts)
+install(FILES ${BASE_FONTS} ${VERA_FONTS} lcd/LCD2-Normal.ttf DESTINATION system/fonts)
 
 # DejaVu, the release's system font (system/config/appserver asks for
 # "DejaVu Sans"): Builder's DejaVu-Fonts--current package, version 2.25

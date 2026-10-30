@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Syllable Desktop Installieren</title>
+	<meta name="author" content="Syllable Project"/>
+	<meta name="description" content="Syllable Desktop installation instructions."/>
+	<meta name="keywords" content="Syllable Desktop, Syllable, desktop, operating system, installation, installation instructions"/>
+	<meta name="generator" content="SpiderSpeak 0.11.11"/>
+	<link href="/documentation/screen.css" rel="stylesheet" type="text/css" media="screen"/>
+</head>
+<body>
+	<div>
+		<br />
+		<br />
+		<table>
+		<tbody>
+			<tr>
+				<td>
+					<a href="http://syllable.org/"><img src="/documentation/Syllable-logo.png" style="border: 0px solid;" alt="[Syllable operating system family]"/></a>
+				</td>
+				<td style="width: 100%; padding-top: 35px">
+					<div style="text-align: center"><h1>Syllable Desktop Installieren</h1></div>
+				</td>
+			</tr>
+		</tbody>
+		</table>
+		
+	<br />
+0.&nbsp; &nbsp; &nbsp; &nbsp; INHALT<br />
+<br />
+1.&nbsp; &nbsp; &nbsp; &nbsp; WIRD SYLLABLE AUF MEINEM COMPUTER LAUFEN?<br />
+
+2.&nbsp; &nbsp; &nbsp; &nbsp; SYLLABLE INSTALLIEREN<br />
+
+3.&nbsp; &nbsp; &nbsp; &nbsp; DEN BOOTLOADER KONFIGURIEREN<br />
+
+3.1&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; DEN BOOTLOADER INSTALLIEREN<br />
+
+3.1.1&nbsp; &nbsp; &nbsp; &nbsp; HINWEISE ZU GRUB<br />
+
+4.&nbsp; &nbsp; &nbsp; &nbsp; ERSTER START<br />
+
+4.1&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; WAS KANN ICH NUN TUN?<br />
+
+4.2&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; PROBLEMLÖSUNG<br />
+<br />
+	<br />
+	<table>
+		<tr>
+			<td style="width: 20%; padding: 20px 15px 20px"><div style="text-align: center"></div></td>
+			<td style="padding-bottom: 20px">1. WIRD SYLLABLE AUF MEINEM COMPUTER LAUFEN?<br />
+<br />
+Syllable ist darauf ausgelegt, auf einem modernen, Intel-kompatiblen PC zu laufen. Als Minimalvoraussetzung muss Ihr Rechner einen Pentium-Prozessor und 32 MB Hauptspeicher besitzen, aber ein schnellerer Prozessor und 128 MB Hauptspeicher werden Syllable erlauben, mehr Aufgaben zu erledigen und schneller zu laufen. Specifically, you need some more than 32 MB to use the graphical web browser.<br />
+<br />
+Die meisten üblichen PC-Mainboards, Grafikkarten und Netzwerkkarten werden unterstützt. Viele übliche Soundkarten, Drucker und Scanner funktionieren ebenfalls und einige USB-Geräte werden auch unterstützt. Sollte Ihre spezielle Hardware nicht völlig unterstüzt sein, heißt dies nicht, dass Ihre Hardware nicht funktionieren wird. Sie können trotzdem versuchen, Syllable zu installieren; das schlimmste, was passieren kann ist, dass es schlicht nicht läuft.<br />
+<br />
+	<br />
+&nbsp; &nbsp; &nbsp; &nbsp; 2. SYLLABLE INSTALLIEREN<br />
+<br />
+Syllable wird normalerweise von einer startbaren CD installiert, was ein einfacher und schmerzloser Weg ist. Sie können entweder ein CD-Abbild herunterladen und selbst eine CD brennen, oder Sie können eine CD für $15 kaufen.<br />
+<br />
+Eine gekaufte CD ist identisch mit dem herunterladbaren Abbild, enthält aber zusätzlich die letzten verfügbaren Anwendungen und den vollen Quellcode von Syllable. Wenn Sie eine CD kaufen, werden Sie helfen, das Syllable-Projekt zu unterstützen. Schauen Sie unter <a href="http://de.syllable.org/pages/get-Syllable.html#Premium-CD">de.syllable.org/pages/get-Syllable.html#Premium-CD</a> um mehr Informationen zu erhalten.<br />
+<br />
+Das herunterladbare Syllable-CD-Abbild wird als mit 7-Zip komprimiertes ISO-Abbild verteilt. Bevor Sie dieses Abbild auf eine CD brennen können, müssen Sie es zuerst ent-7zippen. In Syllable ist 7-Zip integriert. Auf Linux oder anderen Unix-artigen Systemen wie MacOS X, sollten Sie sicherstellen, dass die portable Version von 7-Zip installiert ist (<a href="http://p7zip.sourceforge.net">p7zip.sourceforge.net</a>) und dies eingeben:<br />
+<br />
+&nbsp; 7z x SyllableDesktop-0.6.7.i586.iso.7z<br />
+<br />
+Unter Windows müssen Sie 7-Zip benutzen (<a href="http://www.7-zip.org">www.7-zip.org</a>) um die 7zip-Datei zu dekomprimieren, oder Sie können stattdessen das selbstextrahierende Archiv herunterladen und ausführen:<br />
+<br />
+&nbsp; SyllableDesktop-0.6.7.i586.iso.exe<br />
+<br />
+Sobald Sie das ISO-Abbild dekomprimiert haben, müssen Sie es unter Verwendung Ihrer bevorzugten Brennsoftware, z.B. cdrecord unter Linux oder Nero unter Windows, auf eine CD brennen. Es gibt keine besonderen Anforderungen an das Brennen des Syllable-CD-Abbilds; es handelt sich um ein Standard ISO9660 CD-Abbild, welches jede Brennsoftware brennen können sollte.<br />
+<br />
+Wenn Sie Syllable auf eine CD gebrannt haben, können Sie Ihren Computer damit starten. Die CD wird dann die Installationsskripte automatisch starten. Folgen Sie einfach den Anweisungen, um Syllable auf Ihrer Festplatte zu installieren. Sobald Sie Syllable auf Ihrer Festplatte installiert haben, müssen Sie den Bootloader GRUB konfigurieren. Lesen Sie dazu die nächste Sektion.<br />
+<br />
+	<br />
+&nbsp; &nbsp; &nbsp; &nbsp; 3. DEN BOOTLOADER KONFIGURIEREN<br />
+<br />
+Der nächste Schritt ist, den Bootloader zu konfigurieren und installieren.<br />
+<br />
+Als erstes müssen Sie GRUB sagen, wo es den Kernel und die benötigten Festplatten- / Dateisystem-Treiber findet, bevor Syllable gestartet werden kann. Diese Information findet sich in &quot;/inst/boot/grub/menu.lst&quot;. Wenn Sie andere Betriebssysteme auf dem Rechner installiert haben, müssen Sie GRUB entweder als Bootmanager konfigurieren oder einen anderen Bootmanager installieren, der GRUB von der AFS-Partition nachladen kann.<br />
+<br />
+Die Datei menu.lst sollte in etwa so aussehen, um Syllable entsprechend der oben beschriebenen Installation zu starten:<br />
+<br />
+&nbsp; &nbsp;  title&nbsp; Syllable<br />
+
+&nbsp; &nbsp;  root&nbsp;  (hd0,1)<br />
+
+&nbsp; &nbsp;  kernel /system/kernel.so root=/dev/disk/ata/hda/1<br />
+
+&nbsp; &nbsp;  module /system/config/kernel.cfg<br />
+
+&nbsp; &nbsp;  module /system/drivers/dev/bus/acpi<br />
+
+&nbsp; &nbsp;  module /system/drivers/dev/bus/pci<br />
+
+&nbsp; &nbsp;  module /system/drivers/dev/bus/ata<br />
+
+&nbsp; &nbsp;  module /system/drivers/dev/hcd/ata_pci<br />
+
+&nbsp; &nbsp;  module /system/drivers/fs/afs<br />
+<br />
+Dies wird GRUB anweisen, die Partition 2 auf der ersten Festplatte durch das Kommando &quot;root (hd0,1)&quot; zu starten, und ihm sagen, wo der Kernel, der Festplattentreiber sowie der Dateisystemtreiber auf dieser Partition zu finden sind. Die Zeichenkette &quot;root=/dev/disk/ata/hda/1&quot; nach dem Pfad zum Kernel ist ein Parameter, der an den Kernel weitergegeben wird und angibt, welche Partition als /boot/ einzuhängen ist, bevor der Startvorgang fortgesetzt wird. Der Kernel kann zudem eine Anzahl von weiteren Parametern entgegennehmen (im folgenden aufgeführt), die in der selben Art und Weise nach dem &quot;root&quot;-Parameter angegeben sind.<br />
+<br />
+Wenn Sie Syllable auf der zweiten Partition der ersten Festplatte installieren, ist die Standard-Konfigurationsdatei in Ordnung. Anderenfalls müssen Sie die Zeile, die mit &quot;root (Festplatte, Partition)&quot; beginnt, editieren, um sie an Ihre Installation anzupassen. Sollten Sie weitere Betriebssysteme mit GRUB starten wollen, müssen Sie diese ebenfalls zu der Konfigurationsdatei hinzufügen. Um beispielsweise BeOS oder Windows oder die meisten anderen Betriebssysteme zu starten, die einen eigenen Bootloader besitzen, können Sie das &quot;chainloader&quot;-Kommando wie folgt verwenden:<br />
+<br />
+&nbsp; &nbsp;  title BeOS<br />
+
+&nbsp; &nbsp;  chainloader (hd0,3)+1<br />
+<br />
+Dies wird einen Menüeintrag mit dem Titel BeOS hinzufügen, der das Betriebssystem startet, das sich auf der vierten Partition der ersten Festplatte befindet.<br />
+<br />
+Sie können außerdem ein Zeitlimit festsetzen, nach dessen Ablauf der erste Eintrag in der Liste (oder der Standardeintrag entsprechend dem &quot;default&quot;-Kommando) gestartet wird. Verwenden Sie dazu das &quot;timeout&quot;-Kommando:<br />
+<br />
+&nbsp; &nbsp;  timeout 5<br />
+<br />
+	<br />
+&nbsp; &nbsp; &nbsp; &nbsp; 3.1. DEN BOOTLOADER INSTALLIEREN<br />
+<br />
+Wenn Sie die Anpassung der Konfigurationsdatei abgeschlossen haben, müssen Sie den Computer durch gleichzeitiges drücken von &#x3C;CTRL&gt;, &#x3C;ALT&gt;, und &#x3C;ENTF&gt; (DRÜCKEN SIE NICHT DIE RESET- ODER POWER-TASTE. DIES WIRD DAZU FÜHREN, DASS GECACHTE DATEN, DIE NOCH NICHT AUF DIE FESTPLATTE GESCHRIEBEN WURDEN, VERLOREN GEHEN UND KÖNNTE EINE BESCHÄDIGUNG DER INSTALLATION VERURSACHEN!) von der CD neu starten, um den Bootloader zu installieren.<br />
+<br />
+Zu diesem Zeitpunkt sollten Sie GRUB abbrechen, bevor es Syllable startet, indem Sie &#x3C;ESC&gt; drücken und anschlie0end &quot;C&quot;, um die GRUB-Shell zu betreten, wo Sie die Installation abschließen können.<br />
+<br />
+Nun müssen Sie entscheiden, ob Sie GRUB entweder in den MBR (Master Boot Record) der ersten Festplatte installieren und ihn als einen Bootmanager verwenden wollen, oder ob sie ihn auf der AFS-Partition installieren wollen und einen anderen Bootmanager verwenden, um zu wählen, welches Betriebssystem gestartet werden soll.<br />
+<br />
+In beiden Fällen müssen Sie GRUB sagen, wo sich die Konfigurationsdatei befindet sowie der Lader der zweiten Stufe indem Sie eine &quot;root&quot;-Partition setzen:<br />
+<br />
+&nbsp; root (hd0,1)<br />
+<br />
+Wenn Sie Syllable nicht auf der zweiten Partition der ersten festplatte installiert haben, müssen Sie die Parameter entsprechend ändern.<br />
+<br />
+Dann müssen Sie den Bootloader mit dem &quot;setup&quot;-Kommando installieren.<br />
+<br />
+Um in de MBR der ersten Festplatte zu installieren, führen Sie aus:<br />
+<br />
+&nbsp; setup (hd0)<br />
+<br />
+Um in der AFS-Partition zu installieren, führen Sie aus:<br />
+<br />
+&nbsp; setup (hd0,1)<br />
+<br />
+(Ändern Sie die Parameter wieder entsprechend Ihrer Installation.)<br />
+<br />
+Nun sollte es möglich sein, Syllable von der nativen Partition zu starten.<br />
+<br />
+	<br />
+&nbsp; &nbsp; &nbsp; &nbsp; 3.1.1. HINWEISE ZU GRUB<br />
+<br />
+GRUB versteht das AFS-Dateisystem und kann jeglichen Kernel starten, der sich auf einer AFS-Partition befindet, indem die &quot;Kernel&quot;-Zeile in der Konfigurationsdatei geändert wird oder durch manuelles Laden des Kernels und der benötigten Module von der GRUB-Shell. Es gibt keine Notwendigkeit, irgendwelche Werkzeuge auszuführen, um Blocklisten oder irgendetwas anderes zu aktualisieren, wenn ein neuer Kernel installiert wurde.<br />
+<br />
+Lesen Sie die GRUB-Dokumentation [<a href="http://www.gnu.org/software/grub/grub.html">www.gnu.org/software/grub/grub.html</a>] und verwenden Sie das &quot;help&quot;-Kommando in der GRUB-Shell für weitere Informationen über den Bootloader.<br />
+<br />
+	<br />
+&nbsp; &nbsp; &nbsp; &nbsp; 4. ERSTER START<br />
+<br />
+Wenn Sie Syllable das erste Mal starten, wird es Ihren Computer untersuchen, um Treiber für Ihre Hardware zu finden. Wird ein Treiber gefunden, der ein bestimmtes Stück Hardware unterstützt, wird er automatisch geladen.<br />
+<br />
+Sind alle Treiber verfügbar, startet Syllable die grafische Benutzeroberfläche. Sie werden ein einzelnes Fenster in der Mitte des Bildschirms sehen, welches die Benutzerkonten, ein Eingabefeld für das Passwort sowie eine &quot;Login&quot;-Schaltfläche zeigt.<br />
+<br />
+Bevor Sie in der Lage sein werden, irgendetwas zu tun, müssen Sie sich unter Verwendung eines Benutzernamens und eines Passworts anmelden müssen. Die Grundinstallation kommt mit einem vordefinierten Benutzer, &quot;root&quot;, der das Passwort &quot;root&quot; besitzt. Dieser ist der Hauptbenutzer und hat uneingeschränkten Zugriff zum System.<br />
+<br />
+Sollte etwas schiefgegangen sein oder Syllable nicht starten, lesen Sie bitte Sektion 4.2 dieses Dokuments.<br />
+<br />
+	<br />
+&nbsp; &nbsp; &nbsp; &nbsp; 4.1. WAS KANN ICH NUN TUN?<br />
+<br />
+Sie können das Begrüßungsdokument lesen, welches an einem der folgenden Orte gefunden werden kann:<br />
+<br />
+&nbsp; &nbsp; Online unter <a href="http://de.syllable.org/Desktop/Welcome.html">de.syllable.org/Desktop/Welcome.html</a><br />
+
+&nbsp; &nbsp; In Syllable unter /documentation/Welcome.html, auch verknüpft vom Desktop.<br />
+<br />
+Das Begrüßungsdokument enthält Informationen zu den Internetseiten und Mailinglisten von Syllable sowie zu Software und Hardware und wird Ihnen helfen, erste Schritte in Syllable zu unternehmen.<br />
+<br />
+	<br />
+&nbsp; &nbsp; &nbsp; &nbsp; 4.2. PROBLEMLÖSUNG<br />
+<br />
+Wenn Syllable nicht installiert werden konnte oder Sie Syllable nicht starten können, gibt es mehrere Orte, wo Sie versuchen können, Hilfe und Lösungen für bekannte Probleme zu erhalten. Bitte lesen Sie das Begrüßungsdokument; schauen Sie in die vorherige Sektion dieser Datei (&quot;WAS KANN ICH NUN TUN?&quot;), um mehr Informationen zu erhalten.<br />
+<br />
+Falls ein Problem auftritt, sollte das erste, was Sie tun, sein, es einzuengen. Was ist schiefgegangen? Konnte die CD nicht gestartet werden? War Syllable nicht in der Lage, Ihre Festplatte zu finden? Konnte die grafische Benutzeroberfläche nicht geladen werden? Sammeln Sie jegliche Fehlermeldungen, die Sie sehen; dies wird helfen, Ihr Problem zu lösen. Machen Sie eine Aufstellung Ihrer Hardware (Prozessor, Typ des Motherboard, Gesamtmenge an Hauptspeicher, Typ der Grafikkarte).<br />
+<br />
+Sie sollten dann die Häufig Gestellten Fragen (FAQ) prüfen unter <a href="http://de.syllable.org/documentation/FAQ.html">de.syllable.org/documentation/FAQ.html</a> Diese liefern Antworten zu sehr häufigen Fragen, die Syllable betreffen.<br />
+<br />
+Wenn Sie sicher sind, dass es sich um ein Problem mit Syllable handelt, prüfen Sie die Foren bei <a href="http://forum.syllable.org/">forum.syllable.org/</a> Jemand hat möglicherweise bereits dasselbe Problem gehabt wie Sie und eine Lösung erhalten!<br />
+<br />
+Zum Schluss, wenn nichts davon hilft, fragen Sie auf der Syllable Entwickler-Mailingliste. Sie müssen dieser erst beitreten. Lesen Sie <a href="http://lists.sourceforge.net/lists/listinfo/syllable-developer">lists.sourceforge.net/lists/listinfo/syllable-developer</a> für Informationen darüber, wie Sie beitreten können.</td>
+		</tr>
+	</table>
+
+		<br />
+	</div>
+	<div style="text-align: center">	<hr />
+<br />
+
+Copyright &copy; 2002 - 2012 Syllable Project<br />
+
+All Rights Reserved</div>
+</body>
+</html>
