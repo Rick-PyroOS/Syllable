@@ -3,5 +3,6 @@ syllable_program(aterm OUTPUT_NAME Terminal SOURCES main.cpp tview.cpp settings.
   OPTIONS -fexceptions -ffast-math LIBS libsyllable INSTALL applications/system)
 syllable_resources(aterm FILES icon48x48.png)
 syllable_attribute(applications/system/Terminal os::Category "System Tools")
-install(CODE "file(CREATE_LINK /applications/system/Terminal
+install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/programs)
+  file(CREATE_LINK /applications/system/Terminal
   \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/programs/aterm SYMBOLIC)")

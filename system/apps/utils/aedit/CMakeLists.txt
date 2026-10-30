@@ -36,5 +36,6 @@ syllable_resources(aedit ADD
   text_plain.png=pixmaps/text_plain.png
   about=pixmaps/about.png)
 syllable_catalogs(aedit NAME aedit DIR resources LANGS bg da de el es fr fy hu it nl pl pt-br ro ru sv EMBED)
-install(CODE "file(CREATE_LINK /applications/AEdit/AEdit
+install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/programs)
+  file(CREATE_LINK /applications/AEdit/AEdit
   \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/programs/aedit SYMBOLIC)")

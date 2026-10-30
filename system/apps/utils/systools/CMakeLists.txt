@@ -9,5 +9,6 @@ foreach(tool ls_ports ls_sema shutdown open cbcopy cbpaste alert)
   syllable_program(${tool} SOURCES ${tool}.cpp LIBS libsyllable INSTALL system/programs)
 endforeach()
 install(PROGRAMS mkhome kill_all DESTINATION system/programs)
-install(CODE "file(CREATE_LINK /system/programs/shutdown
+install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/programs)
+  file(CREATE_LINK /system/programs/shutdown
   \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/system/programs/reboot SYMBOLIC)")

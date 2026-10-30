@@ -55,13 +55,19 @@ add_subdirectory(system)                            # everything else, area by a
 
 # Ports that need a component of the tree (defined after the ports)
 add_dependencies(curl libdl)                        # static libcrypto's dlopen()
+add_dependencies(perl libdl)                        # DynaLoader (cmake/ports/10-compilers.cmake)
+add_dependencies(doxygen libpthread)                # QThread (cmake/ports/10-compilers.cmake)
 
 # Layout, configuration, headers and boot scripts
 include(Layout)
+include(Documentation)                              # Doxygen's developer documentation
 add_subdirectory(system/sys/include/syllable)
 add_subdirectory(system/other/config/etc)
 add_subdirectory(system/other/config/default)
 add_subdirectory(system/image)                      # etc, home, config, boot scripts
+
+# The libraries, for programs built outside the tree (./sb compile)
+include(SyllableSDK)
 
 # ---- Disk image ------------------------------------------------------------------
 include(Image)

@@ -1,0 +1,46 @@
+diff -ru libtool-2.4.7-original/m4/libtool.m4 libtool-2.4.7/m4/libtool.m4
+--- libtool-2.4.7-original/m4/libtool.m4	2026-10-27 16:13:36.697139843 -0600
++++ libtool-2.4.7/m4/libtool.m4	2026-10-27 16:13:36.791784966 -0600
+@@ -3029,6 +3029,18 @@
+   need_version=yes
+   ;;
+ 
++syllable*)
++  version_type=linux # correct to gnu/linux during the next big refactor
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
++  soname_spec='$libname$release$shared_ext$major'
++  shlibpath_var=LIBRARY_PATH
++  runpath_var=DLL_PATH
++  shlibpath_overrides_runpath=no
++  dynamic_linker=Syllable
++  ;;
++
+ sysv4 | sysv4.3*)
+   version_type=linux # correct to gnu/linux during the next big refactor
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$release$shared_ext$major $libname$shared_ext'
+@@ -3604,6 +3616,10 @@
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
++syllable*)
++  lt_cv_deplibs_check_method=pass_all
++  ;;
++
+ sysv5* | sco3.2v5* | sco5v6* | unixware* | OpenUNIX* | sysv4*uw2*)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+diff -ru libtool-2.4.7-original/m4/ltdl.m4 libtool-2.4.7/m4/ltdl.m4
+--- libtool-2.4.7-original/m4/ltdl.m4	2026-10-27 16:13:36.696585239 -0600
++++ libtool-2.4.7/m4/ltdl.m4	2026-10-27 16:13:36.791951847 -0600
+@@ -531,6 +531,9 @@
+   solaris*)
+     lt_cv_sys_dlopen_deplibs=yes
+     ;;
++  syllable*)
++    lt_cv_sys_dlopen_deplibs=yes
++    ;;
+   sysv5* | sco3.2v5* | sco5v6* | unixware* | OpenUNIX* | sysv4*uw2*)
+     libltdl_cv_sys_dlopen_deplibs=yes
+     ;;

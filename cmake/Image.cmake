@@ -8,7 +8,7 @@ set(SYLLABLE_REFERENCE_DISK "" CACHE FILEPATH
     "Raw Syllable disk whose boot sectors and GRUB files the image reuses")
 set(SYLLABLE_IMAGE_OVERLAY "" CACHE PATH "Directory copied over the boot volume in the image")
 set(SYLLABLE_IMAGE_DIR ${CMAKE_BINARY_DIR}/image CACHE PATH "Where the image is written")
-set(SYLLABLE_IMAGE_SIZE 256M CACHE STRING "Size of the boot partition")
+set(SYLLABLE_IMAGE_SIZE 2G CACHE STRING "Size of the boot partition (the ports with both native compilers need over 256M)")
 
 # afstool: Syllable's AFS code as a Linux program (host tool)
 set(AFSTOOL ${CMAKE_BINARY_DIR}/afstool/src/afstool/afstool)
