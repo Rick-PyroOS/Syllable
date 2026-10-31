@@ -12,13 +12,35 @@
 -- Filetypes whose formatter can format a line range.
 local on_save_ft = { c = true, cpp = true, lua = true }
 
--- True when the file sits inside a git repo but git doesn't track it yet.
-local function is_untracked_in_repo(path)
+-- Whether the file sits inside a git repo but git doesn't track it yet, asked
+-- in the background when the buffer is entered (b:rick_untracked) so a save
+-- doesn't wait on git.
+local function check_untracked(buf)
+  local path = vim.api.nvim_buf_get_name(buf)
+  if path == "" or vim.bo[buf].buftype ~= "" then return end
+  path = vim.fs.abspath(path)
   local dir = vim.fs.dirname(path)
-  if vim.system({ "git", "-C", dir, "rev-parse", "--is-inside-work-tree" }):wait().code ~= 0 then
-    return false
-  end
-  return vim.system({ "git", "-C", dir, "ls-files", "--error-unmatch", path }):wait().code ~= 0
+  vim.system({ "git", "-C", dir, "ls-files", "--error-unmatch", path }, {}, function(r)
+    vim.schedule(function()
+      if not vim.api.nvim_buf_is_valid(buf) then return end
+      -- 128: not a repo (or no such folder); 1: in a repo, not tracked.
+      vim.b[buf].rick_untracked = r.code == 1
+    end)
+  end)
+end
+
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufEnter", "BufWritePost" }, {
+  group = vim.api.nvim_create_augroup("rick_format_untracked", { clear = true }),
+  callback = function(ev) check_untracked(ev.buf) end,
+})
+
+local function is_untracked_in_repo(buf)
+  local known = vim.b[buf].rick_untracked
+  if known ~= nil then return known end
+  local path = vim.fs.abspath(vim.api.nvim_buf_get_name(buf))
+  local r = vim.system({ "git", "-C", vim.fs.dirname(path), "ls-files", "--error-unmatch", path }):wait()
+  vim.b[buf].rick_untracked = r.code == 1
+  return r.code == 1
 end
 
 local function format_changed_lines(bufnr)
@@ -26,7 +48,7 @@ local function format_changed_lines(bufnr)
   local path = vim.api.nvim_buf_get_name(bufnr)
   if path == "" then return end
   path = vim.fs.abspath(path)
-  if is_untracked_in_repo(path) then
+  if is_untracked_in_repo(bufnr) then
     conform.format({ bufnr = bufnr, async = false, timeout_ms = 2000, lsp_format = "never" })
     return
   end
@@ -104,6 +126,7 @@ return {
       bash = { "shfmt" },
       python = { "ruff_format" },
       json = { "jq" },
+      cmake = { "cmake_format" },
     },
   },
 }

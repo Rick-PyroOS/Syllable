@@ -17,7 +17,7 @@ vim.lsp.config("clangd", {
     "--background-index",
     require("config.prefs").header_insertion(), -- iwyu: accepting a completion adds the #include it needs (Space ti)
     "--header-insertion-decorators", -- marks those completion items with a dot
-    "--clang-tidy=false",
+    require("config.prefs").clang_tidy(), -- the project's .clang-tidy checks, in the margin and Problems (Space tk)
     "--completion-style=detailed",
     "--function-arg-placeholders=0", -- completing a call inserts foo() with the cursor inside; the parameters show above
     "--pch-storage=memory",
@@ -53,7 +53,8 @@ vim.lsp.config("lua_ls", {
   },
 })
 
-vim.lsp.enable({ "clangd", "lua_ls" })
+-- CMakeLists.txt and *.cmake: completion, hover and go to definition (config/cmake.lua).
+vim.lsp.enable({ "clangd", "lua_ls", "neocmake" })
 
 -- Errors: the E in the margin and an underline; the message shows when the
 -- mouse rests on the E (lua/config/diagnostics.lua).

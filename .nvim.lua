@@ -175,3 +175,4 @@ vim.api.nvim_create_user_command("SyllableDebugApp", function()
   vim.ui.select(apps, { prompt = "Debug which program?", format_item = function(p) return p.name .. "  " .. p.guest end },
     function(p) if p then vim.g.syllable_debug_app = p; vim.notify("Shift+F9 debugs " .. p.guest) end end)
 end, { desc = "Pick the program Shift+F9 debugs" })
+vim.g.mcp_checks = { "syllable-style" } -- opt-in local-model naming check (mcp/checks/syllable-style.md)

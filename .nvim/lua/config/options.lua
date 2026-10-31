@@ -10,6 +10,10 @@ o.termguicolors = true
 o.title = true                 -- the terminal's window title: "nvim · file.cpp"; Shift Shift via
 o.titlestring = "nvim · %t"    -- Hammerspoon (extras/hammerspoon) only fires when it starts with "nvim"
 o.mouse = "a"
+-- Arrow keys like CLion's: the cursor can sit just past the end of a line,
+-- Right there goes on to the next line (Left at the start back to the last).
+o.virtualedit = "onemore"
+o.whichwrap = "b,s,<,>,[,]"
 o.clipboard = "unnamedplus"   -- share the macOS clipboard
 o.undofile = true             -- undo survives closing the file
 o.ignorecase = true
@@ -29,6 +33,20 @@ o.foldtext = ""
 o.foldlevelstart = 99
 o.foldminlines = 2            -- no arrow on a block shorter than 3 lines
 o.fillchars:append({ fold = " ", foldopen = "▾", foldclose = "▸", foldsep = " ", foldinner = " " })
+-- Fold arrows and line numbers bright enough to see (tokyonight draws them
+-- nearly in the background color). The current line's number stays orange.
+local function margin_colors()
+  vim.api.nvim_set_hl(0, "FoldColumn", { fg = "#a9b1d6", bold = true })
+  vim.api.nvim_set_hl(0, "CursorLineFold", { fg = "#c0caf5", bold = true })
+  for _, name in ipairs({ "LineNr", "LineNrAbove", "LineNrBelow" }) do
+    vim.api.nvim_set_hl(0, name, { fg = "#737aa2" })
+  end
+end
+margin_colors()
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = vim.api.nvim_create_augroup("rick_margin_colors", { clear = true }),
+  callback = margin_colors,
+})
 
 -- Panes as separate frames, like the project tree's: the lines between
 -- splits, the bottom terminal and the tree are blank gaps in a darker gutter
@@ -59,6 +77,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 })
 o.shortmess:append("I")      -- no "NVIM v..." intro screen on startup
 o.laststatus = 0              -- no status bar (Space tb shows it); the path is on the tab's hover
+o.cmdheight = 2               -- a blank row between the code and the bottom line (line, column): a bottom margin
 o.title = true                -- window title like CLion: "MyProject – window.cpp +"
 o.titlestring = "%{fnamemodify(getcwd(), ':t')} – %t%( %M%)"
 

@@ -66,3 +66,11 @@ keybind = cmd+shift+down=unbind
 keybind = cmd+alt+l=unbind
 keybind = cmd+alt+t=unbind
 keybind = cmd+,=unbind
+keybind = cmd+0=unbind
+keybind = cmd+4=unbind
+keybind = cmd+6=unbind
+keybind = cmd+shift+i=unbind
+# Ghostty binds Cmd+digit by physical key too (digit_N); unbind both forms.
+keybind = cmd+digit_1=unbind
+keybind = cmd+digit_4=unbind
+keybind = cmd+digit_6=unbind

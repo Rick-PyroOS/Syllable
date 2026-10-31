@@ -4,7 +4,9 @@
 -- (clangd) and S (cppcheck/semgrep). Rest the mouse on the M for the message.
 --
 -- The checks are prompt files in mcp/checks/*.md (one check per file; add a
--- file to add a check; a "languages: cpp" line keeps one to those filetypes).
+-- file to add a check; a "languages: cpp" line keeps one to those filetypes;
+-- an "opt-in: yes" check runs only in a project whose .nvim.lua lists it, as
+-- vim.g.mcp_checks = { "syllable-style" }).
 -- mcp/server.py is an MCP server that runs them; this file starts it and talks
 -- to it over stdin/stdout. Only functions that changed since the last run are
 -- sent again.
@@ -368,7 +370,9 @@ function M.run(buf)
       local ft = vim.bo[buf].filetype
       for _, check in ipairs(list.checks or {}) do
         local langs = check.languages or {}
-        for _, p in ipairs((#langs == 0 or vim.tbl_contains(langs, ft)) and pieces(buf) or {}) do
+        local wanted = (#langs == 0 or vim.tbl_contains(langs, ft))
+          and (not check.opt_in or vim.tbl_contains(vim.g.mcp_checks or {}, check.name))
+        for _, p in ipairs(wanted and pieces(buf) or {}) do
           -- The same code (wherever it now sits) gives the same findings, until
           -- the check's prompt or the model changes.
           local key = check.name .. "\0" .. (check.version or "") .. "\0" .. list.model .. "\0" .. vim.fn.sha256(p.code)

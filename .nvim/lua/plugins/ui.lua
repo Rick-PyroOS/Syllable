@@ -6,26 +6,6 @@ return {
     config = function() vim.cmd.colorscheme("tokyonight-night") end,
   },
   {
-    -- Can pop up the available keys after you press <leader> and pause. Off
-    -- unless Space tk turns it on (config/prefs.lua).
-    "folke/which-key.nvim",
-    event = "VeryLazy",
-    opts = {
-      preset = "helix",
-      delay = function(ctx) return require("config.prefs").key_popup_delay(ctx) end,
-      spec = {
-        { "<leader>a", group = "Claude" },
-        { "<leader>b", group = "Tabs (buffers)" },
-        { "<leader>c", group = "Code" },
-        { "<leader>f", group = "Find" },
-        { "<leader>g", group = "Git" },
-        { "<leader>m", group = "Markdown" },
-        { "<leader>r", group = "Build & Run" },
-        { "<leader>t", group = "Toggle" },
-      },
-    },
-  },
-  {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
     opts = {

@@ -120,8 +120,18 @@ function M.setup()
   -- Watched in on_key rather than mapped: a mapped <MouseMove> closes
   -- right-click menus as soon as the mouse moves.
   vim.o.mousemoveevent = true
-  vim.on_key(function(k)
-    if k == MOUSE_MOVE then vim.schedule(on_mouse_move) end
+  vim.on_key(function(k, typed)
+    if k == MOUSE_MOVE then
+      vim.schedule(on_mouse_move)
+    elseif typed and typed ~= "" and not typed:find("\128", 1, true) then
+      -- A key (Space starting Space Space, say) cancels a popup that's still
+      -- waiting for the mouse to rest, and closes one that's up.
+      timer:stop()
+      waiting = nil
+      vim.schedule(function()
+        if shown and vim.api.nvim_get_current_win() ~= shown.win then close() end
+      end)
+    end
   end, vim.api.nvim_create_namespace("rick_quick_docs"))
   -- Typing or switching files closes it too (open_floating_preview already
   -- closes it when the cursor moves).

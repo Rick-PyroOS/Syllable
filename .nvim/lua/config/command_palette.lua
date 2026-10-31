@@ -1,8 +1,8 @@
 -- Command palette, like CLion's Find Action: every mapping with a description
 -- (with its keys), plus commands like :Lazy or :Mason. Enter runs it; actions
--- you ran recently come first (marked ●). Space Space, Space p, Cmd+Shift+A or Cmd+Shift+P
--- (keys in clion_keys.lua and plugins/snacks.lua).
--- Finding files, classes and symbols is separate: Cmd+F (Find).
+-- you ran recently come first (marked ●). Space p or Cmd+Shift+P (keys in
+-- clion_keys.lua and plugins/snacks.lua). The same list is Find's Actions tab
+-- (search_everywhere.lua), which Space Space and Cmd+Shift+A open.
 
 local M = {}
 
@@ -54,11 +54,11 @@ local function items(buf)
   return list, rank
 end
 
-function M.open()
-  local list, rank = items(vim.api.nvim_get_current_buf())
-  require("config.dialogs").open("command_palette", function() return Snacks.picker.pick({
-    source = "command_palette",
-    title = "Commands",
+-- Picker options for the list (its items, how they look, Enter runs one), for
+-- the file in buf.
+function M.picker_opts(buf)
+  local list, rank = items(buf)
+  return {
     items = list,
     format = function(item)
       return {
@@ -67,11 +67,18 @@ function M.open()
         { item.hint, "SnacksPickerComment" },
       }
     end,
-    matcher = { sort_empty = false },
     confirm = function(picker, item)
       picker:close()
       if item then vim.schedule(function() run(item) end) end
     end,
+  }
+end
+
+function M.open()
+  require("config.dialogs").open("command_palette", function() return Snacks.picker.pick(vim.tbl_extend("force", M.picker_opts(vim.api.nvim_get_current_buf()), {
+    source = "command_palette",
+    title = "Commands",
+    matcher = { sort_empty = false },
     layout = {
       preview = false,
       layout = {
@@ -81,7 +88,7 @@ function M.open()
         { win = "list", border = "none" },
       },
     },
-  }) end)
+  })) end)
 end
 
 return M

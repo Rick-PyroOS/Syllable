@@ -1,7 +1,7 @@
 -- The copy icon in a popup's top-right corner (hover docs, K / F1, parameter
 -- info): click it to copy what the popup says. Every popup that offers
 -- copying does it with this icon (the problem popup has its own  Copy
--- buttons, the notification balloon too).
+-- buttons).
 
 local M = {}
 

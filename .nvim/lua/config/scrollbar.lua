@@ -47,8 +47,11 @@ local function wanted(win)
   return cfg.relative == "" or picker_for(win) ~= nil or scrollable_popup(win, cfg)
 end
 
--- Sideways bars only on files and the tree.
+-- Sideways bars only on files and the tree. Not terminals: their lines are
+-- never wider than the window, and measuring thousands of lines of output
+-- every time it scrolls slowed down typing.
 local function wanted_sideways(win)
+  if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "terminal" then return false end
   return vim.api.nvim_win_get_config(win).relative == "" or picker_for(win) ~= nil
 end
 

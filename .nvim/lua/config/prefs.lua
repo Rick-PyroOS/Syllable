@@ -1,10 +1,9 @@
--- Editor preferences you can flip from the command palette (Space Space) or
+-- Editor preferences you can flip from the command palette (Space p, or Find's Actions tab) or
 -- with their Space t keys. Each is remembered across restarts
 -- (stdpath("state")/prefs.json).
 --   Space tw  word wrap                                 (off)
 --   Space tz  Ctrl+Z suspends Neovim                    (off: Ctrl+Z does nothing)
 --   Space td  double-click selects the word (triple: the line) (off: it just places the cursor)
---   Space tk  popup listing the keys after Space, " or ' (off; Space Space still works)
 --   Space tq  quick documentation when the mouse rests on a name (on)
 --   Space tx  sticky header: the function you're in stays at the top (on)
 --   Space tg  git blame (author, date, commit) at the end of the current line (off)
@@ -18,9 +17,9 @@
 local M = {}
 
 local file = vim.fn.stdpath("state") .. "/prefs.json"
-local defaults = { wrap = false, ctrl_z = false, double_click = false, key_popup = false, mouse_docs = true, sticky_header = true,
+local defaults = { wrap = false, ctrl_z = false, double_click = false, mouse_docs = true, sticky_header = true,
   git_blame = false, auto_include = true, breadcrumbs = true, balloon = true, find_bar = false, images_inline = true,
-  thread_check = true, hover_delay = 500, ollama_autostart = true }
+  thread_check = true, hover_delay = 500, ollama_autostart = true, ai_complete = true, clang_tidy = true }
 
 -- Hover delays the Settings list offers (ms); :HoverDelay <ms> sets any other.
 local HOVER_DELAYS = { 100, 200, 300, 400, 500, 700, 1000, 1500, 2000 }
@@ -56,7 +55,6 @@ local toggles = {
   { "wrap", "<leader>tw", "Toggle word wrap", "Word wrap", apply_wrap },
   { "ctrl_z", "<leader>tz", "Toggle Ctrl+Z suspending Neovim", "Ctrl+Z suspends Neovim" },
   { "double_click", "<leader>td", "Toggle double-click selecting the word", "Double-click selects the word" },
-  { "key_popup", "<leader>tk", "Toggle key popup after Space", "Key popup after Space" },
   { "mouse_docs", "<leader>tq", "Toggle quick documentation on mouse hover", "Quick documentation on mouse hover",
     function() require("config.quick_docs").close() end },
   { "sticky_header", "<leader>tx", "Toggle sticky function header", "Sticky header",
@@ -66,10 +64,11 @@ local toggles = {
   { "auto_include", "<leader>ti", "Toggle adding #includes on completion", "Add #includes on completion",
     function() M.restart_clangd() end },
   { "breadcrumbs", "<leader>tr", "Toggle breadcrumbs", "Breadcrumbs", function() M.apply_breadcrumbs() end },
-  { "balloon", "<leader>tn", "Toggle the notification balloon (off: corner toasts)", "Notification balloon",
-    function() require("config.balloon").close() end },
+  { "balloon", "<leader>tn", "Toggle the Notifications tab (off: messages pop up in the corner)", "Notifications tab" },
   { "find_bar", "<leader>t/", "Toggle the find bar for / and Cmd+F (off: plain Vim search)", "Find bar" },
   { "images_inline", "<leader>tI", "Toggle showing images in the editor (off: Preview)", "Images in the editor" },
+  { "clang_tidy", "<leader>tk", "Toggle clang-tidy checks (the project's .clang-tidy)", "clang-tidy checks",
+    function() M.restart_clangd() end },
 }
 
 function M.apply_breadcrumbs()
@@ -214,6 +213,9 @@ end
 
 -- clangd's --header-insertion follows the auto_include pref (lsp.lua).
 function M.header_insertion() return "--header-insertion=" .. (M.get("auto_include") and "iwyu" or "never") end
+-- clang-tidy runs inside clangd on each open file, with the checks the
+-- nearest .clang-tidy names (a project without one gets none of note).
+function M.clang_tidy() return "--clang-tidy=" .. (M.get("clang_tidy") and "true" or "false") end
 
 function M.restart_clangd()
   local cfg = vim.lsp.config.clangd
@@ -221,6 +223,7 @@ function M.restart_clangd()
   local cmd = vim.deepcopy(cfg.cmd)
   for i, arg in ipairs(cmd) do
     if arg:find("^%-%-header%-insertion=") then cmd[i] = M.header_insertion() end
+    if arg:find("^%-%-clang%-tidy") then cmd[i] = M.clang_tidy() end
   end
   vim.lsp.config("clangd", { cmd = cmd })
   for _, c in ipairs(vim.lsp.get_clients({ name = "clangd" })) do c:stop() end
@@ -251,12 +254,6 @@ function M.setup()
       return M.get("double_click") and key or ""
     end, { expr = true })
   end
-end
-
--- which-key's delay (plugins/ui.lua): never, unless the popup is turned on.
-function M.key_popup_delay(ctx)
-  if not M.get("key_popup") then return 1e7 end
-  return ctx.plugin and 0 or 200
 end
 
 return M

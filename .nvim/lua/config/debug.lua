@@ -14,6 +14,8 @@
 -- come back after a restart.
 
 local M = {}
+-- vim.g settings, or the chosen Run/Debug Configuration's (config/run_configs.lua).
+local S = require("config.run_configs").settings
 
 local function dap() return require("dap") end
 
@@ -94,13 +96,13 @@ local function gdb_args(opts)
   for from, to in pairs(vim.g.build_path_map or {}) do
     vim.list_extend(args, { "-ex", ("set substitute-path %s %s"):format(from:gsub("/$", ""), to:gsub("/$", "")) })
   end
-  for _, c in ipairs(vim.g.debug_gdb_init or {}) do vim.list_extend(args, { "-ex", c }) end
+  for _, c in ipairs(S.debug_gdb_init or {}) do vim.list_extend(args, { "-ex", c }) end
   if opts.remote then
     -- gdb retries the connection while gdbserver starts (a test connect
     -- would end a gdbserver --multi that has no program yet).
     -- debug_connect_timeout: seconds; building and booting the system first
     -- can take minutes.
-    vim.list_extend(args, { "-ex", "set tcp connect-timeout " .. (vim.g.debug_connect_timeout or 300),
+    vim.list_extend(args, { "-ex", "set tcp connect-timeout " .. (S.debug_connect_timeout or 300),
       "-ex", "target extended-remote " .. opts.remote })
     if opts.remote_exec then vim.list_extend(args, { "-ex", "set remote exec-file " .. opts.remote_exec }) end
   end
@@ -138,7 +140,7 @@ end
 -- gdbserver --multi to start remote_exec on); wait: the stub is still
 -- starting.
 function M.start(opts)
-  local gdb = vim.g.debug_gdb or "gdb"
+  local gdb = S.debug_gdb or "gdb"
   if vim.fn.executable(gdb) == 0 then
     return vim.notify(("Debug: %s isn't installed (brew install %s, or set vim.g.debug_gdb)"):format(gdb,
       gdb == "gdb" and "gdb" or gdb), vim.log.levels.ERROR)
@@ -149,7 +151,7 @@ function M.start(opts)
     target = opts.target, program = opts.program, cwd = opts.cwd,
   } or {
     type = "gdb", request = "launch", name = "Debug " .. vim.fs.basename(opts.program),
-    program = opts.program, cwd = opts.cwd, args = vim.g.debug_args or {},
+    program = opts.program, cwd = opts.cwd, args = S.debug_args or {},
     rick_remote = opts.remote and true or nil,
   }
   -- gdb before 16 starts the program at launch, before the breakpoints are
