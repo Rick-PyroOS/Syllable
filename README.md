@@ -8,28 +8,14 @@ At some point this will be  merged into Pyro, but the structure
 has changed so much that I want to be able to just focus on changes for now.
 
 
-How am I compiling quickly
+Building and running
 ---
 
-I am using qemu to compile on a Mac M2 with 32gb of ram.
-Qemu is only reporting it as a 1000mhz single thread, something we will
-have to fix.  For now, I am just syncing code over using rsync: 
-
-```shell
-
-alias syllable-rsync='(){ echo $1; rsync -acvzh $2 $1 --recursive --cvs-exclude --rsync-path=/usr/rsync/bin/rsync --exclude .git ;}'
-
-#Run with: syllable-rsync "root@172.16.224.104:/home/root/Code/" ../Syllable
+Syllable is built in Docker by `sb` from
+[Syllable-Build-System](https://github.com/Rick-PyroOS/Syllable-Build-System),
+on macOS, Linux, or Windows through WSL 2. What to install, which
+repositories to check out (this one, Syllable-Build-System, Syllable-Ports and
+linux-afs) and the steps: [docs/build-and-run.md](docs/build-and-run.md).
 
 
-```
-
-UTM looks like:
-![qemu.png](qemu.png)
-
-
-How can I see Syllable logs in QEMU window?
----
-
-You can change: ***/system/bin/dbterm 8 >> /var/log/kernel &*** to ***/system/bin/dbterm 1 >> /var/log/kernel &*** in /system/init.sh of your Syllable machine
 
