@@ -9,3 +9,4 @@ add_subdirectory(graphics)
 add_subdirectory(net)
 add_subdirectory(audio)
 add_subdirectory(sound)
+add_subdirectory(misc)        # random, urandom: /dev/random and /dev/urandom

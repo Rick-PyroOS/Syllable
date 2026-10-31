@@ -12,11 +12,18 @@ set -e
 src=$1 port=$2 name=$(basename "$2")
 # (a port without a Builder folder, zlib 1.3.1: nothing to apply, the sum of nothing)
 sum=$(if [ -d "$port" ]; then cd "$port" && find . -name CVS -prune -o -type f -print | LC_ALL=C sort | xargs cat 2>/dev/null; fi | cksum)
+# src is <ports>/NAME/src/NAME; ExternalProject's extract script names the tarball
+pname=$(basename "$src")
+extract=$(dirname "$src")/$pname-stamp/extract-$pname.cmake
+# A finished build emptied the tree (SYLLABLE_PORTS_KEEP=OFF), .syllable-port
+# with it; the port changed since, so this patch step runs again: unpack the
+# tarball first (ensure-source.sh calls this script again on the full tree)
+if [ -z "$(ls -A "$src" 2>/dev/null)" ]; then
+  echo "-- the port $name changed: unpacking $pname again"
+  exec "$(dirname "$0")/ensure-source.sh" "$src" "$extract" "$port"
+fi
 if [ -f "$src/.syllable-port" ]; then
   [ "$(cat "$src/.syllable-port")" = "$sum" ] && exit 0
-  # src is <ports>/NAME/src/NAME; ExternalProject's extract script names the tarball
-  pname=$(basename "$src")
-  extract=$(dirname "$src")/$pname-stamp/extract-$pname.cmake
   echo "-- the port $name changed: unpacking $pname again"
   find "$src" -mindepth 1 -delete
   exec "$(dirname "$0")/ensure-source.sh" "$src" "$extract" "$port"

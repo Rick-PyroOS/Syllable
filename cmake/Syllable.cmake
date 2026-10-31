@@ -18,6 +18,13 @@
 #       Shared library, built and installed under its soname (as the Makefiles
 #       do), with LINKS (e.g. libfoo.so) as symlinks to it.
 #
+#   syllable_static_library(NAME [KERNEL] SOURCES ... [OUTPUT_NAME n] [INCLUDES ...]
+#                           [DEFINES ...] [OPTIONS ...])
+#       Static archive linked into other targets (not installed).  KERNEL
+#       builds it for drivers and the kernel (-kernel -fno-PIC
+#       -ffreestanding, the kernel's header view); otherwise for userland
+#       (PIC, as Syllable's GCC is by default, so shared libraries can link it).
+#
 #   syllable_plugin(NAME SOURCES ... INSTALL dir [OUTPUT_NAME n] [INCLUDES ...]
 #                   [DEFINES ...] [OPTIONS ...] [LIBS ...])
 #       Add-on loaded by a program (appserver drivers, decorators): linked with
@@ -143,6 +150,21 @@ function(syllable_library name)
   foreach(link ${A_LINKS})
     install(CODE "file(CREATE_LINK ${A_SONAME} \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${A_INSTALL}/${link} SYMBOLIC)")
   endforeach()
+endfunction()
+
+function(syllable_static_library name)
+  cmake_parse_arguments(A "STRIP;KERNEL" "${_SYLLABLE_ONE}" "${_SYLLABLE_MULTI}" ${ARGN})
+  add_library(${name} STATIC ${A_SOURCES})
+  if(A_KERNEL)
+    _syllable_common(${name})
+    target_include_directories(${name} BEFORE PRIVATE ${SYLLABLE_KERNEL_HEADER_VIEW})
+    target_include_directories(${name} SYSTEM PRIVATE ${SYLLABLE_HEADERS})
+    target_compile_options(${name} PRIVATE -kernel -fno-PIC -ffreestanding)
+  else()
+    set(_syllable_userland TRUE)
+    _syllable_common(${name})
+    syllable_userland_headers(${name})
+  endif()
 endfunction()
 
 function(syllable_plugin name)
