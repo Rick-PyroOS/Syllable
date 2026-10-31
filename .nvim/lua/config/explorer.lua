@@ -76,6 +76,40 @@ function M.copy_path(path, relative)
   vim.notify("Copied " .. path)
 end
 
+-- New file or new directory in the folder under the cursor (or the one the
+-- selected file is in): separate entries, so no trailing / to remember. A
+-- new file opens in the editor.
+function M.new_entry(p, is_dir)
+  local base = p:dir()
+  local where = vim.fs.relpath(vim.fn.getcwd(), base) or base
+  Snacks.input({ prompt = (is_dir and "New directory in " or "New file in ") .. (where == "." and "the project" or where) },
+    function(value)
+      value = value and vim.trim(value):gsub("/+$", "")
+      if not value or value == "" then return end
+      local path = vim.fs.normalize(base .. "/" .. value)
+      if vim.uv.fs_stat(path) then
+        vim.notify(vim.fs.basename(path) .. " already exists", vim.log.levels.WARN)
+        return
+      end
+      local dir = is_dir and path or vim.fs.dirname(path)
+      vim.fn.mkdir(dir, "p")
+      if not is_dir then
+        local f = io.open(path, "w")
+        if f then f:close() end
+      end
+      local Tree = require("snacks.explorer.tree")
+      Tree:open(dir)
+      Tree:refresh(dir)
+      require("snacks.explorer.actions").update(p, { target = path })
+      if not is_dir and p.main and vim.api.nvim_win_is_valid(p.main) then
+        vim.schedule(function()
+          vim.api.nvim_set_current_win(p.main)
+          vim.cmd.edit(vim.fn.fnameescape(path))
+        end)
+      end
+    end)
+end
+
 -- Select the row under the mouse and define its menu; returns the keys that show it.
 local function context_menu(p, m)
   local item
@@ -89,7 +123,8 @@ local function context_menu(p, m)
   local entries = {
     { item.dir and (item.open and "Collapse" or "Expand") or "Open", act("confirm") },
     { "-" },
-    { "New File or Folder…", act("explorer_add") }, -- a name ending in / makes a folder
+    { "New File…", function() M.new_entry(p, false) end },
+    { "New Directory…", function() M.new_entry(p, true) end },
     { "Rename…", act("explorer_rename") },
     { "Delete", act("explorer_del") },
     { "Duplicate…", act("explorer_copy") },
@@ -116,7 +151,8 @@ local function context_menu(p, m)
   return require("config.menu").build("Explorer", entries)
 end
 
--- Right-click in the tree opens our menu; anywhere else, the tab bar's
+-- Right-click in the tree opens our menu; in the bottom panel, its tab's;
+-- anywhere else, the tab bar's
 -- (tabs.lua) or Neovim's usual one (none in a pane whose buffer sets
 -- b:rick_no_popup). A mapping in the tree's own buffer only
 -- works once the tree has focus, so this one is global.
@@ -125,6 +161,10 @@ local function right_click()
   -- Some panes (the blame column) want no menu at all.
   if m.winid ~= 0 and vim.api.nvim_win_is_valid(m.winid) and vim.b[vim.api.nvim_win_get_buf(m.winid)].rick_no_popup then
     return ""
+  end
+  -- The bottom panel: its open tab's own menu (config/toolwindow.lua).
+  if m.winid ~= 0 and vim.api.nvim_win_is_valid(m.winid) and vim.w[m.winid].rick_toolwindow then
+    return "<Cmd>lua require('config.toolwindow').menu_clicked()<CR><Cmd>popup! ]RickTool<CR>"
   end
   local p = row_under_mouse(m)
   if not p then return "<RightMouse>" end
@@ -218,6 +258,14 @@ local function patch_tree()
   local Tree = require("snacks.explorer.tree")
   if Tree.rick_close then return end
   Tree.rick_close = true
+  -- The mouse wheel moves the tree one row per step, not 'mousescroll' rows
+  -- (three, which flies past on a trackpad).
+  local List = require("snacks.picker.core.list")
+  local on_show = List.on_show
+  function List:on_show()
+    on_show(self)
+    if self.picker and self.picker.opts.source == "explorer" then self.state.mousescroll = 1 end
+  end
   local close = Tree.close
   function Tree:close(path)
     close(self, path)

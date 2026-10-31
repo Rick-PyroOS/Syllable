@@ -1,8 +1,8 @@
--- Find, like CLion's Search Everywhere without its Actions tab: one finder
--- with tabs for All, Classes, Files, Symbols and Text. Cmd+F (and Shift
--- Shift, with the Karabiner rule in extras/karabiner/) opens it on All; the
--- CLion shortcuts (Cmd-O, Cmd-Shift-O, Cmd-Alt-O, Cmd-Shift-F) open their own
--- tab. Actions are in the command palette (lua/config/command_palette.lua).
+-- Find, like CLion's Search Everywhere: one finder with tabs for All, Classes,
+-- Files, Symbols, Actions and Text. Space Space, Cmd+F (and Shift Shift, with
+-- the Karabiner rule in extras/karabiner/) open it on All; the CLion shortcuts
+-- (Cmd-O, Cmd-Shift-O, Cmd-Alt-O, Cmd-Shift-A, Cmd-Shift-F) open their own
+-- tab. Actions are the command palette's list (lua/config/command_palette.lua).
 --
 -- Inside it:
 --   Tab / Shift-Tab   next / previous tab (what you typed is kept)
@@ -18,6 +18,16 @@ local M = {}
 
 local TYPES = { "Class", "Struct", "Enum", "Interface" }
 local state = { tab = 1, all = false }
+
+-- The All tab's file list without line numbers (an open file's line is still
+-- where it opens).
+local function file_no_line(item, picker)
+  local pos = item.pos
+  item.pos = nil
+  local ret = Snacks.picker.format.file(item, picker)
+  item.pos = pos
+  return ret
+end
 
 -- Classes and Symbols: only the project's own code unless non-project items
 -- are on (clangd also indexes the system and .sysroot headers).
@@ -36,7 +46,7 @@ end
 local TABS = {
   { name = "All", opts = function(all)
       return { multi = { "buffers", "recent", { source = "files", hidden = all, ignored = all } },
-        format = "file", transform = "unique_file" }
+        format = file_no_line, transform = "unique_file" }
     end },
   { name = "Classes", key = "<D-o>", live = true, opts = function()
       return { source = "lsp_workspace_symbols", filter = { default = TYPES }, transform = project_only() }
@@ -46,6 +56,11 @@ local TABS = {
     end },
   { name = "Symbols", key = "<D-M-o>", live = true, opts = function()
       return { source = "lsp_workspace_symbols", transform = project_only() }
+    end },
+  { name = "Actions", key = "<D-A>", opts = function(_, main)
+      local o = require("config.command_palette").picker_opts(main)
+      o.run, o.confirm = o.confirm, nil -- Enter runs the action (the confirm action below)
+      return o
     end },
   { name = "Text", key = "<D-F>", live = true, opts = function(all)
       return { source = "grep", hidden = all, ignored = all }
@@ -80,7 +95,8 @@ local function switch(picker, tab, all)
   for k, v in pairs(cfg) do
     if not KEEP[k] then picker.opts[k] = v end
   end
-  picker.finder = require("snacks.picker.core.finder").new(Snacks.picker.config.finder(picker.opts.finder))
+  picker.finder = require("snacks.picker.core.finder").new(Snacks.picker.config.finder(picker.opts.finder)
+    or function() return picker.opts.items or {} end)
   picker.format = Snacks.picker.config.format(picker.opts)
   picker.title = TABS[tab].name
   picker.layout.root.meta.title_tpl = tab_bar()
@@ -89,7 +105,7 @@ local function switch(picker, tab, all)
   picker:find()
 end
 
---- Open Find on a tab ("All", "Classes", "Files", "Symbols", "Text").
+--- Open Find on a tab ("All", "Classes", "Files", "Symbols", "Actions", "Text").
 function M.open(name)
   state.tab, state.all = 1, false
   for i, t in ipairs(TABS) do
@@ -109,6 +125,11 @@ function M.open(name)
     se_next = function(p) switch(p, state.tab % #TABS + 1, state.all) end,
     se_prev = function(p) switch(p, (state.tab - 2) % #TABS + 1, state.all) end,
     se_all = function(p) switch(p, state.tab, not state.all) end,
+    -- The picker's actions are fixed when it opens, so Enter asks the tab.
+    confirm = function(p, item, action)
+      if p.opts.run then return p.opts.run(p, item) end
+      return Snacks.picker.actions.confirm(p, item, action)
+    end,
   }
   for i, t in ipairs(TABS) do
     if t.key then
@@ -152,7 +173,43 @@ function M.open(name)
       },
     },
   })
-  require("config.dialogs").open("search_everywhere", function() return Snacks.picker.pick(opts) end)
+  require("config.dialogs").open("search_everywhere", function()
+    state.picker = Snacks.picker.pick(opts)
+    return state.picker
+  end)
 end
+
+-- Clicking a tab name in the title switches to that tab: the title row is
+-- read off the screen to see which name the mouse is on.
+vim.on_key(function(k, typed)
+  if (typed ~= "" and typed or k) ~= vim.keycode("<LeftMouse>") then return end
+  local picker = state.picker
+  if not picker or picker.closed then return end
+  local m = vim.fn.getmousepos()
+  local cells = {}
+  for col = 1, vim.o.columns do cells[col] = vim.fn.screenstring(m.screenrow, col) end
+  local tab
+  for i, t in ipairs(TABS) do
+    local word = NBSP .. t.name .. NBSP
+    local n = vim.fn.strchars(word)
+    for col = 1, #cells - n + 1 do
+      if table.concat(cells, "", col, col + n - 1) == word and m.screencol >= col and m.screencol < col + n then
+        tab = i
+      end
+    end
+  end
+  -- Only on the title: all the names in a row there.
+  local row = table.concat(cells)
+  for _, t in ipairs(TABS) do
+    if not row:find(NBSP .. t.name .. NBSP, 1, true) then return end
+  end
+  if not tab then return end
+  vim.schedule(function()
+    if picker.closed then return end
+    if tab ~= state.tab then switch(picker, tab, state.all) end
+    picker:focus("input")
+  end)
+  return ""
+end, vim.api.nvim_create_namespace("rick_search_everywhere_tabs"))
 
 return M

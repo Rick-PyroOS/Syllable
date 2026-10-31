@@ -42,6 +42,12 @@ return {
         end,
         "fallback",
       },
+      -- Tab takes the AI suggestion when one shows (config/ai_complete.lua).
+      ["<Tab>"] = {
+        function() return require("config.ai_complete").accept() end,
+        "snippet_forward",
+        "fallback",
+      },
     },
     appearance = { nerd_font_variant = "mono" },
     completion = {

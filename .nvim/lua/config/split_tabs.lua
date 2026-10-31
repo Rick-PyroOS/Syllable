@@ -359,7 +359,9 @@ local function terminals()
   for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
     local buf = vim.api.nvim_win_get_buf(win)
     -- The Run panel (config/run.lua) has a title row of its own: its tabs.
-    if vim.api.nvim_win_get_config(win).relative == "" and vim.bo[buf].buftype == "terminal" and not vim.b[buf].rick_run then
+    -- So does the bottom tool window (config/toolwindow.lua).
+    if vim.api.nvim_win_get_config(win).relative == "" and vim.bo[buf].buftype == "terminal" and not vim.b[buf].rick_run
+      and not vim.w[win].rick_toolwindow then
       local g = geometry(win)
       g.term = true
       out[#out + 1] = g

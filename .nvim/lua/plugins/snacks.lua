@@ -20,8 +20,8 @@ return {
     -- Real images only where the terminal speaks kitty graphics; elsewhere config/image_view.lua.
     image = { enabled = require("config.image_view").kitty() },
     input = { enabled = true },
-    -- Messages show in the CLion-style balloon (config/balloon.lua); Snacks keeps the history.
-    notifier = { enabled = true, filter = function(notif) return require("config.balloon").filter(notif) end },
+    -- Messages go in the bottom panel's Notifications tab (config/notifications.lua); Snacks keeps the history.
+    notifier = { enabled = true, filter = function(notif) return require("config.notifications").filter(notif) end },
     picker = {
       enabled = true,
       sources = {
@@ -47,6 +47,9 @@ return {
               if not edge_press then picker:action("confirm") end
             end,
             -- Esc in the tree's filter box clears the filter and goes back to the tree.
+            -- a: new file, A: new directory (separate, so no trailing / to remember).
+            new_file = function(picker) require("config.explorer").new_entry(picker, false) end,
+            new_dir = function(picker) require("config.explorer").new_entry(picker, true) end,
             clear_filter = function(picker)
               picker.input:set("", "")
               picker:focus("list")
@@ -61,6 +64,8 @@ return {
                 ["<LeftDrag>"] = { function() return edge_press and "<LeftDrag>" or "" end, expr = true },
                 ["<LeftRelease>"] = "click_open",
                 ["<Esc>"] = "focus_editor", -- Esc leaves the tree instead of closing it, like CLion
+                ["a"] = "new_file",
+                ["A"] = "new_dir",
               },
             },
             input = { keys = { ["<Esc>"] = { "clear_filter", mode = { "n", "i" } } } },
@@ -100,7 +105,7 @@ return {
     })
   end,
   keys = {
-    { "<leader><space>", function() require("config.command_palette").open() end, desc = "Command palette" },
+    { "<leader><space>", function() require("config.search_everywhere").open("All") end, desc = "Find (files, classes, symbols, actions, text)" },
     { "<leader>p", function() require("config.command_palette").open() end, desc = "Command palette" },
     { "<leader>ff", function() Snacks.picker.files() end, desc = "Find files" },
     { "<leader>fg", function() Snacks.picker.grep() end, desc = "Grep" },
@@ -118,6 +123,5 @@ return {
     { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git status" },
     { "<leader>gl", function() Snacks.picker.git_log_file() end, desc = "Git log (file)" },
     { "<leader>gb", function() Snacks.picker.git_branches() end, desc = "Git branches" },
-    { "<leader>tt", function() Snacks.terminal() end, desc = "Terminal", mode = { "n", "t" } },
   },
 }

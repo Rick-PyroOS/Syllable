@@ -91,9 +91,10 @@ def checks():
         if m:
             body = body[:m.start()] + body[m.end() + 1:]
         # "when: <regex>" runs the check only on code that matches (the rest
-        # costs nothing); "context: errno" adds what each errno code means.
+        # costs nothing); "context: errno" adds what each errno code means;
+        # "opt-in: yes" runs it only in projects that list it in vim.g.mcp_checks.
         extra = {}
-        for k in ("when", "context"):
+        for k in ("when", "context", "opt-in"):
             m = re.search(r"^%s:[ \t]*(.*)$" % k, body, re.M | re.I)
             if m:
                 extra[k] = m.group(1).strip()
@@ -370,6 +371,7 @@ def call_tool(name, args):
     resolve_model()
     if name == "list_checks":
         return {"checks": [{"name": n, "title": c["title"], "languages": c["languages"],
+                            "opt_in": c.get("opt-in", "").lower() in ("yes", "true", "1"),
                             "version": hashlib.sha256((c["prompt"] + FORMAT).encode()).hexdigest()[:12]}
                            for n, c in checks().items()],
                 "note": note[0],

@@ -282,10 +282,11 @@ function M.setup()
     elseif k == LEFT_MOUSE and vim.fn.getmousepos().screenrow == 1 and vim.o.showtabline ~= 0 then
       -- A tab with unsaved typing shows ● where its ✕ was, and bufferline
       -- doesn't make the ● clickable: clicking it closes the tab too (after
-      -- saving, with auto-save on; split_tabs.close does that).
+      -- saving, with auto-save on; split_tabs.close does that). Whatever the
+      -- buffer's state: the ● on screen may be from just before a save.
       local col = vim.fn.getmousepos().screencol
       local item = tab_at(col)
-      if item and item.id and vim.api.nvim_buf_is_valid(item.id) and vim.bo[item.id].modified
+      if item and item.id and vim.api.nvim_buf_is_valid(item.id)
         and vim.fn.screenstring(1, col) == ((require("bufferline.config").options or {}).modified_icon or "●") then
         local buf = item.id
         vim.schedule(function() require("config.split_tabs").close(buf) end)
@@ -315,6 +316,12 @@ function M.setup()
     callback = function(ev)
       vim.schedule(function() show_tab(ev.buf) end)
     end,
+  })
+  -- A save or an edit shows on its tab (● or ✕) at once, not at the next
+  -- redraw: a stale ● after saving made the tab look unclosable for a while.
+  vim.api.nvim_create_autocmd({ "BufModifiedSet", "BufWritePost" }, {
+    group = "rick_tabs",
+    callback = function() vim.schedule(function() vim.cmd("redrawtabline | redrawstatus!") end) end,
   })
   -- Closing a tab: the tabs after it move left, and any hidden off the left
   -- come back into the room it leaves.

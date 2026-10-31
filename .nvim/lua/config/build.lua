@@ -1,6 +1,6 @@
 -- Build, like CLion's: Cmd+F9 (Space rb) builds in the background while you
--- keep editing. The output streams into a Build panel at the bottom (Space ro
--- shows / hides it); errors and warnings land in the margin and in Problems
+-- keep editing. The output streams into the Build view of the bottom panel's
+-- Run tab (Cmd+0 / Space ro shows / hides it); errors and warnings land in the margin and in Problems
 -- (Space fd), and F2 / Shift+F2 walk the errors across files. Cmd+Shift+F9
 -- (Space rf) recompiles just the current file; Cmd+F2 (Space rs) stops the build.
 --
@@ -12,9 +12,12 @@
 --   vim.g.build_errorformat = "..."               -- default: Vim's, which knows gcc/clang and make
 --   vim.g.build_path_map  = { ["/work/src"] = "/Users/me/Syllable" }  -- a build in a container
 --                                                     names its own paths; these turn them into yours
--- With nothing set, a folder with a Makefile builds with make -j<cores>.
+-- With nothing set, a folder with a Makefile builds with make -j<cores>, and
+-- one with a CMakeLists.txt with CMake (config/cmake.lua).
 
 local M = {}
+-- vim.g.build_cmd, or the chosen Run/Debug Configuration's (config/run_configs.lua).
+local S = require("config.run_configs").settings
 local ns = vim.api.nvim_create_namespace("rick_build")
 local job -- the running vim.SystemObj
 local out_buf, started, last_items = nil, nil, {}
@@ -40,6 +43,7 @@ local function default_cmd(dir)
   for _, f in ipairs({ "Makefile", "makefile", "GNUmakefile" }) do
     if vim.uv.fs_stat(dir .. "/" .. f) then return "make -j" .. cores() end
   end
+  return require("config.cmake").default_build(dir)
 end
 
 local function fill(cmd, file, dir)
@@ -53,12 +57,14 @@ local function fill(cmd, file, dir)
   return sub(cmd)
 end
 
--- The Build panel ------------------------------------------------------------
+-- The build's output ----------------------------------------------------------
 
+-- The build's output is a view in the Run tab of the bottom tool window
+-- (config/run.lua, config/toolwindow.lua): its window, when it shows.
 local function panel_win()
-  if not (out_buf and vim.api.nvim_buf_is_valid(out_buf)) then return nil end
-  local w = vim.fn.bufwinid(out_buf)
-  return w ~= -1 and w or nil
+  local tw = require("config.toolwindow")
+  local w = tw.is_showing("run") and tw.win()
+  return w and out_buf and vim.api.nvim_win_get_buf(w) == out_buf and w or nil
 end
 
 local function ensure_buf()
@@ -67,33 +73,26 @@ local function ensure_buf()
   vim.api.nvim_buf_set_name(out_buf, "Build")
   vim.bo[out_buf].filetype = "rick_build"
   vim.bo[out_buf].bufhidden = "hide"
+  vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, { "", "  Nothing has been built yet (Cmd+F9 or Space rb builds)" })
   vim.bo[out_buf].modifiable = false
   local function k(lhs, fn, desc) vim.keymap.set("n", lhs, fn, { buffer = out_buf, nowait = true, desc = desc }) end
   k("<CR>", function() M.open_line(vim.api.nvim_win_get_cursor(0)[1]) end, "Go to this error")
-  k("q", function() M.toggle_panel(false) end, "Hide the Build panel")
+  k("q", function() M.toggle_panel(false) end, "Hide the panel")
   k("<2-LeftMouse>", function() M.open_line(vim.api.nvim_win_get_cursor(0)[1]) end, "Go to this error")
   return out_buf
 end
+
+function M.buffer() return ensure_buf() end
 
 function M.toggle_panel(show)
   local w = panel_win()
   if show == nil then show = not w end
   if not show then
-    if w then pcall(vim.api.nvim_win_close, w, true) end
+    if w then require("config.toolwindow").hide() end
     return
   end
   if w then return w end
-  local cur = vim.api.nvim_get_current_win()
-  vim.cmd("botright " .. math.max(8, math.floor(vim.o.lines * 0.28)) .. "split")
-  w = vim.api.nvim_get_current_win()
-  vim.api.nvim_win_set_buf(w, ensure_buf())
-  for opt, v in pairs({ number = false, relativenumber = false, signcolumn = "no", foldcolumn = "0", wrap = false,
-    statuscolumn = "", winfixheight = true, cursorline = true, list = false, spell = false }) do
-    vim.wo[w][opt] = v
-  end
-  vim.wo[w].winbar = "%#RickBuildTitle# Build %*%{v:lua.RickBuildStatus()}"
-  if vim.api.nvim_win_is_valid(cur) then vim.api.nvim_set_current_win(cur) end
-  return w
+  return require("config.run").show_build(ensure_buf())
 end
 
 local status = ""
@@ -279,6 +278,9 @@ function M.run(cmd, label)
   end
   local dir = root()
   cmd = resolve(cmd)
+  if not cmd and require("config.cmake").is_project(dir) then
+    return vim.notify("cmake isn't installed. On a Mac: brew install cmake ninja", vim.log.levels.WARN, { title = "CMake" })
+  end
   if not cmd then
     return vim.notify("Nothing to build here: no Makefile, and vim.g.build_cmd isn't set (see config/build.lua)", vim.log.levels.WARN)
   end
@@ -340,7 +342,7 @@ function M.run(cmd, label)
   job = obj
 end
 
-function M.build() M.run(vim.g.build_cmd or default_cmd(root())) end
+function M.build() M.run(S.build_cmd or default_cmd(root())) end
 
 function M.build_file()
   local file = vim.api.nvim_buf_get_name(0)
@@ -376,7 +378,7 @@ function M.setup()
   map("n", "<leader>rf", M.build_file, { desc = "Recompile this file" })
   map("n", "<D-F2>", M.stop, { desc = "Stop the build" })
   map("n", "<leader>rs", M.stop, { desc = "Stop the build" })
-  map("n", "<leader>ro", function() M.toggle_panel() end, { desc = "Show / hide the Build panel" })
+  map("n", "<leader>ro", function() M.toggle_panel() end, { desc = "Show / hide the build's output" })
   map("n", "<F2>", function() M.next_error(1) end, { desc = "Next error" })
   map("n", "<S-F2>", function() M.next_error(-1) end, { desc = "Previous error" })
   map("n", "<F14>", function() M.next_error(-1) end, { desc = "Previous error" }) -- Shift+F2 as terminals send it

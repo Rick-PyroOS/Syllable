@@ -5,7 +5,8 @@
 --   * other terminals (iTerm2) get a colour preview drawn with chafa
 --     (brew install chafa), redrawn to fit when the window changes size;
 --   * without either, or for PDFs, the file opens in Preview as before.
--- In the viewer, Enter or o opens the file in Preview, q closes the tab.
+-- Both are centered in the window. In the viewer, Enter or o opens the file in
+-- Preview, q closes the tab.
 -- Space tI switches the in-editor view off (remembered): everything goes to Preview.
 
 local M = {}
@@ -17,6 +18,40 @@ function M.kitty()
 end
 
 local function chafa() return vim.fn.executable("chafa") == 1 end
+
+-- snacks.nvim's viewer draws the image at the top left; center it in the
+-- window instead: blank lines above it, and its column moved right.
+local patched = false
+function M.center_snacks()
+  if patched then return end
+  patched = true
+  local P = require("snacks.image.placement")
+  local state = P.state
+  P.state = function(self)
+    local s = state(self)
+    if self.opts.inline or not vim.api.nvim_buf_is_valid(self.buf) or vim.bo[self.buf].filetype ~= "image"
+      or #s.wins == 0 or s.loc.width ~= s.loc.width then -- (NaN: size not known yet)
+      return s
+    end
+    local win = s.wins[1]
+    local top = math.max(0, math.floor((vim.api.nvim_win_get_height(win) - s.loc.height) / 2))
+    local left = math.max(0, math.floor((vim.api.nvim_win_get_width(win) - s.loc.width) / 2))
+    -- The image's own line holds blanks up to its column: an image one row high
+    -- is drawn inline in the text, which can't start past the end of the line.
+    local want = vim.split(string.rep("\n", top), "\n")
+    want[#want] = string.rep(" ", left)
+    local have = vim.api.nvim_buf_get_lines(self.buf, 0, -1, false)
+    if #have ~= #want or have[#have] ~= want[#want] then
+      vim.bo[self.buf].modifiable = true
+      vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, want)
+      vim.bo[self.buf].modifiable, vim.bo[self.buf].modified = false, false
+      vim.api.nvim_win_call(win, function() vim.fn.winrestview({ topline = 1, lnum = 1 }) end)
+    end
+    self.opts.pos = { top + 1, left }
+    s.loc[1], s.loc[2] = top + 1, left
+    return s
+  end
+end
 
 -- How this image should open: "snacks", "chafa" or "preview".
 function M.mode(path)
@@ -82,7 +117,14 @@ local function draw(buf)
   if vim.v.shell_error ~= 0 then out = "chafa couldn't read this image:\r\n" .. out end
   local pad = math.max(2, W - vim.fn.strdisplaywidth(info) - #hint)
   local header = "\27[1m" .. info .. "\27[0m" .. string.rep(" ", pad) .. "\27[2m" .. hint .. "\27[0m"
-  out = out:gsub("\r?\n", "\r\n")
+  -- Centered under the header: chafa's picture keeps the image's shape, so
+  -- it's narrower or shorter than the space it was given.
+  local lines = vim.split(out:gsub("\r", ""):gsub("\n$", ""), "\n")
+  local width = 0
+  for _, l in ipairs(lines) do width = math.max(width, vim.fn.strdisplaywidth((l:gsub("\27%[[%d;?]*%a", "")))) end
+  local left = string.rep(" ", math.max(0, math.floor((W - width) / 2)))
+  local top = string.rep("\r\n", math.max(0, math.floor((H - #lines) / 2)))
+  out = top .. left .. table.concat(lines, "\r\n" .. left)
   vim.api.nvim_chan_send(b.rick_image_chan, "\27[H\27[2J\27[3J" .. header .. "\r\n\r\n" .. out)
 end
 
@@ -114,6 +156,7 @@ function M.show(buf, path)
       if win ~= -1 then
         vim.wo[win].number, vim.wo[win].relativenumber, vim.wo[win].signcolumn = false, false, "no"
         vim.wo[win].foldcolumn, vim.wo[win].statuscolumn, vim.wo[win].cursorline = "0", "", false
+        vim.wo[win].list = false -- no · for the picture's trailing blanks
       end
     end,
   })

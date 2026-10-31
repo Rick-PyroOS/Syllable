@@ -19,9 +19,9 @@ map(n, "<D-O>", search("Files"), { desc = "Go to file" })                       
 map(n, "<D-M-o>", search("Symbols"), { desc = "Go to symbol" })
 map(n, "<D-e>", pick("recent"), { desc = "Recent files" })
 local function palette() require("config.command_palette").open() end
-map(nxi, "<D-A>", palette, { desc = "Find action (command palette)" })              -- Cmd+Shift+A
+map(nxi, "<D-A>", search("Actions"), { desc = "Find action" })                     -- Cmd+Shift+A
 map(nxi, "<D-P>", palette, { desc = "Command palette" })                            -- Cmd+Shift+P
-map(nxi, "<F19>", search("All"), { desc = "Find (Shift Shift)" })                   -- sent by extras/karabiner/
+map(nxi, "<F19>", palette, { desc = "Find action (Shift Shift)" })                 -- sent by extras/karabiner/
 map(n, "<D-b>", function() require("config.define").definition() end, { desc = "Go to declaration" })
 map(n, "<D-M-b>", vim.lsp.buf.implementation, { desc = "Go to implementation" })
 map(n, "<M-F7>", pick("lsp_references"), { desc = "Find usages" })
@@ -42,8 +42,7 @@ map(n, "<F14>", function() vim.diagnostic.jump({ count = -1, severity = vim.diag
 
 -- Tool windows and tabs --------------------------------------------------------
 map(n, "<D-1>", function() Snacks.explorer() end, { desc = "Project tree" })
-map({ "n", "t" }, "<M-F12>", function() Snacks.terminal() end, { desc = "Terminal" })
-map({ "n", "t" }, "<F60>", function() Snacks.terminal() end, { desc = "Terminal" })    -- Alt+F12 as terminals send it
+-- Alt+F12 (Terminal) is in config/toolwindow.lua.
 map(n, "<D-w>", function() require("config.split_tabs").close_current() end, { desc = "Close tab" })
 for _, lhs in ipairs({ "<D-S-[>", "<D-{>" }) do                                       -- Cmd+Shift+[
   map(n, lhs, function() require("config.split_tabs").cycle(-1) end, { desc = "Previous tab" })
@@ -58,8 +57,18 @@ map(n, "<D-r>", ":%s/", { desc = "Replace in file" })
 -- Find in Files / Replace in Files: one popup, empty boxes, results as you type
 -- (lua/config/find_in_files.lua). Ctrl+R in it switches between the two.
 local function in_files(mode) return function() require("config.find_in_files").open(mode) end end
+-- Cmd+Shift+F / Cmd+Shift+R work from anywhere, as in CLion: also while typing
+-- and from a terminal panel.
+local function in_files_anywhere(mode)
+  return function()
+    if vim.fn.mode():match("^[it]") then vim.cmd.stopinsert() end
+    vim.schedule(in_files(mode))
+  end
+end
 map(nx, "<D-F>", in_files("find"), { desc = "Find in files" })                        -- Cmd+Shift+F
 map(nx, "<D-R>", in_files("replace"), { desc = "Replace in files" })                  -- Cmd+Shift+R
+map({ "i", "t" }, "<D-F>", in_files_anywhere("find"), { desc = "Find in files" })
+map({ "i", "t" }, "<D-R>", in_files_anywhere("replace"), { desc = "Replace in files" })
 map(nx, "<leader>sf", in_files("find"), { desc = "Find in files" })
 map(nx, "<leader>sr", in_files("replace"), { desc = "Replace in files" })
 
@@ -90,9 +99,13 @@ map(n, "<D-Z>", "<C-r>", { desc = "Redo" })                                     
 map("i", "<D-z>", "<C-o>u", { desc = "Undo" })
 map("i", "<D-Z>", "<C-o><C-r>", { desc = "Redo" })
 map(n, "<D-a>", "ggVG", { desc = "Select all" })
-map(n, "<D-/>", "gcc", { remap = true, desc = "Comment line" })
-map("x", "<D-/>", "gc", { remap = true, desc = "Comment selection" })
-map("i", "<D-/>", "<C-o>gcc", { remap = true, desc = "Comment line" })
+-- Cmd+/ or Ctrl+/ comments or uncomments the line or the selection (the
+-- selection stays selected). Some terminals send Ctrl+/ as Ctrl+_.
+for _, lhs in ipairs({ "<D-/>", "<C-/>", "<C-_>" }) do
+  map(n, lhs, "gcc", { remap = true, desc = "Comment line" })
+  map("x", lhs, "gcgv", { remap = true, desc = "Comment selection" })
+  map("i", lhs, "<C-o>gcc", { remap = true, desc = "Comment line" })
+end
 map(nx, "<D-M-t>", function() require("config.surround").open() end, { desc = "Surround with" })  -- Cmd+Alt+T
 map(nx, "<leader>cs", function() require("config.surround").open() end, { desc = "Surround with" })
 map(n, "<D-d>", "<cmd>t.<cr>", { desc = "Duplicate line" })

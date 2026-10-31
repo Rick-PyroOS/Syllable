@@ -48,7 +48,7 @@ function M.setup()
       if viewer_exts[vim.fn.fnamemodify(path, ":e"):lower()] then
         local view = require("config.image_view")
         local mode = view.mode(path)
-        if mode == "snacks" then return end -- snacks.nvim's image viewer reads it
+        if mode == "snacks" then return view.center_snacks() end -- snacks.nvim's image viewer reads it
         if mode == "chafa" then
           vim.api.nvim_create_autocmd("BufReadCmd", { buffer = ev.buf, once = true, callback = function() view.show(ev.buf, path) end })
           return

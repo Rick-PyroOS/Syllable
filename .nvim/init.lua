@@ -43,7 +43,7 @@ require("config.bookmarks").setup()
 require("config.local_history").setup()
 require("config.diff").setup()
 require("config.recent_locations").setup()
-require("config.balloon").setup()
+require("config.notifications").setup()
 require("config.templates").setup()
 require("config.lazy")
 require("config.lsp")
@@ -54,6 +54,7 @@ require("config.copy_button").setup()
 require("config.scanners").setup()
 require("config.mcp").setup()
 require("config.menu").setup()
+require("config.refactor").setup() -- after menu: adds Refactor This… to the right-click menu
 require("config.usages").setup()
 require("config.tabs").setup()
 require("config.split_tabs").setup() -- each split's own tab row
@@ -63,6 +64,11 @@ require("config.pointer").setup()
 require("config.clion_keys")
 require("config.findbar").setup() -- after clion_keys: takes over / , Cmd+F and Cmd+R when the find bar is on
 require("config.find_in_files").setup() -- Find / Replace in Files popup (Cmd+Shift+F, Cmd+Shift+R)
+require("config.toolwindow").setup() -- the bottom panel: Problems, Build, Run, Terminal
+require("config.cmake").setup()
+require("config.ai_complete").setup() -- grey suggestions from a local model, Tab accepts
+require("config.ai_prompt").setup() -- the prompt window (Space ap)
+require("config.run_configs").setup() -- Run/Debug Configurations (Ctrl+Alt+R, Space rc)
 require("config.build").setup() -- after clion_keys: F2 / Shift+F2 also walk build errors
 require("config.run").setup() -- after build: Cmd+F2 stops run, debug and build
 require("config.debug").setup() -- after diff: F7 steps into while debugging

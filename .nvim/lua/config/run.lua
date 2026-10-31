@@ -29,12 +29,21 @@
 -- With nothing set, Run says what to set.
 
 local M = {}
+-- vim.g settings, or the chosen Run/Debug Configuration's (config/run_configs.lua).
+local S = require("config.run_configs").settings
 
 local panel = { win = nil, tabs = {}, current = nil } -- tabs: { name, buf, job }
+-- The build's output (config/build.lua) is a view here too, first, and stays
+-- when a new run replaces the program's tabs.
+local build_tab = { name = "Build", buf = nil }
+local function all_tabs()
+  if build_tab.buf and vim.api.nvim_buf_is_valid(build_tab.buf) then return { build_tab, unpack(panel.tabs) } end
+  return panel.tabs
+end
 local run_job -- the job id of the program's terminal
 
 local function root()
-  return vim.g.run_dir or vim.g.build_dir or vim.fs.root(0, { ".nvim.lua", ".git" }) or vim.fn.getcwd()
+  return S.run_dir or vim.g.build_dir or vim.fs.root(0, { ".nvim.lua", ".git" }) or vim.fn.getcwd()
 end
 
 local function resolve(v)
@@ -49,49 +58,81 @@ end
 
 -- The Run panel -------------------------------------------------------------
 
-local function panel_valid() return panel.win and vim.api.nvim_win_is_valid(panel.win) end
+-- The Run tab of the bottom tool window (config/toolwindow.lua).
+local function panel_valid() return require("config.toolwindow").is_showing("run") end
 
 local function show(tab)
   if not tab or not vim.api.nvim_buf_is_valid(tab.buf) then return end
   panel.current = tab
-  if not panel_valid() then
-    local prev = vim.api.nvim_get_current_win()
-    vim.cmd("botright split")
-    panel.win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_height(panel.win, math.max(8, math.floor(vim.o.lines * 0.3)))
-    vim.wo[panel.win].winfixheight = true
-    vim.api.nvim_win_set_buf(panel.win, tab.buf)
-    vim.api.nvim_set_current_win(prev)
-  else
-    vim.api.nvim_win_set_buf(panel.win, tab.buf)
-  end
-  for opt, v in pairs({ number = false, relativenumber = false, signcolumn = "no", foldcolumn = "0", spell = false }) do
-    vim.wo[panel.win][opt] = v
-  end
-  -- The tabs (Run, then the logs) as the panel's title row; click one to switch.
+  return require("config.toolwindow").show("run") -- follows the end, as a terminal does
+end
+
+function M.buffer()
+  local t = panel.current
+  if not (t and vim.api.nvim_buf_is_valid(t.buf)) then t = all_tabs()[1] end
+  return t and vim.api.nvim_buf_is_valid(t.buf) and t.buf or nil
+end
+
+-- Show the build's output (the Build view of this tab); returns the window.
+function M.show_build(buf)
+  build_tab.buf = buf
+  return show(build_tab)
+end
+
+-- The Run tab's row, as CLion's Run toolbar: buttons to Run, Debug, Stop
+-- and Build (Stop is grey when nothing is running), the run configuration
+-- (click it to edit the configurations), and the run's own tabs (the
+-- program, then the logs) when there is more than one; click one to switch.
+local ACTIONS = {
+  { "", "Run", "RickRunGo", function() M.run() end },
+  { "", "Debug", "RickRunDebug", function() M.debug() end },
+  { "", "Stop", "RickRunStop", function() M.stop() end },
+  { "", "Build", "RickRunBuild", function() require("config.build").build() end },
+}
+_G.RickRunAction = function(i)
+  if i == 9 then return require("config.run_configs").edit() end
+  local a = ACTIONS[i]
+  if a then vim.schedule(a[4]) end
+end
+
+-- The Run tab's right-click entries: the row's buttons, and the configurations.
+function M.menu()
+  local items = {}
+  for _, a in ipairs(ACTIONS) do items[#items + 1] = { a[2], a[4] } end
+  items[#items + 1] = { "-" }
+  items[#items + 1] = { "Edit Configurations…", function() require("config.run_configs").edit() end }
+  return items
+end
+
+local function busy()
+  local dbg = package.loaded["config.debug"]
+  return run_job ~= nil or (dbg and dbg.active()) or require("config.build").running()
+end
+
+function M.tabs_winbar()
   local parts = {}
-  for i, t in ipairs(panel.tabs) do
-    local hl = t == tab and "TabLineSel" or "TabLine"
-    parts[#parts + 1] = ("%%%d@v:lua.RickRunTab@%%#%s# %s %%X"):format(i, hl, t.name)
+  for i, a in ipairs(ACTIONS) do
+    local hl = (a[2] == "Stop" and not busy()) and "Comment" or a[3]
+    parts[#parts + 1] = ("%%%d@v:lua.RickRunAction@%%#%s#%s %%#RickToolTab#%s %%X  "):format(i, hl, a[1], a[2])
   end
-  vim.wo[panel.win].winbar = table.concat(parts, "%#TabLineFill# ") .. "%#TabLineFill#%=%#Comment# Cmd+F2 stops  Space rl hides "
-  -- Follow the end, as a terminal does.
-  local n = vim.api.nvim_buf_line_count(tab.buf)
-  pcall(vim.api.nvim_win_set_cursor, panel.win, { n, 0 })
+  local name = require("config.run_configs").selected_name():gsub("%%", "%%%%")
+  parts[#parts + 1] = ("%%#Comment#│  %%9@v:lua.RickRunAction@%%#Comment# %%#RickToolTab#%s %%X"):format(name)
+  local tabs = all_tabs()
+  if #tabs >= 2 then
+    parts[#parts + 1] = "  "
+    for i, t in ipairs(tabs) do
+      local hl = t == panel.current and "RickToolTabSel" or "RickToolTab"
+      parts[#parts + 1] = ("%%%d@v:lua.RickRunTab@%%#%s# %s %%X"):format(i, hl, t.name)
+    end
+  end
+  -- The build's progress or result while its output shows.
+  if panel.current == build_tab then parts[#parts + 1] = "%#Comment#" .. _G.RickBuildStatus():gsub("%%", "%%%%") end
+  return table.concat(parts, "")
 end
 
-_G.RickRunTab = function(i) show(panel.tabs[i]) end
+_G.RickRunTab = function(i) show(all_tabs()[i]) end
 
-function M.toggle_panel()
-  if panel_valid() then
-    pcall(vim.api.nvim_win_close, panel.win, true)
-    panel.win = nil
-  elseif panel.current then
-    show(panel.current)
-  else
-    vim.notify("Nothing has run yet (Shift+F10 or Space rr runs)")
-  end
-end
+function M.toggle_panel() require("config.toolwindow").toggle("run") end
 
 -- A terminal tab running argv in dir (the program, or tail -F on a log).
 local function new_tab(name, argv, dir, on_exit)
@@ -118,7 +159,8 @@ local function clear_tabs()
   panel.tabs, panel.current, run_job = {}, nil, nil
   vim.schedule(function()
     for _, t in ipairs(old) do
-      if vim.api.nvim_buf_is_valid(t.buf) and not (panel_valid() and vim.api.nvim_win_get_buf(panel.win) == t.buf) then
+      local tw = require("config.toolwindow").win()
+      if vim.api.nvim_buf_is_valid(t.buf) and not (tw and vim.api.nvim_win_get_buf(tw) == t.buf) then
         pcall(vim.api.nvim_buf_delete, t.buf, { force = true })
       end
     end
@@ -148,7 +190,7 @@ local function start(label, cmd, on_exit)
     if on_exit then on_exit(code) end
   end)
   run_job = tab.job
-  for _, log in ipairs(resolve(vim.g.run_logs) or {}) do
+  for _, log in ipairs(resolve(S.run_logs) or {}) do
     local path = abs(log, dir)
     new_tab(vim.fs.basename(path), { "tail", "-n", "+1", "-F", path }, dir)
   end
@@ -158,7 +200,7 @@ end
 
 -- Build first (unless the project says not to), then go().
 local function after_build(go)
-  if vim.g.run_build_first == false then return go() end
+  if S.run_build_first == false then return go() end
   local build = require("config.build")
   if build.running() then return vim.notify("A build is running; Run waits for it to finish, try again then") end
   vim.api.nvim_create_autocmd("User", {
@@ -178,18 +220,18 @@ local function after_build(go)
 end
 
 function M.run()
-  local cmd = resolve(vim.g.run_cmd)
+  local cmd = resolve(S.run_cmd)
   if not cmd then
-    return vim.notify("Nothing to run: set vim.g.run_cmd in the project's .nvim.lua (see config/run.lua)", vim.log.levels.WARN)
+    return vim.notify("Nothing to run: add a Run/Debug Configuration (Space rc), or set vim.g.run_cmd in the project's .nvim.lua (see config/run.lua)", vim.log.levels.WARN)
   end
   if require("config.debug").active() then require("config.debug").stop() end
   after_build(function() start("Run", cmd) end)
 end
 
 function M.debug()
-  local program = resolve(vim.g.debug_program)
-  local target = resolve(vim.g.debug_target)
-  local remote, remote_exec = resolve(vim.g.debug_remote), resolve(vim.g.debug_remote_exec)
+  local program = resolve(S.debug_program)
+  local target = resolve(S.debug_target)
+  local remote, remote_exec = resolve(S.debug_remote), resolve(S.debug_remote_exec)
   if remote then target = nil end
   if not program and not target then
     return vim.notify("Nothing to debug: set vim.g.debug_program (and vim.g.debug_target for a gdb stub) in the project's .nvim.lua (see config/run.lua)", vim.log.levels.WARN)
@@ -198,14 +240,14 @@ function M.debug()
   if dbg.active() then dbg.stop() end
   after_build(function()
     local opts = { program = program, target = target, remote = remote, remote_exec = remote_exec, cwd = root() }
-    local cmd = resolve(vim.g.debug_cmd)
+    local cmd = resolve(S.debug_cmd)
     -- A gdbserver on a system that is already running (Run started it): debug
     -- there, leaving it running.
     if remote and run_job then cmd = nil; opts.wait = true end
     if not cmd then
       -- The debugger's panels take the bottom; the last run's output makes way.
       pcall(function() require("config.build").toggle_panel(false) end)
-      if not remote and panel_valid() then pcall(vim.api.nvim_win_close, panel.win, true); panel.win = nil end
+      if not remote and panel_valid() then require("config.toolwindow").hide() end
       return dbg.start(opts)
     end
     start("Debug", cmd)
@@ -237,6 +279,14 @@ end
 function M.running() return run_job ~= nil end
 
 function M.setup()
+  local function hl()
+    vim.api.nvim_set_hl(0, "RickRunGo", { link = "DiagnosticOk", default = true })
+    vim.api.nvim_set_hl(0, "RickRunDebug", { link = "DiagnosticOk", default = true })
+    vim.api.nvim_set_hl(0, "RickRunStop", { link = "DiagnosticError", default = true })
+    vim.api.nvim_set_hl(0, "RickRunBuild", { link = "DiagnosticOk", default = true })
+  end
+  hl()
+  vim.api.nvim_create_autocmd("ColorScheme", { group = vim.api.nvim_create_augroup("rick_run_hl", { clear = true }), callback = hl })
   local map = vim.keymap.set
   map("n", "<S-F10>", M.run, { desc = "Run" })
   map("n", "<F22>", M.run, { desc = "Run" }) -- Shift+F10 as terminals send it
