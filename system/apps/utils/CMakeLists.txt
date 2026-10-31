@@ -7,6 +7,7 @@ add_subdirectory(aterm)
 add_subdirectory(debug)           # dbterm
 add_subdirectory(nettools)        # ifconfig, route, ping
 add_subdirectory(dhcpc)
+add_subdirectory(sb-agent)        # ./sb execute's end (debug images)
 
 # Other applications
 foreach(app SimpleBurn aedit Albert archiver AttribEdit aview bzoom catalog charmap cpumon

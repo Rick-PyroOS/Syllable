@@ -3,7 +3,8 @@
 #
 #   syllable_port(NAME PORT dir URL url... SHA256 hash PREFIX /system/resources/...
 #                 [CONFIGURE args...] [CACHE file] [MAKE_ARGS args...]
-#                 [LINKS target:link ...] [STYLE zlib] [DEST sysroot] [SYSROOT]
+#                 [LINKS target:link ...] [STYLE zlib] [DEST sysroot] [SYSROOT] [SHARED]
+#                 [COMPILER 4.1.2|9.5.0]
 #                 [DEPENDS ports...] [BYPRODUCTS files...]
 #                 [BUILD_TARGETS targets...] [INSTALL_TARGETS targets...])
 #       Downloads and checks the source, applies the port, configures for
@@ -14,6 +15,9 @@
 #       run when cross compiling.  LINKS: TARGET (relative to PREFIX) to LINK
 #       (absolute); @DIR:/LINKDIR links every file in PREFIX/DIR.
 #       STYLE zlib: zlib's own configure (no --host, builds in its source).
+#       STYLE plain: no configure, just its Makefile, in its source (bzip2,
+#       Info-ZIP); MAKE_ARGS name the compiler, and the install gets
+#       prefix= and PREFIX= pointing into the build tree.
 #       STYLE openssl: OpenSSL's Configure (linux-elf, static, no assembler),
 #       in its source.
 #       STYLE icu: ICU (source/configure), cross-built with a host ICU built
@@ -22,7 +26,16 @@
 #       packages, e.g. FreeType): installed into the staging sysroot that later
 #       components compile against (SYLLABLE_STAGING), not onto the boot volume.
 #       SYSROOT: a system package whose headers and libraries later components
-#       also need at build time (e.g. zlib).
+#       also need at build time (e.g. zlib).  Its pkg-config files are pointed
+#       at the staging sysroot there, and its libtool archives left out.
+#       SHARED: shared libraries (--enable-shared --disable-static), with the
+#       package's libtool taught about Syllable after configure
+#       (scripts/libtool-syllable.sh); it finds the other ports' pkg-config
+#       files in the staging sysroot only (PKG_CONFIG_LIBDIR).
+#       COMPILER: the GCC this port is built with, whichever builds the system
+#       (SYLLABLE_COMPILER); 9.5.0 links its libgcc in (-static-libgcc), so
+#       only the C ABI is shared with the rest.  sb configure
+#       -DSYLLABLE_COMPILER_<name>=9.5.0 sets it for one port without editing.
 #       BUILD_TARGETS / INSTALL_TARGETS: the make targets to build and to
 #       install with (default: all, and install), for a tree of which only a
 #       part is wanted (gdbserver from the gdb tree: all-gdbserver).
@@ -35,6 +48,24 @@ get_filename_component(_cross_bin ${CMAKE_C_COMPILER} DIRECTORY)
 # reach them.  sb configure -DSYLLABLE_JOBS=2 on a shared machine.
 cmake_host_system_information(RESULT _cores QUERY NUMBER_OF_LOGICAL_CORES)
 set(SYLLABLE_JOBS ${_cores} CACHE STRING "Parallel jobs for the ports' and Webster's make")
+option(SYLLABLE_PORTS_KEEP "Keep each port's source and build trees after it is installed" OFF)
+
+# pkg-config for the build host, which the SHARED ports' configure scripts use
+# (the build image has none): it reads only the staging sysroot's .pc files.
+set(SYLLABLE_HOST_PKG_CONFIG ${CMAKE_BINARY_DIR}/host-pkgconfig/bin/pkg-config)
+ExternalProject_Add(pkgconfig_host
+  PREFIX ${CMAKE_BINARY_DIR}/ports/pkgconfig_host
+  URL https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz
+  URL_HASH SHA256=6fc69c01688c9458a57eb9a1664c9aba372ccda420a02bf4429fe610e7e7d591
+  DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
+  DOWNLOAD_EXTRACT_TIMESTAMP ON
+  INSTALL_DIR ${CMAKE_BINARY_DIR}/host-pkgconfig
+  CONFIGURE_COMMAND env -u TARGET CC=/usr/bin/gcc "CFLAGS=-O2 -w" <SOURCE_DIR>/configure
+                    --prefix=<INSTALL_DIR> --with-internal-glib --disable-host-tool
+  BUILD_COMMAND env -u TARGET make -j${SYLLABLE_JOBS}
+  INSTALL_COMMAND env -u TARGET make install
+  BUILD_BYPRODUCTS ${SYLLABLE_HOST_PKG_CONFIG}
+  LOG_CONFIGURE ON LOG_BUILD ON LOG_INSTALL ON LOG_OUTPUT_ON_FAILURE ON)
 
 function(_syllable_links prefix)
   foreach(spec ${ARGN})
@@ -47,7 +78,7 @@ function(_syllable_links prefix)
       install(CODE "
         set(root \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})
         file(MAKE_DIRECTORY \${root}${link})
-        execute_process(COMMAND sh -c \"for f in \\\"\$1\\\"/*; do ln -sfn ${prefix}/${dir}/\\\${f##*/} \\\"\$2\\\"/; done\"
+        execute_process(COMMAND sh -c \"for f in \\\"\$1\\\"/*; do [ \\\${f##*/} = pkgconfig ] || ln -sfn ${prefix}/${dir}/\\\${f##*/} \\\"\$2\\\"/; done\"
                         sh \${root}${prefix}/${dir} \${root}${link} COMMAND_ERROR_IS_FATAL ANY)")
     else()
       get_filename_component(linkdir ${link} DIRECTORY)
@@ -60,7 +91,7 @@ function(_syllable_links prefix)
 endfunction()
 
 function(syllable_port name)
-  cmake_parse_arguments(A "SYSROOT" "PORT;SHA256;PREFIX;CACHE;STYLE;DEST"
+  cmake_parse_arguments(A "SYSROOT;SHARED" "PORT;SHA256;PREFIX;CACHE;STYLE;DEST;COMPILER"
                         "URL;CONFIGURE;MAKE_ARGS;LINKS;DEPENDS;BYPRODUCTS;BUILD_TARGETS;INSTALL_TARGETS" ${ARGN})
   if(NOT A_INSTALL_TARGETS)
     set(A_INSTALL_TARGETS install)
@@ -81,13 +112,38 @@ function(syllable_port name)
   endif()
   # --unset=TARGET: the build image exports TARGET=i586-pc-syllable, which
   # Makefiles that use their own TARGET variable (ICU) pick up
-  set(env ${CMAKE_COMMAND} -E env --unset=TARGET PATH=${_cross_bin}:${SYLLABLE_STAGING}/bin:$ENV{PATH}
+  if(DEFINED SYLLABLE_COMPILER_${name})
+    set(A_COMPILER ${SYLLABLE_COMPILER_${name}})
+  endif()
+  set(bin ${_cross_bin})
+  set(ldflags -L${SYLLABLE_STAGING}/lib)
+  if(A_COMPILER STREQUAL "4.1.2")
+    set(bin ${SYLLABLE_TOOLCHAIN_ROOT}/gcc-4.1.2/bin)
+  elseif(A_COMPILER STREQUAL "9.5.0")
+    set(bin ${SYLLABLE_TOOLCHAIN_ROOT}/bin)
+    set(ldflags "-static-libgcc -L${SYLLABLE_STAGING}/lib")
+  elseif(A_COMPILER)
+    message(FATAL_ERROR "syllable_port(${name}): COMPILER must be 4.1.2 or 9.5.0, not ${A_COMPILER}")
+  endif()
+  set(env ${CMAKE_COMMAND} -E env --unset=TARGET PATH=${bin}:${SYLLABLE_STAGING}/bin:$ENV{PATH}
       CC=i586-pc-syllable-gcc CXX=i586-pc-syllable-g++ AR=i586-pc-syllable-ar
       RANLIB=i586-pc-syllable-ranlib STRIP=i586-pc-syllable-strip CONFIG_SITE=${cache}
-      CPPFLAGS=-I${SYLLABLE_STAGING}/include LDFLAGS=-L${SYLLABLE_STAGING}/lib)
+      CPPFLAGS=-I${SYLLABLE_STAGING}/include "LDFLAGS=${ldflags}")
+  if(A_SHARED)
+    # (only here: a changed command rebuilds every port)
+    list(APPEND env PKG_CONFIG=${SYLLABLE_HOST_PKG_CONFIG}
+         PKG_CONFIG_LIBDIR=${SYLLABLE_STAGING}/lib/pkgconfig PKG_CONFIG_PATH=)
+    list(APPEND A_CONFIGURE --enable-shared --disable-static)
+    list(APPEND A_DEPENDS pkgconfig_host)
+  endif()
   if(A_STYLE STREQUAL "zlib")
     set(configure ${env} CFLAGS=-O2 <SOURCE_DIR>/configure --prefix=${A_PREFIX} ${A_CONFIGURE})
     set(install ${env} make install prefix=${destdir}${A_PREFIX})
+    set(in_source BUILD_IN_SOURCE ON)
+  elseif(A_STYLE STREQUAL "plain")
+    set(configure ${CMAKE_COMMAND} -E true)
+    set(install ${env} make ${A_INSTALL_TARGETS} ${A_MAKE_ARGS}
+        prefix=${destdir}${A_PREFIX} PREFIX=${destdir}${A_PREFIX})
     set(in_source BUILD_IN_SOURCE ON)
   elseif(A_STYLE STREQUAL "openssl")
     # Configure takes the compiler from CC; no-asm: its x86 assembler is ELF/Linux
@@ -130,8 +186,17 @@ function(syllable_port name)
         COMMAND ${CMAKE_COMMAND} -E copy <BINARY_DIR>/lib/libsicudata.a ${destdir}${A_PREFIX}/lib)
     set(in_source "")
   else()
-    set(configure ${env} <SOURCE_DIR>/configure --build=x86_64-pc-linux-gnu
+    set(configure)
+    if(A_SHARED)
+      set(configure ${PROJECT_SOURCE_DIR}/cmake/scripts/libtool-syllable.sh <SOURCE_DIR> configure COMMAND)
+    endif()
+    list(APPEND configure ${env} <SOURCE_DIR>/configure --build=x86_64-pc-linux-gnu
                   --host=i586-pc-syllable --prefix=${A_PREFIX} --disable-nls ${A_CONFIGURE})
+    if(A_SHARED)
+      list(APPEND configure COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/libtool-syllable.sh <BINARY_DIR>)
+    else()
+      list(APPEND configure COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/libtool-syllable.sh <BINARY_DIR> static)
+    endif()
     set(install ${env} make ${A_INSTALL_TARGETS} DESTDIR=${destdir} ${A_MAKE_ARGS})
     set(in_source "")
   endif()
@@ -139,6 +204,12 @@ function(syllable_port name)
     set(build ${A_BUILD_COMMAND})
   else()
     set(build ${env} make -j${SYLLABLE_JOBS} ${A_MAKE_ARGS} ${A_BUILD_TARGETS})
+  endif()
+  # SYLLABLE_PORTS_KEEP=ON keeps each port's source and build trees (for
+  # looking into a port); by default they're emptied once it's installed
+  set(cleanup "")
+  if(NOT SYLLABLE_PORTS_KEEP)
+    set(cleanup COMMAND find <SOURCE_DIR> <BINARY_DIR> -mindepth 1 -delete)
   endif()
   set(after_install "")
   if(NOT A_DEST STREQUAL "sysroot")
@@ -149,7 +220,8 @@ function(syllable_port name)
     # headers and libraries for later components to compile and link against
     list(APPEND after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${dest}${A_PREFIX}/include ${SYLLABLE_STAGING}/include
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${dest}${A_PREFIX}/lib ${SYLLABLE_STAGING}/lib)
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${dest}${A_PREFIX}/lib ${SYLLABLE_STAGING}/lib
+      COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/stage-fixup.sh ${SYLLABLE_STAGING} ${A_PREFIX})
   endif()
   ExternalProject_Add(${name}
     PREFIX ${CMAKE_BINARY_DIR}/ports/${name}
@@ -160,12 +232,27 @@ function(syllable_port name)
     BUILD_BYPRODUCTS ${A_BYPRODUCTS}
     ${in_source}
     PATCH_COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/apply-port.sh <SOURCE_DIR> ${SYLLABLE_BUILDER_PORTS}/${A_PORT}
-    CONFIGURE_COMMAND ${configure}
-    BUILD_COMMAND ${build}
-    INSTALL_COMMAND ${CMAKE_COMMAND} -E rm -rf ${dest}
-            COMMAND ${install}
-            ${after_install}
-    LOG_CONFIGURE ON LOG_BUILD ON LOG_INSTALL ON LOG_OUTPUT_ON_FAILURE ON)
+    # Configure, build and install are one step, which ends by emptying the
+    # source and build trees (only dest, the installed files, is kept).  When
+    # any of the three commands changes, the step runs again from the
+    # tarball (ensure-source.sh).
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/ensure-source.sh <SOURCE_DIR>
+                    ${CMAKE_BINARY_DIR}/ports/${name}/src/${name}-stamp/extract-${name}.cmake
+                    ${SYLLABLE_BUILDER_PORTS}/${A_PORT}
+          COMMAND ${configure}
+          COMMAND ${build}
+          COMMAND ${CMAKE_COMMAND} -E rm -rf ${dest}
+          COMMAND ${install}
+          ${after_install}
+          ${cleanup}
+    INSTALL_COMMAND ""
+    LOG_BUILD ON LOG_OUTPUT_ON_FAILURE ON)
+  # a changed port (its patch...) patches the source again (apply-port.sh)
+  file(GLOB_RECURSE _port_files CONFIGURE_DEPENDS ${SYLLABLE_BUILDER_PORTS}/${A_PORT}/*)
+  if(_port_files)
+    ExternalProject_Add_StepDependencies(${name} patch ${_port_files})
+  endif()
   if(NOT A_DEST STREQUAL "sysroot")
     install(DIRECTORY ${dest}/ DESTINATION . USE_SOURCE_PERMISSIONS)
     _syllable_links(${A_PREFIX} ${A_LINKS})

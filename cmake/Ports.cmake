@@ -6,7 +6,7 @@ syllable_port(bash
   URL https://mirrors.kernel.org/gnu/bash/bash-4.0.tar.gz
       https://ftp.gnu.org/gnu/bash/bash-4.0.tar.gz
   SHA256 9793d394f640a95030c77d5ac989724afe196921956db741bcaf141801c50518
-  PREFIX /system/resources/BASh/4.0
+  PREFIX /system/resources/bash/4.0
   CONFIGURE --without-bash-malloc
   CACHE ${PROJECT_SOURCE_DIR}/cmake/ports/bash.cache
   MAKE_ARGS -j1                        # its readline Makefile races in parallel
@@ -23,15 +23,241 @@ syllable_port(coreutils
   MAKE_ARGS "SUBDIRS=lib src"
   LINKS @bin:/bin)
 
+# ---- The command-line base (Builder profiles base and syllable) -----------------
+#
+# Release versions.  The system packages go in /system/resources, the rest in
+# /resources (= /usr) with their programs linked from /resources/index/bin,
+# which /etc/profile's PATH searches.  NCurses and ReadLine are static, as the
+# release built them.
+
+set(_gnu https://mirrors.kernel.org/gnu)
+set(_gnu2 https://ftp.gnu.org/gnu)
+
+# The terminfo database is compiled with the build host's tic (the built one is
+# a Syllable program); it writes the format ncurses 5.7 reads.
+syllable_port(ncurses
+  PORT NCurses-5.7
+  URL ${_gnu}/ncurses/ncurses-5.7.tar.gz ${_gnu2}/ncurses/ncurses-5.7.tar.gz
+  SHA256 0a9bdea5c7de8ded5c9327ed642915f2cc380753f12d4ad120ef7da3ea3498f4
+  PREFIX /system/resources/ncurses/5.7
+  CONFIGURE --without-shared --without-debug --without-ada --without-cxx-binding
+            --enable-overwrite --with-build-cc=gcc
+  MAKE_ARGS TIC_PATH=/usr/bin/tic
+  SYSROOT LINKS @bin:/usr/index/bin)
+
+syllable_port(readline
+  PORT ReadLine-6.0
+  URL ${_gnu}/readline/readline-6.0.tar.gz ${_gnu2}/readline/readline-6.0.tar.gz
+  SHA256 1199d905c025735b34cf67d03078585e18f84707052413279fe68ce48c1cc1de
+  PREFIX /system/resources/readline/6.0
+  CONFIGURE --disable-shared --with-curses --enable-multibyte
+            bash_cv_wcwidth_broken=no
+  SYSROOT DEPENDS ncurses)
+
+syllable_port(grep
+  PORT GRep-2.5.4
+  URL ${_gnu}/grep/grep-2.5.4.tar.bz2 ${_gnu2}/grep/grep-2.5.4.tar.bz2
+  SHA256 0abec64e01458fbd032e33351d8071602a959529ea796965e98338ee83a40020
+  PREFIX /usr/grep/2.5.4
+  CONFIGURE --disable-perl-regexp
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(sed
+  PORT SEd-4.2.1
+  URL ${_gnu}/sed/sed-4.2.1.tar.bz2 ${_gnu2}/sed/sed-4.2.1.tar.bz2
+  SHA256 2ac3b36ca37bfeb43c4ef4025778cd66d89c77abb843d90552a515a7c9d2948f
+  PREFIX /usr/sed/4.2.1
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(gawk
+  PORT gawk-3.1.6
+  URL ${_gnu}/gawk/gawk-3.1.6.tar.bz2 ${_gnu2}/gawk/gawk-3.1.6.tar.bz2
+  SHA256 513fdd5a0bd1b467bd4993eb3adb4690f65fff6857c9e2ed1a3e46d72151cb6c
+  PREFIX /usr/gawk/3.1.6
+  # No extension loading (extension()): it finds dlfcn.h in the sysroot, but
+  # libdl is the tree's own (system/libs/dl), built after the ports
+  CONFIGURE ac_cv_header_dlfcn_h=no
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(findutils
+  PORT FindUtils-4.4.2
+  URL ${_gnu}/findutils/findutils-4.4.2.tar.gz ${_gnu2}/findutils/findutils-4.4.2.tar.gz
+  SHA256 434f32d171cbc0a5e72cfc5372c6fc4cb0e681f8dce566a0de5b6fccd702b62a
+  PREFIX /usr/findutils/4.4.2
+  # glibc 2.7's fflush is fine; the cross guess "no" pulls in gnulib's fseeko,
+  # which clashes with glibc's large-file fseeko
+  # (the port's patch fixes gnulib's wchar.h for glibc 2.7)
+  CONFIGURE gl_cv_func_fflush_stdin=yes
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(diffutils
+  PORT diffutils-2.8.1
+  URL ${_gnu}/diffutils/diffutils-2.8.1.tar.gz ${_gnu2}/diffutils/diffutils-2.8.1.tar.gz
+  SHA256 c5001748b069224dd98bf1bb9ee877321c7de8b332c8aad5af3e2a7372d23f5a
+  PREFIX /usr/diffutils/2.8.1
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(tar
+  PORT TAr-1.22
+  URL ${_gnu}/tar/tar-1.22.tar.bz2 ${_gnu2}/tar/tar-1.22.tar.bz2
+  SHA256 3cefb67f197a3f8f5235999fe749ced0889466a71ddcbc96fddca84e5d53aa4d
+  PREFIX /usr/tar/1.22
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(gzip
+  PORT gzip-1.3.12
+  URL ${_gnu}/gzip/gzip-1.3.12.tar.gz ${_gnu2}/gzip/gzip-1.3.12.tar.gz
+  SHA256 3f565be05f7f3d1aff117c030eb7c738300510b7d098cedea796ca8e4cd587af
+  PREFIX /usr/gzip/1.3.12
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(which
+  PORT which-2.19
+  URL ${_gnu}/which/which-2.19.tar.gz ${_gnu2}/which/which-2.19.tar.gz
+  SHA256 7d79b874f65118ac846a0deb31a8fbd6816cd81e74930299c82103765d45cd52
+  PREFIX /usr/which/2.19
+  DEPENDS readline LINKS @bin:/usr/index/bin)
+
+syllable_port(patch
+  PORT patch-2.5.4
+  URL ${_gnu}/patch/patch-2.5.4.tar.gz ${_gnu2}/patch/patch-2.5.4.tar.gz
+  SHA256 dd2fc5a745bfca5450d13d7032fdc47ab102514aae3efb3fe334a6eff87df799
+  PREFIX /usr/patch/2.5.4
+  # its Makefile has no DESTDIR
+  INSTALL_TARGETS install prefix=${CMAKE_BINARY_DIR}/ports/patch/dest/usr/patch/2.5.4
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(make
+  PORT make-3.81
+  URL ${_gnu}/make/make-3.81.tar.bz2 ${_gnu2}/make/make-3.81.tar.bz2
+  SHA256 f3e69023771e23908f5d5592954d8271d3d6af09693cecfd29cee6fde8550dc8
+  PREFIX /usr/make/3.81
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(less
+  PORT Less-429
+  URL https://www.greenwoodsoftware.com/less/less-429.tar.gz
+  SHA256 d3073eceb3c9314d1fab7df92a39d1aea4782db4cafa982ea670cd2f6c713408
+  PREFIX /usr/less/429
+  DEPENDS ncurses LINKS @bin:/usr/index/bin)
+
+syllable_port(xz
+  PORT XZ-Utilities-4.999.9beta
+  URL https://tukaani.org/xz/xz-4.999.9beta.tar.bz2
+  SHA256 330312c4397608d8b7be362cc7edbfeafa6101614bc2164d816ea767656aa15c
+  PREFIX /usr/xz/4.999.9beta
+  CONFIGURE --disable-shared
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(mktemp
+  PORT MkTemp-1.6
+  URL https://www.mktemp.org/dist/mktemp-1.6.tar.gz
+  SHA256 a1275889c7bb6b3c353d5b9ebb983064e8ef1d29ef8688bd132cec065642d2d9
+  PREFIX /usr/mktemp/1.6
+  # its Makefile has no DESTDIR
+  INSTALL_TARGETS install prefix=${CMAKE_BINARY_DIR}/ports/mktemp/dest/usr/mktemp/1.6
+  LINKS @bin:/usr/index/bin)
+
+set(_cc CC=i586-pc-syllable-gcc AR=i586-pc-syllable-ar RANLIB=i586-pc-syllable-ranlib)
+
+# Its default target also runs the tests (Syllable programs)
+syllable_port(bzip2
+  PORT bzip2-1.0.5
+  URL https://sourceware.org/pub/bzip2/bzip2-1.0.5.tar.gz
+  SHA256 f7bf5368309d76e5daf3a89d4d1bea688dac7780742e7a0ae1af19be9316fe22
+  PREFIX /usr/bzip2/1.0.5
+  STYLE plain MAKE_ARGS ${_cc} BUILD_TARGETS libbz2.a bzip2 bzip2recover
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(unzip
+  PORT UnZip-6.0
+  URL https://downloads.sourceforge.net/project/infozip/UnZip%206.x%20%28latest%29/UnZip%206.0/unzip60.tar.gz
+  SHA256 036d96991646d0449ed0aa952e4fbe21b476ce994abc276e49d30e686708bd37
+  PREFIX /system/resources/unzip/6.0
+  STYLE plain MAKE_ARGS -f unix/Makefile ${_cc} BUILD_TARGETS generic
+  LINKS @bin:/usr/index/bin)
+
+syllable_port(zip
+  PORT Zip-3.0
+  URL https://downloads.sourceforge.net/project/infozip/Zip%203.x%20%28latest%29/3.0/zip30.tar.gz
+  SHA256 f0e8bb1f9b7eb0b01285495a2699df3a4b766784c1765a8f1aeedf63c0806369
+  PREFIX /usr/zip/3.0
+  # Its own AtheOS port (atheos/: file attributes), which calls as and make by name
+  STYLE plain MAKE_ARGS -f atheos/Makefile ${_cc} AS=i586-pc-syllable-as
+                        "MAKE=make -f atheos/Makefile"
+  LINKS @bin:/usr/index/bin)
+
+# inetd, telnet and ftp; the rest of INetUtils is in the tree (nettools) or
+# not wanted on a desktop
+syllable_port(inetutils
+  PORT INetUtils-1.6
+  URL ${_gnu}/inetutils/inetutils-1.6.tar.gz ${_gnu2}/inetutils/inetutils-1.6.tar.gz
+  SHA256 052bd9473b7620387fe63f4a6a3af0e4137dcf0f33d85e0ecfd22f5e11145bde
+  PREFIX /usr/inetutils/1.6
+  # ftp without ReadLine: the static libreadline carries its own xmalloc, which
+  # clashes with gnulib's
+  CONFIGURE --disable-servers --disable-clients --enable-inetd --enable-telnet --enable-ftp
+            gl_cv_lib_readline=no
+  DEPENDS ncurses
+  LINKS @bin:/usr/index/bin @libexec:/usr/index/sbin)
+
+# ed: its own configure, which takes the compiler as an argument only
+syllable_port(ed
+  PORT ed-0.9
+  URL ${_gnu}/ed/ed-0.9.tar.bz2 https://download.savannah.gnu.org/releases/ed/ed-0.9.tar.bz2
+  SHA256 22fa075554b669178b7c073aab5274c473d311a5a10b1ccdae2f45759e21c7f7
+  PREFIX /usr/ed/0.9
+  CONFIGURE CC=i586-pc-syllable-gcc
+  LINKS @bin:/usr/index/bin)
+
+# nano with NCurses (the release's recipe used S-Lang, which isn't ported)
+syllable_port(nano
+  PORT nano-2.0.3
+  URL https://www.nano-editor.org/dist/v2.0/nano-2.0.3.tar.gz
+  SHA256 8c29569d0e1eb29cbd3580313b9796c4e6fd0830071ec885021f22be635f5297
+  PREFIX /usr/nano/2.0.3
+  DEPENDS ncurses LINKS @bin:/usr/index/bin)
+
+# file: the release's 4.07 has no source left, so 5.11 (2012).  Its magic
+# database is compiled by running file, so a host file of the same version
+# is built first and used for that (FILE_COMPILE).
+set(_file_url https://astron.com/pub/file/file-5.11.tar.gz ftp://ftp.astron.com/pub/file/file-5.11.tar.gz)
+set(_file_sha c70ae29a28c0585f541d5916fc3248c3e91baa481f63d7ccec53d1534cbcc9b7)
+ExternalProject_Add(file_host
+  PREFIX ${CMAKE_BINARY_DIR}/ports/file_host
+  URL ${_file_url} URL_HASH SHA256=${_file_sha}
+  DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
+  DOWNLOAD_EXTRACT_TIMESTAMP ON
+  INSTALL_DIR ${CMAKE_BINARY_DIR}/host-file
+  CONFIGURE_COMMAND env -u TARGET CC=/usr/bin/gcc <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+                    --disable-shared
+  BUILD_COMMAND env -u TARGET make -j${SYLLABLE_JOBS}
+  INSTALL_COMMAND env -u TARGET make install
+  LOG_CONFIGURE ON LOG_BUILD ON LOG_INSTALL ON LOG_OUTPUT_ON_FAILURE ON)
+syllable_port(file
+  PORT file-4.07
+  URL ${_file_url}
+  SHA256 ${_file_sha}
+  PREFIX /usr/file/5.11
+  CONFIGURE --disable-shared
+  MAKE_ARGS FILE_COMPILE=${CMAKE_BINARY_DIR}/host-file/bin/file
+  DEPENDS file_host LINKS @bin:/usr/index/bin)
+
 # ---- Libraries for the appserver, translators and media ------------------------
 
+# zlib 1.3.1 in place of the release's 1.2.3 (same soname and ABI, libz.so.1):
+# cURL 8 wants a newer one.  Its configure goes by the build host's uname
+# (Linux), so it needs no port.  The header and libz.so are linked from
+# /usr/index for programs compiled on Syllable.
 syllable_port(zlib
-  PORT zlib-1.2.3
-  URL https://zlib.net/fossils/zlib-1.2.3.tar.gz
-  SHA256 1795c7d067a43174113fdf03447532f373e1c6c57c08d61d9e4e9be5e244b05e
-  PREFIX /system/resources/zlib/1.2.3
+  PORT zlib-1.3.1
+  URL https://zlib.net/fossils/zlib-1.3.1.tar.gz
+  SHA256 9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23
+  PREFIX /system/resources/zlib/1.3.1
   STYLE zlib CONFIGURE --shared SYSROOT BYPRODUCTS ${SYLLABLE_STAGING}/lib/libz.so
-  LINKS lib/libz.so.1:/system/libraries/libz.so.1)
+  LINKS lib/libz.so.1:/system/libraries/libz.so.1 lib/libz.so:/usr/index/lib/libz.so
+        include/zlib.h:/usr/index/include/zlib.h include/zconf.h:/usr/index/include/zconf.h
+        lib/pkgconfig/zlib.pc:/usr/index/lib/pkgconfig/zlib.pc)
 
 # FreeType and LibPNG are linked in statically, as in the release (Builder's
 # "stage" packages): the staging sysroot only, not the boot volume
@@ -178,3 +404,11 @@ syllable_port(gdbserver
   CACHE ${PROJECT_SOURCE_DIR}/cmake/ports/gdbserver.cache   # libc's getcwd (see there)
   BUILD_TARGETS all-gdbserver INSTALL_TARGETS install-gdbserver
   LINKS bin/gdbserver:/system/development/bin/gdbserver)
+
+# ---- More ports, one file per area: cmake/ports/NN-<area>.cmake -------------------
+
+file(GLOB _port_files CONFIGURE_DEPENDS ${CMAKE_CURRENT_LIST_DIR}/ports/*.cmake)
+list(SORT _port_files)
+foreach(f ${_port_files})
+  include(${f})
+endforeach()

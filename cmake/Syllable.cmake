@@ -64,7 +64,12 @@ option(SYLLABLE_DEBUG_INFO "Userland built with debug info and not stripped" OFF
 # userland, so kernel targets get a directory in which syllable -> atheos,
 # searched first.
 
-set(SYLLABLE_HEADERS ${PROJECT_SOURCE_DIR}/system/sys/include/syllable)
+# SYLLABLE_SOURCE_DIR: the checkout (cmake/sdk, the project ./sb compile uses,
+# includes this from outside it)
+if(NOT SYLLABLE_SOURCE_DIR)
+  set(SYLLABLE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+endif()
+set(SYLLABLE_HEADERS ${SYLLABLE_SOURCE_DIR}/system/sys/include/syllable)
 set(SYLLABLE_KERNEL_HEADER_VIEW ${CMAKE_BINARY_DIR}/kernel-headers)
 file(MAKE_DIRECTORY ${SYLLABLE_KERNEL_HEADER_VIEW})
 file(CREATE_LINK ${SYLLABLE_HEADERS}/atheos ${SYLLABLE_KERNEL_HEADER_VIEW}/syllable SYMBOLIC)
@@ -238,6 +243,6 @@ function(syllable_catalogs target)
 endfunction()
 
 function(syllable_attribute path name value)
-  install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/set-attribute.sh ${SYLLABLE_ADDATTRIB}
+  install(CODE "execute_process(COMMAND ${SYLLABLE_SOURCE_DIR}/cmake/scripts/set-attribute.sh ${SYLLABLE_ADDATTRIB}
     \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${path}\" \"${name}\" \"${value}\" COMMAND_ERROR_IS_FATAL ANY)")
 endfunction()

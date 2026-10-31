@@ -1265,9 +1265,9 @@ void Registrar::ScanAppPath( RegistrarUser* psUser, int nLevel, os::Path cPath, 
 			continue;
 		}
 		
-		/* Set default category */
+		/* Set default category (the folder is /applications/preferences here) */
 		os::String zCategory = "Other";
-		if( cPath.GetLeaf() == "Preferences" )
+		if( os::String( cPath.GetLeaf() ).Lower() == "preferences" )
 			zCategory = "Preferences";
 		
 		

@@ -44,7 +44,7 @@ syllable_library(libsyllable SONAME libsyllable.so.8
   SOURCES ${SOURCES}
   OPTIONS -fexceptions
   LIBS m
-  LINKS libos.so
+  LINKS libos.so libsyllable.so    # -lsyllable for the native compilers
   INSTALL system/libraries STRIP)
 syllable_catalogs(libsyllable NAME libsyllable DIR catalogs
   LANGS da de es fr hu nl pl pt-br ru sv

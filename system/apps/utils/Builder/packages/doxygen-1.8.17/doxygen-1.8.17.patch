@@ -1,0 +1,12 @@
+diff -ru doxygen-1.8.17.original/qtools/qglobal.h doxygen-1.8.17/qtools/qglobal.h
+--- doxygen-1.8.17.original/qtools/qglobal.h	2026-10-27 23:43:29.369546598 -0600
++++ doxygen-1.8.17/qtools/qglobal.h	2026-10-27 23:43:29.408318789 -0600
+@@ -136,6 +136,8 @@
+ #define _OS_BEOS_
+ #elif defined(__MINT__)
+ #define _OS_MINT_
++#elif defined(__SYLLABLE__)
++#define _OS_SYLLABLE_
+ #else
+ #error "Qt has not been ported to this OS - talk to qt-bugs@trolltech.com"
+ #endif

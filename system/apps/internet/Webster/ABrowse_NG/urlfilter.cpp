@@ -18,13 +18,14 @@
  */
 
 #include <urlfilter.h>
+#include <sys/stat.h>
 
 using namespace os;
 
 url_protocol_e UrlFilter::Filter( String &cURL )
 {
 	url_protocol_e nProtocol = URL_IS_UNKNOWN;
-
+	struct stat buffer;
 	/* Do some obvious checks first */
 	if( cURL.empty() || cURL == "about:blank" )
 		nProtocol = URL_IS_EMPTY;
@@ -34,7 +35,7 @@ url_protocol_e UrlFilter::Filter( String &cURL )
 		nProtocol = URL_IS_HTTPS;
 	else if( cURL.substr( 0, 6 ).Lower() == "ftp://" )
 		nProtocol = URL_IS_FTP;
-	else if( cURL.substr( 0, 7 ).Lower() == "file://" )
+	else if( cURL.substr( 0, 7 ).Lower() == "file://" || stat(cURL.c_str(),&buffer) == 0 )
 		nProtocol = URL_IS_FILE;
 	else
 	{

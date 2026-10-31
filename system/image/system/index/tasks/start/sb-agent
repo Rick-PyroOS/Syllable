@@ -1,0 +1,11 @@
+# sb-agent, for ./sb execute on the Mac (list, copy in and run programs): on
+# every image ./sb image makes, which writes "on" to /system/config/sb-agent
+# (./sb release writes "off": it runs anything as root, unauthenticated), and
+# ./sb run forwards the Mac's localhost:2346 here.  It runs programs as root,
+# with root's login environment (see gdbserver).  start.sh sources this.
+if [ "$(cat /system/config/sb-agent 2>/dev/null)" = on ] && [ -x /system/development/bin/sb-agent ]
+then
+	( cd /home/root && HOME=/home/root USER=root LOGNAME=root SHELL=/bin/bash \
+	  PATH=/usr/index/bin:/bin:/system/programs:/system/development/bin:$PATH \
+	  /system/development/bin/sb-agent 2346 > /var/log/sb-agent.log 2>&1 & )
+fi
