@@ -1,0 +1,59 @@
+# Syllable's naming rules for clang-tidy (readability-identifier-naming).
+# clangd runs them on each file you open in Neovim (Space tk turns them off);
+# findings show in the margin and in Problems (Cmd+6), each with a rename fix.
+#
+# What's checked:
+#   classes and methods PascalCase; macros and enum values UPPER_CASE
+#   private/protected members m_, static members s_, globals g_
+#   a type prefix on members, locals and parameters: a name with none
+#   (count, total, m_flags) is flagged, and for int, bool and float the fix
+#   names it Syllable's way (nCount, bVisible, vScale)
+# Whether a prefix fits its type (pc for a class pointer, h for a handle, n
+# for a uint32) isn't checked here: clang-tidy only knows the built-in types,
+# so any lowercase prefix before a capital passes. The local-model check
+# mcp/checks/syllable-style.md looks at those. For an unprefixed name of a
+# typedef'd type (uint32 flags) the offered rename leaves the prefix out:
+# type the right one yourself.
+# One-letter names (i, x, n) are fine anywhere.
+Checks: '-*,readability-identifier-naming'
+CheckOptions:
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.MethodCase: CamelCase
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+  readability-identifier-naming.EnumConstantCase: UPPER_CASE
+  readability-identifier-naming.PrivateMemberPrefix: m_
+  readability-identifier-naming.PrivateMemberCase: CamelCase
+  readability-identifier-naming.PrivateMemberHungarianPrefix: On
+  readability-identifier-naming.PrivateMemberIgnoredRegexp: '^m_[a-z]+[A-Z].*'
+  readability-identifier-naming.ProtectedMemberPrefix: m_
+  readability-identifier-naming.ProtectedMemberCase: CamelCase
+  readability-identifier-naming.ProtectedMemberHungarianPrefix: On
+  readability-identifier-naming.ProtectedMemberIgnoredRegexp: '^m_[a-z]+[A-Z].*'
+  readability-identifier-naming.ClassMemberPrefix: s_
+  readability-identifier-naming.ClassMemberCase: CamelCase
+  readability-identifier-naming.ClassMemberHungarianPrefix: On
+  readability-identifier-naming.ClassMemberIgnoredRegexp: '^s_[a-z]+[A-Z].*'
+  readability-identifier-naming.GlobalVariablePrefix: g_
+  readability-identifier-naming.GlobalVariableCase: CamelCase
+  readability-identifier-naming.GlobalVariableHungarianPrefix: On
+  readability-identifier-naming.GlobalVariableIgnoredRegexp: '^g_[a-z]+[A-Z].*'
+  readability-identifier-naming.LocalVariableCase: CamelCase
+  readability-identifier-naming.LocalVariableHungarianPrefix: On
+  readability-identifier-naming.LocalVariableIgnoredRegexp: '^([a-z]|[a-z]+[A-Z].*)$'
+  readability-identifier-naming.ParameterCase: CamelCase
+  readability-identifier-naming.ParameterHungarianPrefix: On
+  readability-identifier-naming.ParameterIgnoredRegexp: '^([a-z]|[a-z]+[A-Z].*)$'
+  readability-identifier-naming.HungarianNotation.General.TreatStructAsClass: true
+  readability-identifier-naming.HungarianNotation.PrimitiveType.int: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.unsigned-int: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.short: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.unsigned-short: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.long: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.unsigned-long: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.long-long: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.unsigned-long-long: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.char: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.unsigned-char: n
+  readability-identifier-naming.HungarianNotation.PrimitiveType.bool: b
+  readability-identifier-naming.HungarianNotation.PrimitiveType.float: v
+  readability-identifier-naming.HungarianNotation.PrimitiveType.double: v
