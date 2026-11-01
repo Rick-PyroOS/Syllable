@@ -181,8 +181,8 @@ public:
 		if( m_pcView->GetWindow() != NULL && m_pcView->GetWebCoreFrame() == frame() )
 		{
 			//frame()->loader()->goToItem( frame()->loader()->currentHistoryItem(), WebCore::FrameLoadTypeBack );
-			os::Alert * pcAlert = new os::Alert( "Error", os::String( "Failed to load " ) + os::String( error.failingURL() ), os::Alert::ALERT_WARNING, 0x00, "Ok", NULL );
-			pcAlert->Go( NULL );
+			// os::Alert * pcAlert = new os::Alert( "Error", os::String( "Failed to load " ) + os::String( error.failingURL() ), os::Alert::ALERT_WARNING, 0x00, "Ok", NULL );
+			// pcAlert->Go( NULL );
 			os::Message cMsg( ID_LOAD_FINISHED );
 			cMsg.AddPointer( "view", m_pcView );
 			m_pcView->GetWindow()->PostMessage( &cMsg, m_pcView->GetWindow() );

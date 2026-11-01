@@ -107,6 +107,7 @@ class WebView : public os::View
 
 		virtual void LoadStarted( WebView *pcWebView, os::String &cURL );
 		virtual void LoadFinished( WebView *pcWebView );
+		virtual void LoadFailed(const os::String& cError);
 
 	private:
 		void _WebView( const os::Rect& cFrame, const os::String& cTitle, WebCore::ChromeClient* pcClient, os::WebSettings *pcSetting, uint32 nResizeMask, uint32 nFlags );

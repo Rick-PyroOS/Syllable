@@ -17,6 +17,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include "posix/errno.h"
 #include <unistd.h>
 
 #include <gui/window.h>
@@ -573,6 +574,14 @@ void BrowserWindow::HandleMessage( Message * pcMsg )
 					UpdateButtonState( false );
 			break;
 		}
+		case ID_WEBVIEW_LOAD_FAILED:
+		{
+			os::String cError;
+			if (pcMsg->FindString("error",&cError) == EOK){
+				m_pcStatusBar->SetText("text",cError);
+			}
+		}
+
 		default:
 		{
 			fprintf( stderr, "Unknown message with code #%d\n", pcMsg->GetCode() );
