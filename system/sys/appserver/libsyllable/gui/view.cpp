@@ -72,8 +72,7 @@ static Color32_s g_asDefaultColors[] = {
  *	customize the look.
  * \par Note:
  * \par Warning:
- * \param
- *	nColor - One of the COL_xxx enums from default_color_t
+ * \param nColor - One of the COL_xxx enums from default_color_t
  * \return
  *	The current color for the given system pen.
  * \sa
@@ -305,8 +304,7 @@ int View::GetTabOrder() const
 /** Set the keyboard manouvering sorting order.
  * \par Description:
  *	Set the value that will be returned by GetTabOrder().
- * \param
- *	nOrder - The sorting order.
+ * \param nOrder - The sorting order.
  * \sa GetTabOrder()
  * \author Kurt Skauen (kurt@atheos.cx)
  *****************************************************************************/
@@ -332,8 +330,7 @@ void View::SetTabOrder( int nOrder )
  *	Set a popup menu to be used for this View. The popup menu is opened when
  * the user right-clicks inside the View, unless the right-click event is
  * consumed by the subclass.
- * \param
- *	pcMenu - popup menu for this View. Deleted automatically.
+ * \param pcMenu - popup menu for this View. Deleted automatically.
  * \sa GetContextMenu()
  * \author Henrik Isaksson (henrik@isaksson.tk)
  *****************************************************************************/
@@ -369,8 +366,7 @@ const ShortcutKey& View::GetShortcut() const
  * while the shortcut key is still held, will cancel the operation. Please note
  * that most widgets (including Button) will automatically extract keyboard
  * shortcuts from their labels.
- * \param
- *	cShortcut - key combination to activate View.
+ * \param cShortcut - key combination to activate View.
  * \sa Control::SetLabel(), GetShortcut(), SetShortcutFromLabel(), ShortcutKey
  * \author Henrik Isaksson (henrik@isaksson.tk)
  *****************************************************************************/
@@ -389,8 +385,7 @@ void View::SetShortcut( const ShortcutKey& cShortcut )
  * \par Description:
  *	Like SetShortcut(), but the key is extracted from a text label. The
  * character following the first unescaped underscore character (_) is used.
- * \param
- *	cLabel - text string containing shortcut.
+ * \param cLabel - text string containing shortcut.
  * \sa GetShortcut(), SetShortcutFromLabel(), ShortcutKey
  * \author Henrik Isaksson (henrik@isaksson.tk)
  *****************************************************************************/
@@ -1026,8 +1021,7 @@ void View::_IncHideCount( bool bVisible )
  * \par Note:
  *	It is NOT leagal to show a visible view! Calling Show(true) before
  *	Show(false) is an error.
- * \param
- *	bVisible - A boolean telling if the view should be hidden or viewed.
+ * \param bVisible - A boolean telling if the view should be hidden or viewed.
  * \sa IsVisible(), Window::Show()
  * \author Kurt Skauen (kurt@atheos.cx)
  *****************************************************************************/
@@ -3193,7 +3187,6 @@ void View::GetFontHeight( font_height * psHeight ) const
  *	Convert a point or rectangle from local to parent coordinate system
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)

@@ -11,9 +11,10 @@
 
 //#include <malloc.h>
 //#include <stdio.h>
-#include <atheos/kernel.h>
-#include <atheos/string.h>
-#include <atheos/time.h>
+#include <kernel/kdebug.h>
+#include <kernel/string.h>
+#include <kernel/stdlib.h>
+#include <kernel/time.h>
 #include <posix/errno.h>
 
 #include "encodings.h"

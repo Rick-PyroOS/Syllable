@@ -14,6 +14,9 @@
 #include <kernel/filesystem.h>
 #include <kernel/fs_attribs.h>
 #include <kernel/unistd.h>
+#include <kernel/stat.h>
+#include <kernel/threads.h>
+#include <kernel/time.h>
 #include <posix/stat.h>
 #include <posix/limits.h>
 #include <posix/errno.h>

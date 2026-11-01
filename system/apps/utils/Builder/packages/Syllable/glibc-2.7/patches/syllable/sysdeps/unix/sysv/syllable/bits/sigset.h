@@ -43,7 +43,7 @@ typedef struct
 # define _SIGSET_H_fns 1
 
 # ifndef _EXTERN_INLINE
-#  define _EXTERN_INLINE extern __inline
+#  define _EXTERN_INLINE __extern_inline
 # endif
 
 /* Return a mask that includes the bit for SIG only.  */

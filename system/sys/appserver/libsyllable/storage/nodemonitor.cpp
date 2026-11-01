@@ -344,3 +344,7 @@ int NodeMonitor::GetMonitor() const
 {
 	return ( m->m_nMonitor );
 }
+
+bool NodeMonitor::IsValid() const{
+	return m->m_nMonitor != -1;
+}

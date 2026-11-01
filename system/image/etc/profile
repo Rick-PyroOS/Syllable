@@ -1,0 +1,139 @@
+# Time zone
+#export TZ=Europe/Amsterdam
+
+# Remove global access on newly created files for higher security
+#umask 027
+
+export PWD
+
+# Run paths
+
+export DLL_PATH=@program-folder@/framework:@program-folder@/lib:/system/index/GNU-CompilerCollection/framework/libraries:/resources/index/framework/libraries:/resources/index/lib:/usr/local/lib:/system/index/framework/libraries:/system/libraries:/system
+
+if [ -e /System/Index/lib ]  # Gobo package manager is installed
+then
+	export DLL_PATH=/System/Index/lib:$DLL_PATH
+fi
+
+export PATH=/resources/index/system-programs:/resources/index/programs:/resources/index/sbin:/resources/index/bin:/usr/local/sbin:/usr/local/bin:/bin:/system/index/system-programs:/system/index/programs:/system/programs
+
+export MANPATH=/resources/index/manuals:/usr/local/man:/usr/local/share/man:/system/index/manuals
+export INFOPATH=/resources/index/manuals/info:/usr/local/info:/system/index/manuals/info
+
+# Paths for software compilation
+#
+# Two compilers, each with its binutils: /usr/gcc/4.1.2 (the system's) and
+# /usr/gcc/9.5.0.  use-gcc picks one for this shell (the default: 4.1.2):
+#
+#   use-gcc 9.5.0      its bin first in PATH, its lib in LIBRARY_PATH (and in
+#                      DLL_PATH, for its newer libstdc++), and C_INCLUDE_PATH
+#                      without glibc's and the system's headers (below)
+#   use-gcc            show which one is in use
+#
+# Both are always there by version, too: gcc-4.1.2, g++-4.1.2, gcc-9.5.0,
+# g++-9.5.0 (and cpp-, c++-), e.g. CC=gcc-9.5.0 ./configure.  C++ programs
+# built by 9.5.0 need its libstdc++ at run time (use-gcc 9.5.0's DLL_PATH,
+# or link with -static-libstdc++).
+#
+# Both compile against glibc's headers and start files
+# (/system/resources/glibc/2.7) and the system headers.  4.1.2 finds those
+# headers through C_INCLUDE_PATH; 9.5.0 searches them itself, after its own:
+# its libstdc++ headers #include_next glibc's (<cstdlib>: <stdlib.h>), which
+# fails when C_INCLUDE_PATH puts glibc's first.  gcc-9.5.0 and g++-9.5.0 drop
+# them from C_INCLUDE_PATH themselves.
+
+_gcc_sys_headers=/system/resources/glibc/2.7/include:/system/development/headers
+_gcc_headers=/resources/index/framework/headers:/resources/index/include:/usr/local/include:/system/index/framework/headers
+export C_INCLUDE_PATH=$_gcc_sys_headers:$_gcc_headers
+export CPLUS_INCLUDE_PATH=$C_INCLUDE_PATH
+_gcc_libs=/system/resources/glibc/2.7/lib:/resources/index/framework/libraries:/resources/index/lib:/usr/local/lib:/system/index/framework/libraries:/system/libraries
+export LIBRARY_PATH=$_gcc_libs
+export PKG_CONFIG_PATH=/resources/index/framework/PackageConfigure:/resources/index/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/system/index/framework/PackageConfigure
+export ACLOCAL_PATH=/resources/index/share/aclocal
+
+# _gcc_drop VALUE: VALUE (a :-list) without any /usr/gcc/<version>/... entries
+_gcc_drop()
+{
+	echo ":$1:" | sed -e 's|:/usr/gcc/[^/:]*/[^:]*||g' -e 's|^:||' -e 's|:$||'
+}
+
+use_gcc()
+{
+	if [ -z "$1" ]
+	then
+		echo "GCC ${SYLLABLE_GCC:-(none)}: $(gcc --version 2>/dev/null | head -n 1)"
+		return 0
+	fi
+	case $1 in
+		4.1.2 | 9.5.0) ;;
+		*) echo "usage: use-gcc 4.1.2|9.5.0" >&2; return 1 ;;
+	esac
+	if [ ! -x /usr/gcc/$1/bin/gcc ]
+	then
+		echo "use-gcc: GCC $1 isn't installed (/usr/gcc/$1)" >&2
+		return 1
+	fi
+	PATH=/usr/gcc/$1/bin:$(_gcc_drop "$PATH")
+	LIBRARY_PATH=/usr/gcc/$1/lib:$_gcc_libs
+	DLL_PATH=$(_gcc_drop "$DLL_PATH")
+	C_INCLUDE_PATH=$_gcc_sys_headers:$_gcc_headers
+	if [ "$1" = 9.5.0 ]
+	then
+		# its programs need its libstdc++.so.6 (newer than the system's);
+		# it searches glibc's and the system's headers itself
+		DLL_PATH=/usr/gcc/$1/lib:$DLL_PATH
+		C_INCLUDE_PATH=$_gcc_headers
+	fi
+	CPLUS_INCLUDE_PATH=$C_INCLUDE_PATH
+	export PATH LIBRARY_PATH DLL_PATH C_INCLUDE_PATH CPLUS_INCLUDE_PATH SYLLABLE_GCC=$1
+}
+# POSIX sh (bash as /bin/sh) rejects a hyphen in a function name and exits
+# on it, so the function is use_gcc and use-gcc is an alias for shells
+alias use-gcc=use_gcc
+
+use_gcc 4.1.2 2>/dev/null
+
+# Set this right, or havoc may be wreaked in /system/init.sh
+export TEMP=/tmp
+
+export SYSTEM=Syllable
+export TERMINFO=/usr/share/terminfo
+export TERM=xterm-old
+#export TERM=rxvt-16color
+#export TERM=xfce
+export COLORTERM=xterm-old
+#export COLORTERM=rxvt-16color
+export LS_COLORS='no=00:fi=00:di=01;34:ln=00;34:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44:ex=00;31:*.c=34:*.cpp=34:*.h=34:*.hpp=34:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.tbz2=01;31:*.7z=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.flac=01;35:*.mp3=01;35:*.mpc=01;35:*.ogg=01;35:*.wav=01;35:'
+
+case $TERM in
+	xterm* | rxvt*)
+		PROMPT_COMMAND="echo -ne \"\033]0;${USER}@${HOSTNAME}:\${PWD} - Syllable Terminal\007\"";;
+	*)
+		unset PROMPT_COMMAND;;
+esac
+
+export PAGER=less
+export LESSCHARSET=latin1
+export EDITOR=aedit
+
+# Convenience commands:
+alias ll='ls -l'
+alias dir='ls -l --color'
+alias more=less
+alias m=less
+alias s=sudo
+
+# Early init scripts run before user login and can include environment variables.
+
+for setup in `ls /system/index/tasks/setup/`
+do
+	source /system/index/tasks/setup/$setup
+done
+
+for setup in `ls /resources/index/tasks/setup/`
+do
+	source /resources/index/tasks/setup/$setup
+done
+
+# Do early user initialisation
+source /system/user-setup.sh

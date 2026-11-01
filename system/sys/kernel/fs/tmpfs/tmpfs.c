@@ -276,7 +276,6 @@ static void tfs_tree_walk_reset( TmpFSWalk_s *psWalk )
  * \par Locks:
  * This must be called with tv_hLock (volume lock) LOCKED
  * \par Warning:
- * \param
  * \return
  * \sa
  ****************************************************************************/

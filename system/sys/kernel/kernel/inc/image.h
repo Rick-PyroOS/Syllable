@@ -117,6 +117,7 @@ void delete_image_context( ImageContext_s * psCtx );
 int load_image_inst( ImageContext_s * psCtx, const char *pzPath, BootModule_s * psModule, int nMode, ElfImageInst_s **ppsInst, const char *pzLibraryPath );
 Inode_s *get_image_inode( int nLibrary );
 void init_image_module( void );
+int get_process_image_info( Process_s *psProc, int nIndex, image_info * psInfo );	/* PTRACE_GETIMAGES */
 
 
 #ifdef __cplusplus

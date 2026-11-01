@@ -1,0 +1,83 @@
+/* Design based on styles by REBOL Technologies (BSD licence) & Christopher Ross-Gill (http://creativecommons.org/licenses/by-sa/1.0/) */
+
+html, body, p, td, li {font-size: 11pt; font-family: verdana, arial, sans-serif, helvetica}
+
+body {
+/*	background: #fff url(../images/background.png) repeat-x; */
+	margin: 0 7% 2.4em
+}
+@media print {body {font-size: 10pt; margin: 1em 5%}}
+
+img {border: 0}
+
+h1 {font-size: 17pt; font-weight: bold}
+h2 {font-size: 14pt; font-weight: bold; color: #2030a0; width: 100%; border-bottom: 1px solid #c09060}
+h3 {font-size: 13pt; font-weight: bold; color: #2030a0}
+h4 {font-size: 11pt; font-weight: bold; color: #2030a0}
+h5 {font-size: 11pt; font-weight: bold}
+
+/* .ht {font-size: 12pt; font-weight: bold} */
+
+code, tt {font: bold 10pt "courier new", monospace, courier; color: #006000}
+/* CSS 3: */
+/* code, tt {font: bold 10pt "courier new", monospace, courier; color: darkgreen} */
+pre {
+	padding-left: 16px; padding-right: 16px; padding-top: 10px; padding-bottom: 10px;
+	overflow: auto;
+	font: bold 10pt "courier new", monospace, console;
+	border: solid #a0a0a0 1px;
+/*	border: 1px solid #ddd; */
+	background: #e8e8e8
+}
+/* blockquote {background: #d0e0f0; padding: 10px; border: none} */
+blockquote {background: #e0e0f0; padding: 10px; border: dashed #909090 1px}
+
+li {margin-bottom: 10px}
+
+legend {color: #600000; font-weight: bold}
+
+caption {font-size: 8pt; color: #000060}
+.caption {font-size: 8pt; color: #000060}
+
+.toc1 {margin-left: 1cm; font-size: 12pt; font-weight: bold}
+/* .toc2 {margin-left: 2cm; font-size: 10pt; font-weight: bold} */
+.toc2 {margin-left: 2cm; font-size: 10pt; font-weight: bold; text-decoration: none}
+/* .toc3 {margin-left: 3cm; font-size: 10pt} */
+.toc3 {margin-left: 3cm; font-size: 10pt; text-decoration: none}
+/* .toc4 {margin-left: 4cm; font-size: 10pt; color: #606060} */
+.toc4 {margin-left: 4cm; font-size: 10pt; color: gray; text-decoration: none}
+
+/* .output {color: #000060; font-weight: normal} */
+.output {color: #000080; font-weight: normal}
+.note {background: #ffe8e0; padding: 16px; border: solid #a0a0a0 1px}
+/* .note {background: #f0e090; width: 100%; padding: 16px; border: solid #a0a0a0 1px} */
+.tail {color: gray; font-size: 8pt}
+.fset {background: #fff8f0}
+/* .fset {background: #fff8e0} */
+.title {font-size: 16pt; font-weight: bold}
+.offset {text-align: right; width: 1.5in; float: left; padding-right: 0.25em}
+.label {width: 65px; font-weight: bold;
+	margin-top: 3px; margin-bottom: 10px;
+	text-align: right; vertical-align: top
+}
+
+th, td {
+/*	padding: 0.5em 0.5em 0; */
+	vertical-align: top
+}
+
+table.msglist {
+	border-width: 1px;
+/*	border-spacing: ; */
+	border-style: outset;
+	border-color: gray;
+	border-collapse: collapse;
+	background: white
+}
+table.msglist td {
+	border-width: 1px;
+	padding: 4px;
+	border-style: inset;
+	border-color: gray;
+	background: rgb(255, 255, 240)
+}

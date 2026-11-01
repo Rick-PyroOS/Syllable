@@ -63,8 +63,7 @@ static Color32_s g_asDefaultColors[] =
  *	customize the look.
  * \par Note:
  * \par Warning:
- * \param
- *	nColor - One of the COL_xxx enums from default_color_t
+ * \param nColor - One of the COL_xxx enums from default_color_t
  * \return
  *	The current color for the given system pen.
  * \sa
@@ -271,8 +270,7 @@ int View::GetTabOrder()
 /** Set the keyboard manouvering sorting order.
  * \par Description:
  *	Set the value that will be returned by GetTabOrder().
- * \param
- *	nOrder - The sorting order.
+ * \param nOrder - The sorting order.
  * \sa GetTabOrder()
  * \author Kurt Skauen (kurt@atheos.cx)
  *****************************************************************************/
@@ -841,8 +839,7 @@ void View::_IncHideCount( bool bVisible )
  * \par Note:
  *	It is NOT leagal to show a visible view! Calling Show(true) before
  *	Show(false) is an error.
- * \param
- *	bVisible - A boolean telling if the view should be hidden or viewed.
+ * \param bVisible - A boolean telling if the view should be hidden or viewed.
  * \sa IsVisible(), Window::Show()
  * \author Kurt Skauen (kurt@atheos.cx)
  *****************************************************************************/
@@ -2672,7 +2669,6 @@ void View::GetFontHeight( font_height* psHeight ) const
  *	Convert a point or rectangle from local to parent coordinate system
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author Kurt Skauen (kurt@atheos.cx)

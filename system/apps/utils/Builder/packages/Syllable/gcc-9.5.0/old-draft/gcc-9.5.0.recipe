@@ -1,0 +1,65 @@
+authors
+	Kurt Skauen
+	Kaj de Vos
+	Arno Klenke
+	Kristian Van Der Vliet
+	Jake Hamby
+	Rick Caudill
+maintainers			Rick Caudill
+status				developing
+warnings
+	GCC has a circular dependency on GLibC.
+	First hop of the GCC 4.1.2 -> 9.5.0 -> 15 upgrade path; see gcc-upgrade.md.
+
+needs
+	binutils >= 2.35
+	glibc >= 2.3.3
+build-needs
+	Syllable >= 0.6.6
+;	GCC 9.5 only needs an ISO C++98 host compiler, which 4.1.2 provides:
+	gcc >= 4.1.2
+	gmp >= 4.2
+	mpfr >= 2.4
+	mpc >= 0.8
+	gawk
+	m4
+	make >= 3.80
+
+; The Syllable target uses posix threads (libpthread) via stock
+; gthr-posix.h instead of the old custom gthr-syllable.h, and DWARF-2
+; exceptions instead of --enable-sjlj-exceptions.  Everything C++ must
+; be rebuilt anyway (libstdc++ ABI changed in GCC 5), so nothing is
+; lost by switching the exception model.
+configure-options
+	--disable-bootstrap
+	--enable-languages=c,c++
+	--with-arch=i586
+	--enable-shared
+	--enable-threads=posix
+	--enable-__cxa_atexit
+	--with-system-zlib
+	--disable-libstdcxx-pch
+	--disable-lto
+	--disable-multilib
+	--disable-nls
+;	Keep the first build small; these can be enabled one by one later:
+	--disable-libcc1
+	--disable-libsanitizer
+	--disable-libgomp
+	--disable-libitm
+	--disable-libvtv
+	--disable-libquadmath
+	--disable-libssp
+
+make-env
+	BOOT_CFLAGS		'-O'
+
+; Needs itself during installation:
+install-env
+	PATH			"$PATH:$STAGE/gcc/programs:$STAGE/bootstrap/gcc/programs:$IMAGE/resources/gcc/programs:/resources/gcc/programs"
+
+links
+	gcc				programs/cc
+	libgcc.a		framework/libraries/gcc/i586-pc-syllable/9.5.0/libgcc_static.a
+;	For WebKit:
+	programs/gcc	/usr/bin/

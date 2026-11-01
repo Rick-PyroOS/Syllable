@@ -1,0 +1,66 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "neovim",
+  "title": "Neovim",
+  "description": "Run Neovim's actions, switch its tabs and open project files in the running Neovim, like Search Menu Items.",
+  "icon": "icon.png",
+  "author": "rcaudill",
+  "license": "MIT",
+  "categories": ["Developer Tools"],
+  "commands": [
+    {
+      "name": "actions",
+      "title": "Search Neovim Actions",
+      "description": "Every Neovim shortcut and command, by name; Enter runs it.",
+      "mode": "view"
+    },
+    {
+      "name": "tabs",
+      "title": "Switch Neovim Tab",
+      "description": "The files open in Neovim; Enter switches to it.",
+      "mode": "view"
+    },
+    {
+      "name": "files",
+      "title": "Open File in Neovim",
+      "description": "Find a file in Neovim's project and open it there.",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "nvimPath",
+      "type": "textfield",
+      "required": false,
+      "default": "/opt/homebrew/bin/nvim",
+      "title": "nvim Path",
+      "description": "The nvim binary used to talk to the running Neovim."
+    },
+    {
+      "name": "terminal",
+      "type": "appPicker",
+      "required": false,
+      "default": "iTerm",
+      "title": "Terminal",
+      "description": "Brought to the front after running something in Neovim."
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^2.7.0",
+    "@raycast/utils": "^2.2.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.6.0"
+  },
+  "scripts": {
+    "build": "ray build",
+    "dev": "ray develop",
+    "lint": "ray lint",
+    "fix-lint": "ray lint --fix"
+  }
+}

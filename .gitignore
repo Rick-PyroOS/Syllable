@@ -2,3 +2,10 @@
 .vscode/
 .CVS
 .DS_Store
+.cache/
+compile_commands.json
+.sysroot/
+.syllable-box
+__pycache__/
+# AI assistant app: not part of the repo yet
+system/apps/Assistant/

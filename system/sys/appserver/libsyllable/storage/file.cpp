@@ -192,7 +192,6 @@ File::File( const FSNode & cNode ):FSNode( cNode )
  * \note
  *	The file descriptor will be close when the object is deleted.
  * \par Warning:
- * \param
  * \return
  * \par Error codes:
  * \since 0.3.7
@@ -623,7 +622,6 @@ off_t File::GetSize( bool bUpdateCache ) const
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \par Error codes:
  * \sa

@@ -53,7 +53,7 @@ DockMenu::DockMenu( os::Handler* pcHandler, os::Rect cFrame, const char* pzName,
 	/* Add entries */
 	for( int i = 0; i < cList.GetCount(); i++ )
 		AddEntry( pcManager, cList.GetName( i ), cList.GetCategory( i ), cList.GetPath( i ), 
-			os::Path( cList.GetPath( i ) ).GetDir().GetLeaf() == "Preferences",
+			os::String( os::Path( cList.GetPath( i ) ).GetDir().GetLeaf() ).Lower() == "preferences",
 			os::Path( cList.GetPath( i ) ).GetDir() );
 	
 	pcManager->Put();

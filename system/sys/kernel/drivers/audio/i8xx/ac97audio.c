@@ -2,6 +2,8 @@
 #include <kernel/malloc.h>
 #include <kernel/string.h>
 #include <kernel/device.h>
+#include <kernel/kdebug.h>
+#include <kernel/time.h>
 
 #include "ac97audio.h"
 

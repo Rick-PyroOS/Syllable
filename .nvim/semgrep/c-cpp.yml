@@ -1,0 +1,137 @@
+# Semgrep rules Neovim runs on C and C++ files when the project has no
+# .semgrep.yml of its own (see lua/config/scanners.lua). Local, so scans
+# work offline and don't fetch anything.
+rules:
+# A fix: line is the suggested replacement for the matched code; the margin
+# popup offers Copy fix and Apply fix for it. The sizeof() ones assume the
+# destination is an array, not a pointer.
+  - id: gets
+    languages: [c, cpp]
+    severity: ERROR
+    message: gets() can always overflow its buffer; use fgets().
+    pattern: gets($BUF)
+    fix: fgets($BUF, sizeof($BUF), stdin)
+
+  - id: strcpy
+    languages: [c, cpp]
+    severity: WARNING
+    message: strcpy() doesn't know the destination's size; use strlcpy (if $D is an array, the fix below is right as is).
+    pattern: strcpy($D, $S)
+    fix: strlcpy($D, $S, sizeof($D))
+
+  - id: strcat
+    languages: [c, cpp]
+    severity: WARNING
+    message: strcat() doesn't know the destination's size; use strlcat (if $D is an array, the fix below is right as is).
+    pattern: strcat($D, $S)
+    fix: strlcat($D, $S, sizeof($D))
+
+  - id: sprintf
+    languages: [c, cpp]
+    severity: WARNING
+    message: sprintf() doesn't know the destination's size; use snprintf (if $D is an array, the fix below is right as is).
+    pattern: sprintf($D, $...ARGS)
+    fix: snprintf($D, sizeof($D), $...ARGS)
+
+  - id: unbounded-copy
+    languages: [c, cpp]
+    severity: WARNING
+    message: $FN() doesn't know the destination's size; use a bounded version (vsnprintf, wcslcpy, wcslcat).
+    patterns:
+      - pattern: $FN(...)
+      - metavariable-regex: { metavariable: $FN, regex: ^(vsprintf|wcscpy|wcscat)$ }
+
+  - id: format-not-literal
+    languages: [c, cpp]
+    severity: WARNING
+    message: The format string isn't a literal, so a % in it reads random memory; use $FN("%s", ...).
+    pattern-either:
+      - patterns:
+          - pattern: $FN($FMT)
+          - metavariable-regex: { metavariable: $FN, regex: ^(printf|dbprintf|syslog)$ }
+          - pattern-not: $FN("...")
+      - patterns:
+          - pattern: $FN($X, $FMT, ...)
+          - metavariable-regex: { metavariable: $FN, regex: ^(fprintf|sprintf|snprintf|vsprintf|syslog)$ }
+          - pattern-not: $FN($X, "...", ...)
+          - pattern-not: snprintf($X, $N, "...", ...)
+
+  - id: scanf-unbounded-string
+    languages: [c, cpp]
+    severity: WARNING
+    message: '%s without a width in $FN() can overflow; give it a width like %63s.'
+    patterns:
+      - pattern-either:
+          - pattern: $FN("$F", ...)
+          - pattern: $FN($S, "$F", ...)
+      - metavariable-regex: { metavariable: $FN, regex: ^(scanf|sscanf|fscanf)$ }
+      - metavariable-regex: { metavariable: $F, regex: '%s' }
+
+  - id: double-free
+    languages: [c, cpp]
+    severity: ERROR
+    message: $P is freed twice.
+    patterns:
+      - pattern: |
+          free($P);
+          ...
+          free($P);
+      - pattern-not: |
+          free($P);
+          ...
+          $P = $X;
+          ...
+          free($P);
+
+  - id: use-after-free
+    languages: [c, cpp]
+    severity: ERROR
+    message: $P is used after free().
+    patterns:
+      - pattern-either:
+          - pattern: |
+              free($P);
+              ...
+              $P->$F;
+          - pattern: |
+              free($P);
+              ...
+              $P->$F = $V;
+          - pattern: |
+              free($P);
+              ...
+              $P[$I] = $V;
+          - pattern: |
+              free($P);
+              ...
+              *$P = $V;
+      - pattern-not: |
+          free($P);
+          ...
+          $P = $X;
+          ...
+
+  - id: delete-array-mismatch
+    languages: [cpp]
+    severity: ERROR
+    message: $P was allocated with new[] and must be freed with delete[].
+    patterns:
+      - pattern: |
+          $P = new $T[$N];
+          ...
+          delete $P;
+
+  - id: command-not-literal
+    languages: [c, cpp]
+    severity: WARNING
+    message: $FN() runs a command built at run time; check it can't carry shell syntax.
+    patterns:
+      - pattern: $FN($CMD, ...)
+      - metavariable-regex: { metavariable: $FN, regex: ^(system|popen)$ }
+      - pattern-not: $FN("...", ...)
+
+  - id: alloca
+    languages: [c, cpp]
+    severity: WARNING
+    message: alloca() with a size that can grow can overflow the stack.
+    pattern: alloca(...)

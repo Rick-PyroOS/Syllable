@@ -1,55 +1,82 @@
-// Rudimentary /dev/random
-// by Jonas Sundstrom, Kirilla.com
-// 
-// A mutation of Marcus Lundblad's /dev/random for BeOS
-// and the AtheOS keyboard driver.
-//
-// Modified, fixed and extended by Kristian Van Der Vliet
-// (vanders@users.sourceforge.net) for Syllable
+/*
+ * /dev/random: the generator in rng.c, waiting (or failing with EAGAIN when
+ * opened O_NONBLOCK) until it has been seeded from 256 credited bits of
+ * entropy.  Once seeded it never blocks again.  Writes are mixed into the
+ * pool, never credited.
+ *
+ * This replaces the old /dev/random (the kernel's Mersenne Twister seeded
+ * from the boot time, which was predictable).  /dev/urandom is the urandom
+ * driver (../urandom/urandom.c), with its own generator.
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
 #include <kernel/types.h>
 #include <kernel/device.h>
-#include <kernel/random.h>
+#include <posix/errno.h>
+#include <posix/fcntl.h>
 
-static int random_open( void* node, uint32 flags, void** cookie )
+#include "rng.h"
+
+static int g_hNode = -1;
+
+/* The open flags are the cookie, for O_NONBLOCK in read() */
+static status_t random_open( void *pNode, uint32 nFlags, void **ppCookie )
 {
-	return( 0 );
+	*ppCookie = ( void * )nFlags;
+	return 0;
 }
 
-static int random_close( void* node, void* cookie )
+static status_t random_close( void *pNode, void *pCookie )
 {
-    return( 0 );
+	return 0;
 }
 
-
-static int random_read( void* node, void* cookie, off_t pos, void* buf, size_t length )
+static int random_read( void *pNode, void *pCookie, off_t nPos, void *pBuf, size_t nLen )
 {
-	int* buffer = (int*)buf;
-	int count = length / sizeof(int);
-	int n;
+	status_t nError = rng_wait_seeded( ( ( uint32 )pCookie & O_NONBLOCK ) != 0 );
 
-	for( n = 0;  n < count;  n++, buffer++ )
-		*buffer = rand();
-
-	return( count * sizeof(int) );
+	if ( nError < 0 )
+		return nError;
+	return rng_read( pBuf, nLen );
 }
 
-
-DeviceOperations_s random_ops = 
+static int random_write( void *pNode, void *pCookie, off_t nPos, const void *pBuf, size_t nLen )
 {
+	return rng_write( pBuf, nLen );
+}
+
+static DeviceOperations_s g_sRandomOps = {
 	random_open,
 	random_close,
 	NULL,		/* ioctl */
 	random_read,
-	NULL		/* write */
+	random_write,
+	NULL,		/* readv */
+	NULL,		/* writev */
+	NULL,		/* add_select_req */
+	NULL,		/* rem_select_req */
+	NULL		/* mmap */
 };
 
-status_t device_init( int device_id )
+status_t device_init( int nDeviceID )
 {
-	return( create_device_node( device_id, -1, "random", &random_ops, NULL ) );
+	status_t nError = rng_init( "random" );
+
+	if ( nError < 0 )
+		return nError;
+	g_hNode = create_device_node( nDeviceID, -1, "random", &g_sRandomOps, NULL );
+	if ( g_hNode < 0 )
+	{
+		rng_uninit();
+		return g_hNode;
+	}
+	return 0;
 }
 
-status_t device_uninit( int device_id )
+status_t device_uninit( int nDeviceID )
 {
-	return( delete_device_node( device_id ) );
+	delete_device_node( g_hNode );
+	rng_uninit();
+	return 0;
 }

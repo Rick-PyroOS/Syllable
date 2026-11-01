@@ -1,0 +1,981 @@
+--- a/gdbserver/configure.srv
++++ b/gdbserver/configure.srv
+@@ -141,6 +141,10 @@
+ 			srv_tgtobj="${srv_tgtobj} nat/fork-inferior.o"
+ 			srv_tgtobj="${srv_tgtobj} nat/netbsd-nat.o"
+ 			srv_tgtobj="${srv_tgtobj} arch/i386.o"
++			;;
++  i[34567]86-*-syllable*)	srv_regobj=""
++			srv_tgtobj="syllable-low.o fork-child.o nat/fork-inferior.o"
++			srv_tgtobj="${srv_tgtobj} arch/i386.o nat/x86-xstate.o i387-fp.o"
+ 			;;
+   ia64-*-linux*)	srv_regobj=reg-ia64.o
+ 			srv_tgtobj="$srv_linux_obj linux-ia64-low.o"
+--- a/gdbsupport/run-time-clock.cc
++++ b/gdbsupport/run-time-clock.cc
+@@ -30,8 +30,12 @@
+ }
+ 
+ #ifdef HAVE_GETRUSAGE
++/* A template: Syllable's struct rusage holds its own kernel_timeval, with
++   the same tv_sec / tv_usec members as struct timeval.  */
++
++template<typename Timeval>
+ static std::chrono::microseconds
+-timeval_to_microseconds (struct timeval *tv)
++timeval_to_microseconds (Timeval *tv)
+ {
+   return (seconds (tv->tv_sec) + microseconds (tv->tv_usec));
+ }
+--- a/gdbserver/syllable-low.h
++++ b/gdbserver/syllable-low.h
+@@ -0,0 +1,74 @@
++/* Syllable (Pyro) target for gdbserver: i386, through Syllable's ptrace.
++
++   Copyright (C) 2026 Free Software Foundation, Inc.
++
++   This file is part of GDB.
++
++   This program is free software; you can redistribute it and/or modify
++   it under the terms of the GNU General Public License as published by
++   the Free Software Foundation; either version 3 of the License, or
++   (at your option) any later version.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
++
++#ifndef GDBSERVER_SYLLABLE_LOW_H
++#define GDBSERVER_SYLLABLE_LOW_H
++
++/* Syllable's ptrace is Linux's i386 interface, request for request, but
++   every request names a thread (a process's main thread id is its pid), the
++   tracer must be each thread's parent, and there are no event options:
++
++   - A traced program's new threads are traced too and report a SIGSTOP
++     before their first instruction (kernel change K1), so they are picked up
++     in wait () like Linux's PTRACE_EVENT_CLONE.
++   - A thread's exit is reported by waitpid on the thread id.
++   - The libraries come from PTRACE_GETIMAGES (kernel change K2), refreshed
++     at every stop and sent as the plain qXfer:libraries list.
++
++   gdbserver runs all-stop: when one thread stops, the others are sent a
++   SIGSTOP (kill () on a thread id signals that thread only) and collected,
++   and any other event they had is kept to be reported next.  */
++
++class syllable_process_target : public process_stratum_target
++{
++public:
++  int create_inferior (const char *program,
++		       const std::string &program_args) override;
++  void post_create_inferior () override;
++  int attach (unsigned long pid) override;
++  int kill (process_info *proc) override;
++  int detach (process_info *proc) override;
++  void mourn (process_info *proc) override;
++  void join (int pid) override;
++  bool thread_alive (ptid_t pid) override;
++  void resume (thread_resume *resume_info, size_t n) override;
++  ptid_t wait (ptid_t ptid, target_waitstatus *status,
++	       target_wait_flags options) override;
++  void fetch_registers (regcache *regcache, int regno) override;
++  void store_registers (regcache *regcache, int regno) override;
++  int read_memory (CORE_ADDR memaddr, unsigned char *myaddr,
++		   int len) override;
++  int write_memory (CORE_ADDR memaddr, const unsigned char *myaddr,
++		    int len) override;
++  void request_interrupt () override;
++  bool supports_hardware_single_step () override;
++  const gdb_byte *sw_breakpoint_from_kind (int kind, int *size) override;
++  bool supports_z_point_type (char z_type) override;
++  int insert_point (enum raw_bkpt_type type, CORE_ADDR addr,
++		    int size, struct raw_breakpoint *bp) override;
++  int remove_point (enum raw_bkpt_type type, CORE_ADDR addr,
++		    int size, struct raw_breakpoint *bp) override;
++  bool stopped_by_sw_breakpoint () override;
++  bool supports_stopped_by_sw_breakpoint () override;
++  bool supports_non_stop () override;
++  bool supports_multi_process () override;
++  const char *thread_name (ptid_t thread) override;
++};
++
++#endif /* GDBSERVER_SYLLABLE_LOW_H */
+--- a/gdbserver/syllable-low.cc
++++ b/gdbserver/syllable-low.cc
+@@ -0,0 +1,872 @@
++/* Syllable (Pyro) target for gdbserver: i386, through Syllable's ptrace.
++
++   Copyright (C) 2026 Free Software Foundation, Inc.
++
++   This file is part of GDB.
++
++   This program is free software; you can redistribute it and/or modify
++   it under the terms of the GNU General Public License as published by
++   the Free Software Foundation; either version 3 of the License, or
++   (at your option) any later version.
++
++   This program is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++   GNU General Public License for more details.
++
++   You should have received a copy of the GNU General Public License
++   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
++
++#include "target.h"
++#include "syllable-low.h"
++#include "regcache.h"
++#include "mem-break.h"
++#include "dll.h"
++#include "tdesc.h"
++#include "x86-tdesc.h"
++#include "i387-fp.h"
++#include "arch/i386.h"
++#include "gdbsupport/x86-xstate.h"
++#include "gdbsupport/eintr.h"
++#include "gdbsupport/gdb_wait.h"
++#include "gdbsupport/common-inferior.h"
++#include "nat/fork-inferior.h"
++#include "hostio.h"
++
++#include <sys/types.h>
++#include <sys/ptrace.h>
++#include <sys/wait.h>
++#include <signal.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <string.h>
++#include <stdarg.h>
++#include <stdio.h>
++#include <stdlib.h>
++
++#include <map>
++#include <set>
++#include <string>
++#include <vector>
++
++/* <atheos/image.h> (image_info, for PTRACE_GETIMAGES).  <atheos/threads.h>
++   is not included: its thread_info typedef would clash with gdbserver's
++   class of that name, so the few calls needed are declared here.  */
++#include <atheos/image.h>
++
++#ifndef PTRACE_GETIMAGES
++#define PTRACE_GETIMAGES 0x4200
++#endif
++
++extern "C"
++{
++  int get_thread_info (int hThread, void *psInfo);
++  int get_next_thread_info (void *psInfo);
++  int get_thread_proc (int hThread);
++  int dbprintf (const char *pzFmt, ...);	/* to the kernel log (atheos/kdebug.h) */
++}
++
++/* Tracing, with SYL_GDBSERVER_DEBUG set: to the kernel log (the serial
++   console), since gdbserver's own stderr usually goes nowhere once it runs
++   in the background.  */
++
++static void ATTRIBUTE_PRINTF (1, 2)
++syl_debug (const char *fmt, ...)
++{
++  static int on = -1;
++  if (on < 0)
++    on = getenv ("SYL_GDBSERVER_DEBUG") != nullptr;
++  if (!on)
++    return;
++  char buf[256];
++  va_list ap;
++  va_start (ap, fmt);
++  vsnprintf (buf, sizeof buf, fmt, ap);
++  va_end (ap);
++  dbprintf ("syllable-low: %s\n", buf);
++}
++
++/* Syllable's thread_info, as far as it's read here (atheos/threads.h).  The
++   kernel fills in the whole struct, so the buffer is larger than it.  */
++struct syl_thread_info
++{
++  int ti_thread_id;
++  int ti_process_id;
++  char ti_process_name[64];		/* OS_NAME_LENGTH */
++  char ti_thread_name[64];
++  char rest[256];
++};
++
++/* struct user_regs_struct in atheos/ptrace.h (= SysCallRegs_s), which is
++   Linux's i386 layout.  */
++struct syl_regs
++{
++  long ebx, ecx, edx, esi, edi, ebp, eax;
++  unsigned short ds, __ds, es, __es;
++  unsigned short fs, __fs, gs, __gs;
++  long orig_eax, eip;
++  unsigned short cs, __cs;
++  long eflags, esp;
++  unsigned short ss, __ss;
++};
++
++int using_threads = 1;
++
++/* What gdbserver keeps per thread.  */
++
++struct syl_thread
++{
++  /* Resumed with PTRACE_SINGLESTEP.  */
++  bool stepping = false;
++  /* The last stop was at one of gdbserver's breakpoints (the pc has been
++     moved back onto it).  */
++  bool sw_bp = false;
++  /* An event caught while the other threads were being stopped, to be
++     reported by the next wait instead of resuming this thread.  */
++  bool has_pending = false;
++  int pending_status = 0;
++  /* Running (resumed and not yet seen stopped).  */
++  bool running = false;
++};
++
++static syl_thread *
++syl (thread_info *thread)
++{
++  return (syl_thread *) thread->target_data ();
++}
++
++static long
++syl_ptrace (int request, pid_t tid, void *addr, void *data)
++{
++  errno = 0;
++  return ptrace ((enum __ptrace_request) request, tid, addr, data);
++}
++
++static thread_info *
++syl_add_thread (pid_t pid, pid_t tid)
++{
++  return find_process_pid (pid)->add_thread (ptid_t (pid, tid, 0),
++					     new syl_thread);
++}
++
++static void
++syl_remove_thread (thread_info *thread)
++{
++  delete syl (thread);
++  thread->process ()->remove_thread (thread);
++}
++
++/* The thread with Syllable thread id TID, in any process.  */
++
++static thread_info *
++syl_find_tid (pid_t tid)
++{
++  return find_thread ([tid] (thread_info *thr)
++		      { return thr->id.lwp () == tid; });
++}
++
++/* The thread to read and write through: the current one, else any thread of
++   the current process (memory is shared by a process's threads).  -1 when
++   there is none.  */
++
++static pid_t
++syl_access_tid ()
++{
++  if (current_thread != nullptr)
++    return current_thread->id.lwp ();
++  process_info *proc = current_process ();
++  if (proc == nullptr)
++    return -1;
++  thread_info *thr = proc->find_thread ([] (thread_info *) { return true; });
++  return thr != nullptr ? thr->id.lwp () : -1;
++}
++
++/* Syllable's process id (ti_process_id) of thread TID, or -1.  It is not the
++   main thread's id, which is what fork () returns and gdbserver calls the
++   pid.  */
++
++static int
++syl_proc_id (pid_t tid)
++{
++  syl_thread_info ti;
++  return get_thread_info (tid, &ti) == 0 ? ti.ti_process_id : -1;
++}
++
++/* The gdbserver process that thread TID belongs to, or nullptr.  */
++
++static process_info *
++syl_process_of (pid_t tid)
++{
++  int proc_id = syl_proc_id (tid);
++  if (proc_id < 0)
++    return nullptr;
++  return find_process ([proc_id] (process_info *proc)
++		       { return syl_proc_id (proc->pid) == proc_id; });
++}
++
++/* Libraries -----------------------------------------------------------------*/
++
++/* Bring PROC's library list up to date from PTRACE_GETIMAGES on TID (a
++   stopped thread of it).  The first image is the program itself; gdb has
++   its symbols already.  */
++
++static void
++syl_update_libraries (process_info *proc, pid_t tid)
++{
++  static image_info images[128];
++  long n = syl_ptrace (PTRACE_GETIMAGES, tid, (void *) 128L, images);
++  if (n <= 0)
++    return;
++
++  std::map<std::string, CORE_ADDR> now;
++  for (long i = 1; i < n; i++)
++    now[images[i].ii_name] = (CORE_ADDR) (uintptr_t) images[i].ii_text_addr;
++
++  std::vector<std::pair<std::string, CORE_ADDR>> gone;
++  for (const dll_info &dll : proc->all_dlls)
++    {
++      auto it = now.find (dll.name);
++      if (it == now.end () || it->second != dll.base_addr)
++	gone.emplace_back (dll.name, dll.base_addr);
++      else
++	now.erase (it);			/* already known */
++    }
++  for (auto &g : gone)
++    unloaded_dll (proc, g.first.c_str (), g.second);
++  for (auto &l : now)
++    loaded_dll (proc, l.first.c_str (), l.second);
++}
++
++/* Starting and stopping -------------------------------------------------------*/
++
++/* Run in the child by fork_inferior: be traced (the exec that follows stops
++   it with SIGTRAP).  */
++
++static void
++syl_ptrace_fun ()
++{
++  if (setpgid (0, 0) < 0)
++    trace_start_error_with_name ("setpgid");
++
++  if (syl_ptrace (PTRACE_TRACEME, 0, nullptr, nullptr) < 0)
++    trace_start_error_with_name ("ptrace");
++
++  if (remote_connection_is_stdio ())
++    {
++      if (close (0) < 0)
++	trace_start_error_with_name ("close");
++      if (open ("/dev/null", O_RDONLY) < 0)
++	trace_start_error_with_name ("open");
++      if (dup2 (2, 1) < 0)
++	trace_start_error_with_name ("dup2");
++    }
++}
++
++int
++syllable_process_target::create_inferior (const char *program,
++					  const std::string &program_args)
++{
++  pid_t pid = fork_inferior (program, program_args.c_str (),
++			     get_environ ()->envp (), syl_ptrace_fun,
++			     nullptr, nullptr, nullptr, nullptr);
++
++  add_process (pid, 0);
++  syl_add_thread (pid, pid);
++
++  post_fork_inferior (pid, program);
++
++  return pid;
++}
++
++static void syl_arch_setup ();
++
++void
++syllable_process_target::post_create_inferior ()
++{
++  syl_arch_setup ();
++  syl_update_libraries (current_process (), current_thread->id.lwp ());
++}
++
++/* Attach to every thread of process PID; each stops with SIGSTOP.  */
++
++int
++syllable_process_target::attach (unsigned long pid)
++{
++  /* PID is the main thread's id; its threads share its process id.  */
++  std::vector<pid_t> tids;
++  int proc_id = syl_proc_id (pid);
++  syl_thread_info ti;
++  memset (&ti, 0, sizeof ti);
++  ti.ti_thread_id = -1;
++  while (proc_id >= 0 && get_next_thread_info (&ti) == 0)
++    {
++      if (ti.ti_process_id == proc_id)
++	tids.push_back (ti.ti_thread_id);
++    }
++  if (tids.empty ())
++    error (_("No process %lu"), pid);
++
++  add_process (pid, 1);
++  for (pid_t tid : tids)
++    {
++      if (syl_ptrace (PTRACE_ATTACH, tid, nullptr, nullptr) < 0)
++	{
++	  if (tid == (pid_t) pid)
++	    {
++	      int err = errno;
++	      remove_process (find_process_pid (pid));
++	      error (_("Cannot attach to process %lu: %s"), pid,
++		     safe_strerror (err));
++	    }
++	  continue;			/* the thread exited meanwhile */
++	}
++      int status;
++      if (gdb::waitpid (tid, &status, WUNTRACED) == tid && WIFSTOPPED (status))
++	syl_add_thread (pid, tid);
++    }
++
++  switch_to_thread (find_thread_ptid (ptid_t (pid, pid, 0)));
++  syl_arch_setup ();
++  syl_update_libraries (current_process (), pid);
++  return 0;
++}
++
++int
++syllable_process_target::kill (process_info *proc)
++{
++  pid_t pid = proc->pid;
++  std::vector<pid_t> tids;
++  proc->for_each_thread ([&] (thread_info *thr)
++			 { tids.push_back (thr->id.lwp ()); });
++  for (pid_t tid : tids)
++    syl_ptrace (PTRACE_KILL, tid, nullptr, nullptr);
++
++  /* Reap until the main thread is gone.  */
++  for (;;)
++    {
++      int status;
++      pid_t w = gdb::waitpid (-1, &status, 0);
++      if (w < 0 || (w == pid && (WIFEXITED (status) || WIFSIGNALED (status))))
++	break;
++    }
++  mourn (proc);
++  return 0;
++}
++
++int
++syllable_process_target::detach (process_info *proc)
++{
++  /* Breakpoints out first, so the program doesn't trip on them.  */
++  proc->for_each_thread ([] (thread_info *thr)
++    {
++      syl_ptrace (PTRACE_DETACH, thr->id.lwp (), nullptr, nullptr);
++    });
++  mourn (proc);
++  return 0;
++}
++
++void
++syllable_process_target::mourn (process_info *proc)
++{
++  std::vector<thread_info *> threads;
++  proc->for_each_thread ([&] (thread_info *thr) { threads.push_back (thr); });
++  for (thread_info *thr : threads)
++    syl_remove_thread (thr);
++  remove_process (proc);
++}
++
++void
++syllable_process_target::join (int pid)
++{
++}
++
++bool
++syllable_process_target::thread_alive (ptid_t ptid)
++{
++  syl_thread_info ti;
++  return get_thread_info (ptid.lwp (), &ti) == 0;
++}
++
++const char *
++syllable_process_target::thread_name (ptid_t ptid)
++{
++  static syl_thread_info ti;
++  if (get_thread_info (ptid.lwp (), &ti) != 0)
++    return nullptr;
++  ti.ti_thread_name[sizeof ti.ti_thread_name - 1] = '\0';
++  return ti.ti_thread_name;
++}
++
++/* Resuming --------------------------------------------------------------------*/
++
++void
++syllable_process_target::resume (thread_resume *resume_info, size_t n)
++{
++  for_each_thread ([&] (thread_info *thr)
++    {
++      /* The entry that applies to this thread: its own, else its
++	 process's, else the wildcard.  */
++      const thread_resume *r = nullptr;
++      for (size_t i = 0; i < n && r == nullptr; i++)
++	{
++	  ptid_t p = resume_info[i].thread;
++	  /* All threads, this one, or all of its process ("p43.-1" comes
++	     in with lwp -1).  */
++	  if (p == minus_one_ptid || p == thr->id
++	      || ((p.is_pid () || p.lwp () == -1) && p.pid () == thr->id.pid ()))
++	    r = &resume_info[i];
++	}
++      syl_thread *st = syl (thr);
++      if (r == nullptr || r->kind == resume_stop || st->running)
++	return;
++
++      regcache_invalidate_thread (thr);
++      st->sw_bp = false;
++
++      /* A thread with an event not reported yet stays stopped; wait
++	 reports the event.  */
++      if (st->has_pending)
++	return;
++
++      st->stepping = r->kind == resume_step;
++      long sig = r->sig;
++      syl_debug ("resume: thread %d %s signal %ld",
++		 (int) thr->id.lwp (), st->stepping ? "step" : "continue", sig);
++      if (syl_ptrace (st->stepping ? PTRACE_SINGLESTEP : PTRACE_CONT,
++		      thr->id.lwp (), nullptr, (void *) sig) < 0)
++	{
++	  if (errno == ESRCH)		/* gone meanwhile: wait reports it */
++	    return;
++	  perror_with_name ("ptrace");
++	}
++      st->running = true;
++    });
++}
++
++/* Waiting ---------------------------------------------------------------------*/
++
++/* Turn a waitpid status into OURSTATUS.  */
++
++static void
++syl_store_waitstatus (target_waitstatus *ourstatus, int status)
++{
++  if (WIFEXITED (status))
++    ourstatus->set_exited (WEXITSTATUS (status));
++  else if (WIFSIGNALED (status))
++    ourstatus->set_signalled (gdb_signal_from_host (WTERMSIG (status)));
++  else
++    ourstatus->set_stopped (gdb_signal_from_host (WSTOPSIG (status)));
++}
++
++/* THR stopped with SIGTRAP: if it ran into one of gdbserver's breakpoints
++   (the int3 leaves the pc one past it), move the pc back onto it.  */
++
++static void
++syl_check_breakpoint (thread_info *thr)
++{
++  syl_thread *st = syl (thr);
++  st->sw_bp = false;
++  if (st->stepping)
++    return;
++  syl_regs r;
++  if (syl_ptrace (PTRACE_GETREGS, thr->id.lwp (), nullptr, &r) < 0)
++    return;
++  CORE_ADDR pc = (CORE_ADDR) (unsigned long) r.eip - 1;
++  scoped_restore_current_thread restore;
++  switch_to_thread (thr);
++  if (software_breakpoint_inserted_here (pc))
++    {
++      r.eip = (long) pc;
++      syl_ptrace (PTRACE_SETREGS, thr->id.lwp (), nullptr, &r);
++      st->sw_bp = true;
++    }
++}
++
++/* Stop every running thread of PROC except EXCEPT: a SIGSTOP each, then
++   collect them.  A thread that had another event meanwhile keeps it as its
++   pending event.  */
++
++static void
++syl_stop_all (process_info *proc, thread_info *except)
++{
++  std::vector<thread_info *> running;
++  proc->for_each_thread ([&] (thread_info *thr)
++    {
++      if (thr != except && syl (thr)->running)
++	{
++	  ::kill (thr->id.lwp (), SIGSTOP);
++	  running.push_back (thr);
++	}
++    });
++
++  for (thread_info *thr : running)
++    {
++      syl_thread *st = syl (thr);
++      int status;
++      pid_t w = gdb::waitpid (thr->id.lwp (), &status, WUNTRACED);
++      st->running = false;
++      if (w != thr->id.lwp ())
++	continue;
++      if (WIFSTOPPED (status) && WSTOPSIG (status) == SIGSTOP)
++	continue;			/* ours */
++      st->has_pending = true;
++      st->pending_status = status;
++      /* Our SIGSTOP is still queued for it, unless it exited.  */
++    }
++}
++
++ptid_t
++syllable_process_target::wait (ptid_t ptid, target_waitstatus *ourstatus,
++			       target_wait_flags options)
++{
++  for (;;)
++    {
++      /* An event kept from the last time the threads were stopped.  */
++      thread_info *pend = find_thread ([&] (thread_info *thr)
++	{ return syl (thr)->has_pending && thr->id.matches (ptid); });
++
++      pid_t tid;
++      int status;
++      if (pend != nullptr)
++	{
++	  syl (pend)->has_pending = false;
++	  tid = pend->id.lwp ();
++	  status = syl (pend)->pending_status;
++	}
++      else
++	{
++	  int wopt = WUNTRACED | ((options & TARGET_WNOHANG) ? WNOHANG : 0);
++	  tid = gdb::waitpid (-1, &status, wopt);
++	  if (tid == 0)
++	    {
++	      ourstatus->set_ignore ();
++	      return null_ptid;
++	    }
++	  if (tid < 0)
++	    {
++	      if (errno == ECHILD)
++		{
++		  ourstatus->set_no_resumed ();
++		  return minus_one_ptid;
++		}
++	      perror_with_name ("waitpid");
++	    }
++	}
++
++      syl_debug ("wait: thread %d status 0x%x%s", (int) tid,
++		 status, pend != nullptr ? " (kept)" : "");
++
++      thread_info *thr = syl_find_tid (tid);
++
++      /* A thread we don't know: a new thread of a traced program, stopped
++	 before its first instruction (K1).  Take it on and let it run.  */
++      if (thr == nullptr)
++	{
++	  process_info *owner = syl_process_of (tid);
++	  syl_debug ("new thread %d of %d, status 0x%x", (int) tid,
++		     owner != nullptr ? owner->pid : -1, status);
++	  if (owner == nullptr)
++	    continue;			/* not one of ours */
++	  pid_t pid = owner->pid;
++	  if (WIFEXITED (status) || WIFSIGNALED (status))
++	    continue;
++	  thr = syl_add_thread (pid, tid);
++	  if (WIFSTOPPED (status) && WSTOPSIG (status) == SIGSTOP)
++	    {
++	      if (syl_ptrace (PTRACE_CONT, tid, nullptr, nullptr) == 0)
++		syl (thr)->running = true;
++	      continue;
++	    }
++	}
++
++      syl_thread *st = syl (thr);
++
++      /* Syllable's wait4 reports a traced thread's stop again, with signal
++	 0, until the thread has actually run after being continued (it only
++	 skips repeats for untraced children).  Such a report for a thread we
++	 resumed is stale: wait for its real next event.  */
++      if (st->running && WIFSTOPPED (status) && WSTOPSIG (status) == 0)
++	{
++	  usleep (1000);
++	  continue;
++	}
++
++      st->running = false;
++      process_info *proc = thr->process ();
++      pid_t pid = proc->pid;
++
++      if (WIFEXITED (status) || WIFSIGNALED (status))
++	{
++	  if (tid != pid)
++	    {
++	      /* Another thread ended: forget it, keep waiting.  */
++	      syl_remove_thread (thr);
++	      continue;
++	    }
++	  /* The program ended (its main thread is the process).  */
++	  syl_store_waitstatus (ourstatus, status);
++	  return ptid_t (pid);
++	}
++
++      /* A SIGSTOP left over from stopping the threads.  */
++      if (WSTOPSIG (status) == SIGSTOP && !thr->id.matches (ptid))
++	{
++	  if (syl_ptrace (PTRACE_CONT, tid, nullptr, nullptr) == 0)
++	    st->running = true;
++	  continue;
++	}
++
++      syl_store_waitstatus (ourstatus, status);
++      if (WSTOPSIG (status) == SIGTRAP)
++	syl_check_breakpoint (thr);
++      st->stepping = false;
++
++      /* All-stop: the others stop too.  */
++      syl_stop_all (proc, thr);
++
++      switch_to_thread (thr);
++      syl_update_libraries (proc, tid);
++      return thr->id;
++    }
++}
++
++/* Registers -------------------------------------------------------------------*/
++
++/* gdb's i386 register numbers (the target description below).  */
++enum
++{
++  SYL_EAX, SYL_ECX, SYL_EDX, SYL_EBX, SYL_ESP, SYL_EBP, SYL_ESI, SYL_EDI,
++  SYL_EIP, SYL_EFLAGS, SYL_CS, SYL_SS, SYL_DS, SYL_ES, SYL_FS, SYL_GS
++};
++
++static void
++syl_supply_gregs (regcache *regcache, const syl_regs &r)
++{
++  long seg[6] = { r.cs, r.ss, r.ds, r.es, r.fs, r.gs };
++  supply_register (regcache, SYL_EAX, &r.eax);
++  supply_register (regcache, SYL_ECX, &r.ecx);
++  supply_register (regcache, SYL_EDX, &r.edx);
++  supply_register (regcache, SYL_EBX, &r.ebx);
++  supply_register (regcache, SYL_ESP, &r.esp);
++  supply_register (regcache, SYL_EBP, &r.ebp);
++  supply_register (regcache, SYL_ESI, &r.esi);
++  supply_register (regcache, SYL_EDI, &r.edi);
++  supply_register (regcache, SYL_EIP, &r.eip);
++  supply_register (regcache, SYL_EFLAGS, &r.eflags);
++  for (int i = 0; i < 6; i++)
++    supply_register (regcache, SYL_CS + i, &seg[i]);
++}
++
++static void
++syl_collect_gregs (regcache *regcache, syl_regs &r)
++{
++  long seg[6];
++  collect_register (regcache, SYL_EAX, &r.eax);
++  collect_register (regcache, SYL_ECX, &r.ecx);
++  collect_register (regcache, SYL_EDX, &r.edx);
++  collect_register (regcache, SYL_EBX, &r.ebx);
++  collect_register (regcache, SYL_ESP, &r.esp);
++  collect_register (regcache, SYL_EBP, &r.ebp);
++  collect_register (regcache, SYL_ESI, &r.esi);
++  collect_register (regcache, SYL_EDI, &r.edi);
++  collect_register (regcache, SYL_EIP, &r.eip);
++  collect_register (regcache, SYL_EFLAGS, &r.eflags);
++  for (int i = 0; i < 6; i++)
++    collect_register (regcache, SYL_CS + i, &seg[i]);
++  r.cs = seg[0]; r.ss = seg[1]; r.ds = seg[2];
++  r.es = seg[3]; r.fs = seg[4]; r.gs = seg[5];
++  /* gdb changing the pc must not restart an interrupted system call.  */
++  r.orig_eax = -1;
++}
++
++/* The FXSAVE area (PTRACE_GETFPXREGS / SETFPXREGS).  */
++struct alignas (16) syl_fxsave
++{
++  unsigned char bytes[512];
++};
++
++void
++syllable_process_target::fetch_registers (regcache *regcache, int regno)
++{
++  pid_t tid = current_thread->id.lwp ();
++  syl_regs r;
++  if (syl_ptrace (PTRACE_GETREGS, tid, nullptr, &r) < 0)
++    perror_with_name ("ptrace (GETREGS)");
++  syl_supply_gregs (regcache, r);
++
++  syl_fxsave fx;
++  if (syl_ptrace (PTRACE_GETFPXREGS, tid, nullptr, &fx) == 0)
++    i387_fxsave_to_cache (regcache, fx.bytes);
++}
++
++void
++syllable_process_target::store_registers (regcache *regcache, int regno)
++{
++  pid_t tid = current_thread->id.lwp ();
++  syl_regs r;
++  if (syl_ptrace (PTRACE_GETREGS, tid, nullptr, &r) < 0)
++    perror_with_name ("ptrace (GETREGS)");
++  long old_orig_eax = r.orig_eax;
++  long old_eip = r.eip;
++  syl_collect_gregs (regcache, r);
++  if (r.eip == old_eip)
++    r.orig_eax = old_orig_eax;
++  if (syl_ptrace (PTRACE_SETREGS, tid, nullptr, &r) < 0)
++    perror_with_name ("ptrace (SETREGS)");
++
++  syl_fxsave fx;
++  if (syl_ptrace (PTRACE_GETFPXREGS, tid, nullptr, &fx) == 0)
++    {
++      i387_cache_to_fxsave (regcache, fx.bytes);
++      syl_ptrace (PTRACE_SETFPXREGS, tid, nullptr, &fx);
++    }
++}
++
++/* Memory: a word at a time (PEEKDATA / POKEDATA) -------------------------------*/
++
++int
++syllable_process_target::read_memory (CORE_ADDR memaddr, unsigned char *myaddr,
++				      int len)
++{
++  pid_t tid = syl_access_tid ();
++  if (tid < 0)
++    return EIO;
++  CORE_ADDR addr = memaddr & ~(CORE_ADDR) 3;
++  CORE_ADDR end = (memaddr + len + 3) & ~(CORE_ADDR) 3;
++  std::vector<unsigned char> buf (end - addr);
++
++  for (CORE_ADDR a = addr; a < end; a += 4)
++    {
++      long word = syl_ptrace (PTRACE_PEEKDATA, tid, (void *) (uintptr_t) a,
++			      nullptr);
++      if (errno != 0)
++	return errno;
++      memcpy (&buf[a - addr], &word, 4);
++    }
++  memcpy (myaddr, &buf[memaddr - addr], len);
++  return 0;
++}
++
++int
++syllable_process_target::write_memory (CORE_ADDR memaddr,
++				       const unsigned char *myaddr, int len)
++{
++  if (len == 0)
++    return 0;
++  pid_t tid = syl_access_tid ();
++  if (tid < 0)
++    return EIO;
++  CORE_ADDR addr = memaddr & ~(CORE_ADDR) 3;
++  CORE_ADDR end = (memaddr + len + 3) & ~(CORE_ADDR) 3;
++  std::vector<unsigned char> buf (end - addr);
++
++  /* The partial words at either end keep their other bytes.  */
++  int err = read_memory (addr, buf.data (), 4);
++  if (err == 0 && end - addr > 4)
++    err = read_memory (end - 4, &buf[end - 4 - addr], 4);
++  if (err != 0)
++    return err;
++  memcpy (&buf[memaddr - addr], myaddr, len);
++
++  for (CORE_ADDR a = addr; a < end; a += 4)
++    {
++      long word;
++      memcpy (&word, &buf[a - addr], 4);
++      if (syl_ptrace (PTRACE_POKEDATA, tid, (void *) (uintptr_t) a,
++		      (void *) word) < 0)
++	return errno;
++    }
++  return 0;
++}
++
++/* The rest -----------------------------------------------------------------------*/
++
++void
++syllable_process_target::request_interrupt ()
++{
++  /* SIGINT to the main thread; wait stops the others.  */
++  thread_info *thr = get_first_thread ();
++  if (thr != nullptr)
++    ::kill (thr->id.pid (), SIGINT);
++}
++
++bool
++syllable_process_target::supports_hardware_single_step ()
++{
++  return true;
++}
++
++const gdb_byte *
++syllable_process_target::sw_breakpoint_from_kind (int kind, int *size)
++{
++  static const gdb_byte int3[] = { 0xcc };
++  *size = sizeof int3;
++  return int3;
++}
++
++bool
++syllable_process_target::supports_z_point_type (char z_type)
++{
++  return z_type == Z_PACKET_SW_BP;
++}
++
++int
++syllable_process_target::insert_point (enum raw_bkpt_type type, CORE_ADDR addr,
++				       int size, raw_breakpoint *bp)
++{
++  if (type == raw_bkpt_type_sw)
++    return insert_memory_breakpoint (bp);
++  return 1;				/* not supported */
++}
++
++int
++syllable_process_target::remove_point (enum raw_bkpt_type type, CORE_ADDR addr,
++				       int size, raw_breakpoint *bp)
++{
++  if (type == raw_bkpt_type_sw)
++    return remove_memory_breakpoint (bp);
++  return 1;
++}
++
++bool
++syllable_process_target::stopped_by_sw_breakpoint ()
++{
++  return current_thread != nullptr && syl (current_thread)->sw_bp;
++}
++
++bool
++syllable_process_target::supports_stopped_by_sw_breakpoint ()
++{
++  return true;
++}
++
++bool
++syllable_process_target::supports_non_stop ()
++{
++  return false;
++}
++
++bool
++syllable_process_target::supports_multi_process ()
++{
++  return true;
++}
++
++/* The i386 target: general registers, x87 and SSE (FXSAVE).  */
++
++static void
++syl_arch_setup ()
++{
++  target_desc_up tdesc
++    = i386_create_target_description (X86_XSTATE_SSE_MASK, false, false);
++  init_target_desc (tdesc.get (), i386_expedite_regs, GDB_OSABI_NONE);
++  current_process ()->tdesc = tdesc.release ();
++}
++
++static syllable_process_target the_syllable_target;
++
++void
++initialize_low ()
++{
++  set_target_ops (&the_syllable_target);
++}

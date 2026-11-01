@@ -73,7 +73,10 @@ void App::Authorize( const String& zUserName, const String& zPassword, const Str
 
             if ( psPass != NULL )
             {
-				const char* pzPassWd = crypt(  zPassword.c_str(), "$1$" );
+				/* Hash with the stored hash as the salt, so salted entries
+				 * ($1$salt$...) match; "$1$" alone only matches unsalted ones */
+				const char* pzSalt = strncmp( psPass->pw_passwd, "$1$", 3 ) == 0 ? psPass->pw_passwd : "$1$";
+				const char* pzPassWd = crypt(  zPassword.c_str(), pzSalt );
 
                 if ( zLoginName != "" && pzPassWd == NULL )
                 {

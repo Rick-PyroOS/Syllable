@@ -1,0 +1,1466 @@
+{
+ "settings_header": "536c62531000000001000000bd2c0000",
+ "message": {
+  "header": "00000000ffffffffffffffffffffffff732f666f00000000",
+  "fields": [
+   {
+    "name": "type",
+    "type": 12,
+    "fixed": false,
+    "values": [
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/code-editor",
+         "/system/bin/aedit"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         2
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "txt",
+         "text",
+         "unx",
+         "asc",
+         "ascii",
+         "log",
+         "utf8",
+         "map",
+         "utxt",
+         "ans",
+         "dos",
+         "ini",
+         "cpp",
+         "r",
+         "b",
+         "reds",
+         "red",
+         "library",
+         "cfg",
+         "sh",
+         "config",
+         "conf",
+         "types",
+         "yml",
+         "crt",
+         "cnf",
+         "pem",
+         "pl",
+         "css",
+         "status",
+         "py",
+         "patch",
+         "diff",
+         "recipe",
+         "inf",
+         "sig",
+         "lst",
+         "src",
+         "rb",
+         "reb",
+         "r3",
+         "pid",
+         "php",
+         "m4",
+         "in",
+         "ac",
+         "am",
+         "la",
+         "pc"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         49
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/code-editor"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/file.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "Plain text"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "text/plain"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/ColdFish"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "plst"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/ColdFish"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/application_coldfish_playlist.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "ColdFish Playlist"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "application/x-coldfish-playlist"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/Xpdf/Xpdf"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "pdf"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/Xpdf/Xpdf"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/text_pdf.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "PDF Document"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "text/x-pdf"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "png"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_png.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "PNG Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/png"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "jpeg",
+         "jpg",
+         "jpe",
+         "jif",
+         "jfif",
+         "jfi",
+         "jff",
+         "pjpeg",
+         "jls",
+         "jmh"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         10
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_jpeg.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "JPEG Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/jpeg"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "gif"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_gif.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "GIF Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/gif"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "bmp"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_bmp.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "BMP Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/bmp"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "tif",
+         "tiff"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         2
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_tiff.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "TIFF Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/tiff"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "xbm"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_xbm.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "XBM Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/x-bitmap"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "xpm"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_xpm.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "XPM Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/x-pixmap"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "tga",
+         "icb",
+         "tpic",
+         "vda",
+         "vst"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         5
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_tga.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "TGA Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/x-tga"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "pcx"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_pcx.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "PCX Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/x-pcx"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/browse"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         0
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/browse"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/text_bookmark.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "Bookmark"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "text/x-bookmark"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/browse",
+         "/boot/system/bin/code-editor"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         2
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "htm",
+         "html"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         2
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/browse"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/text_html.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "HTML Page"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "text/html"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/MediaPlayer"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "mp3"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/MediaPlayer"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/file.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "MP3 Audio"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "audio/mp3"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/MediaPlayer"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "rm",
+         "avi",
+         "wmv",
+         "mov",
+         "flv"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         5
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/MediaPlayer"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/file.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "Video"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "video"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "icon"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/file.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "Icon Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "icon"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/code-editor"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "h"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/code-editor"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/file.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "Program Header"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "text/header"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/code-editor"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "c"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/code-editor"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/file.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "C Source"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "text/csource"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/MediaPlayer"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "mpeg",
+         "mpg",
+         "mp4"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         3
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/applications/media/MediaPlayer"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/file.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "MPEG Video"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "video/mpeg"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "type_count",
+    "type": 4,
+    "fixed": true,
+    "values": [
+     20
+    ]
+   }
+  ]
+ }
+}

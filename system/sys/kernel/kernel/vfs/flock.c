@@ -90,7 +90,6 @@ static bool locks_overlap( FileLockRec_s *psLock1, FileLockRec_s *psLock2 )
  *	is in F_WRLCK mode.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt.skauen@c2i.net)
@@ -526,7 +525,6 @@ int lock_inode_record( Inode_s *psInode, off_t nStart, off_t nEnd, int nMode, bo
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt.skauen@c2i.net)
