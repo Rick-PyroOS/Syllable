@@ -290,11 +290,16 @@ void WebView::HandleMessage( Message *pcMessage )
 		case ID_LOAD_FINISHED:
 		{
 			WebView *pcWebView;
+			os::String cError;
 
-			pcMessage->FindPointer( "view", (void**)&pcWebView );
+			if (pcMessage->FindString("error",&cError) == 0){
+				LoadFailed(cError);
+			}
+			else{
+				pcMessage->FindPointer( "view", (void**)&pcWebView );
 
-			LoadFinished( pcWebView );
-
+				LoadFinished( pcWebView );
+			}
 			break;
 		}
 
@@ -459,6 +464,10 @@ void WebView::LoadStarted( WebView *pcWebView, String &cURL )
 
 void WebView::LoadFinished( WebView *pcWebView )
 {
+	return;
+}
+
+void WebView::LoadFailed(const os::String& cString){
 	return;
 }
 

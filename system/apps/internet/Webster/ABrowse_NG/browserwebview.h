@@ -42,7 +42,8 @@ class BrowserWebView : public os::WebView
 		virtual void SetTitle( os::WebView *pcWebView, os::String &cTitle );
 		virtual void LoadStarted( os::WebView *pcWebView, os::String &cURL );
 		virtual void LoadFinished( os::WebView *pcWebView );
-
+		virtual void LoadFailed(const os::String& cError);
+		
 		virtual void SetTabIndex( uint nTabIndex )
 		{
 			m_nTabIndex = nTabIndex;

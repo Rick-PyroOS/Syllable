@@ -134,11 +134,12 @@ void WebViewFrameLoaderClient::dispatchDidFailProvisionalLoad(const WebCore::Res
 {
 	if( m_pcView && m_pcView->GetWebCoreFrame() == frame() )
 	{
-		Alert * pcAlert = new Alert( "Error", String( "Failed to load " ) + String( error.failingURL() ), Alert::ALERT_WARNING, 0x00, "Ok", NULL );
-		pcAlert->Go( NULL );
+//		Alert * pcAlert = new Alert( "Error", String( "Failed to load " ) + String( error.failingURL() ), Alert::ALERT_WARNING, 0x00, "Ok", NULL );
+//		pcAlert->Go( NULL );
 
 		Message cMsg( ID_LOAD_FINISHED );
 		cMsg.AddPointer( "view", m_pcView );
+		cMsg.AddString("error",error.localizedDescription().utf8().data());
 		m_pcMessenger->SendMessage( &cMsg );
 	}
 }

@@ -102,6 +102,12 @@ void BrowserWebView::LoadFinished( WebView *pcWebView )
 	m_pcMessenger->SendMessage( &cMsg );	
 }
 
+void BrowserWebView::LoadFailed(const os::String& cError){
+	Message cMsg(ID_WEBVIEW_LOAD_FAILED);
+	cMsg.AddString("error",cError);
+	m_pcMessenger->SendMessage(&cMsg);
+}
+
 void BrowserWebView::GetTitle( os::String &cShortTitle, os::String &cLongTitle ) const
 {
 	cShortTitle = m_cShortTitle;
