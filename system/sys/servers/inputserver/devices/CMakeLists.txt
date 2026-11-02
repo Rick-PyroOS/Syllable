@@ -1,0 +1,5 @@
+add_subdirectory(keyboard)
+add_subdirectory(ps2mouse)
+add_subdirectory(sermouse)
+add_subdirectory(usbkeyboard)
+add_subdirectory(usbmouse)

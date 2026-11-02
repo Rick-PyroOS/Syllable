@@ -1,3 +1,4 @@
+add_subdirectory(servers)
 add_subdirectory(kernel)
 add_subdirectory(appserver)
 add_subdirectory(media)
