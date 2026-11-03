@@ -20,8 +20,9 @@
 #ifndef __INPUT_SERVER_METHOD_H__
 #define __INPUT_SERVER_METHOD_H__
 
-#include <os/types.h>
-#include <os/kernel.h>
+#include "inputserverfilter.h"
+#include <atheos/types.h>
+#include <atheos/kernel.h>
 
 #include <gui/bitmap.h>
 #include <gui/menu.h>

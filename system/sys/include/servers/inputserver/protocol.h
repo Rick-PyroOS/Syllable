@@ -5,6 +5,8 @@
 
 #include <util/message.h>
 
+using namespace std;
+
 namespace os
 {
 #if 0
@@ -12,16 +14,6 @@ namespace os
 #endif
 
 typedef std::list<Message> MessageList;
-
-
-
-
-
-
-
-
-
-
 
 }
 #endif /* __INPUTSERVER_PROTOCOL_H__ */

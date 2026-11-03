@@ -18,13 +18,11 @@
  */
 
 
-#include <os/kernel.h>
-#include <os/types.h>
-#include <os/fs_attribs.h>
-#include <os/string.h>
-
+#include "syllable/kdebug.h"
+#include <atheos/kernel.h>
+#include <atheos/types.h>
+#include <atheos/fs_attribs.h>
 #include <storage/fsnode.h>
-
 #include <util/string.h>
 #include <util/attributesettings.h>
 #include <util/locker.h>
@@ -33,12 +31,6 @@
 
 using namespace os;
 
-typedef struct AttrBundle_s {
-	fsattr_type	nType;
-	String*		pcName;
-	AttrData_s	uValue;
-	bool		bDirty;
-} AttrBundle_s;
 
 class AttrContainer
 {
@@ -84,6 +76,7 @@ public:
 	status_t		RemoveSetting( const String& cName );
 	status_t		ChangeSetting( const String& cName, AttrBundle_s& sBundle );
 	AttrData_s&		GetSetting( const String& cName );
+	AttrBundle_s* 	ListSettings();
 	size_t			CountSettings() const;
 	
 	bool			IsEmpty() const;
@@ -460,6 +453,11 @@ status_t AttributeSettings::Private::LoadSettings()
 	return EOK;
 }
 
+AttrBundle_s* AttributeSettings::ListSettings(){
+	CALLED();
+	return m_pcSettings->ListSettings();
+}
+
 status_t AttributeSettings::Private::StoreSettings()
 {
 	CALLED();
@@ -652,6 +650,12 @@ status_t AttributeSettings::EraseSettings()
 	CALLED();
 	
 	return (m->EraseSettings());
+}
+
+void AttributeSettings::ListSettings(){
+	CALLED();
+
+	return m->ListSettings();
 }
 
 

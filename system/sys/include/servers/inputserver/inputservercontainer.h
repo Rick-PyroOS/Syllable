@@ -22,8 +22,8 @@
 
 #include <set>
 
-#include <os/kdebug.h>
-#include <os/types.h>
+#include <atheos/kdebug.h>
+#include <atheos/types.h>
 
 #include <util/locker.h>
 

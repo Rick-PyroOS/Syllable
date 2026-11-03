@@ -20,10 +20,10 @@
 #ifndef	__INPUT_SERVER_H__
 #define	__INPUT_SERVER_H__
 
-#include <os/types.h>
-#include <os/time.h>
-#include <os/mouse.h>
-#include <os/kernel.h>
+#include <atheos/types.h>
+#include <atheos/time.h>
+#include <atheos/mouse.h>
+#include <atheos/kernel.h>
 
 #include <storage/fsnode.h>
 
@@ -85,7 +85,7 @@ public:
 	static bool				IsQuit( void )			{	CALLED();	return( s_bQuit );		}
 	
 	// Settings
-	String&					GetKeymapPath() const	{	CALLED();	return();	}
+	String&					GetKeymapPath() const	{	CALLED();	return os::String();	}
 	
 private:
 	// Pipeline

@@ -22,8 +22,8 @@
 
 #include <set>
 
-#include <os/types.h>
-#include <os/kernel.h>
+#include <atheos/types.h>
+#include <atheos/kernel.h>
 
 #include <storage/path.h>
 

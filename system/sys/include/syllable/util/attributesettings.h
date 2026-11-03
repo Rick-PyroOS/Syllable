@@ -22,15 +22,15 @@
 #define	__F_UTIL_ATTRIBUTESETTINGS_H__
 
 
-#include <os/kernel.h>
-#include <os/types.h>
+#include <atheos/kernel.h>
+#include <atheos/types.h>
 
 #include <storage/fsnode.h>
+#include <set>
 
 #include <util/string.h>
 #include <util/locker.h>
 
-#include <set>
 
 namespace os
 {
@@ -42,6 +42,14 @@ typedef union AttrData_s {
 	double d;
 	char z[1024];
 } AttrData_s;
+
+typedef struct AttrBundle_s {
+	fsattr_type	nType;
+	String*		pcName;
+	AttrData_s	uValue;
+	bool		bDirty;
+} AttrBundle_s;
+
 
 class AttributeSettings
 {
@@ -65,7 +73,7 @@ public:
 	status_t		LoadSettings();
 	status_t		StoreSettings();
 	status_t		EraseSettings();
-	
+	AttrBundle_s*	ListSettings();	
 private:
 	class Private;
 	Private* m;

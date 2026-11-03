@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <dirent.h>
@@ -12,12 +6,12 @@
 #include <signal.h>
 #include <stdexcept>
 
-#include <os/msgport.h>
-#include <os/kernel.h>
-#include <os/semaphore.h>
-#include <os/threads.h>
-#include <os/types.h>
-#include <os/image.h>
+#include <atheos/msgport.h>
+#include <atheos/kernel.h>
+#include <atheos/semaphore.h>
+#include <atheos/threads.h>
+#include <atheos/types.h>
+#include <atheos/image.h>
 
 #include <gui/guidefines.h>
 

@@ -22,7 +22,7 @@
 
 #include <list>
 
-#include <os/types.h>
+#include <atheos/types.h>
 
 #include <util/messenger.h>
 
