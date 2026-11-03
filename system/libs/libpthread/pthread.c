@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <errno.h>
 #include <posix/errno.h>
 #include <posix/signal.h>
 #include <atheos/atomic.h>
@@ -38,24 +39,47 @@ static int __pt_thread_exists(pthread_t thread)
 	return ( get_thread_info( PT_TID(thread), &info ) == EOK ) ? 1 : 0;
 }
 
-static void __pt_cleanup_data(void *data)
+static pthread_t __pt_new_thread(void)
 {
-	pthread_t thread = (pthread_t)data;
+	__pt_thread *t = malloc( sizeof( __pt_thread ) );
+
+	if( t == NULL )
+		return NULL;
+	memset( t, 0, sizeof( __pt_thread ) );
+	t->done = -1;
+	atomic_set( &t->refs, 1 );
+	return &t->pub;
+}
+
+/* drop one reference to a thread record, freeing it with the last */
+static void __pt_release(pthread_t thread)
+{
+	__pt_thread *t = PT_PRIV(thread);
+
+	if( !atomic_dec_and_test( &t->refs ) )
+		return;
 
 	debug( "cleaning up thread data\n" );
 
 	/* delete the attribute data if we created it */
-	if( thread && thread->attr && thread->attr->internal_malloc )
+	if( thread->attr && thread->attr->internal_malloc )
 		free( thread->attr );
-	/* delete the thread data (we always allocate it) */
-	if( thread )
-		free( thread );
+	if( t->done >= 0 )
+		delete_semaphore( t->done );
+	free( t );
+}
+
+/* the selfKey TLD's destructor: the thread has exited */
+static void __pt_cleanup_data(void *data)
+{
+	if( data )
+		__pt_release( (pthread_t)data );
 }
 
 static void __pt_handle_cancel( int signo )
 {
 	pthread_t thread = pthread_getspecific( selfKey );
-	pthread_attr_t *attr = PT_ATTR(thread);
+	pthread_attr_t *attr = ( thread != NULL ) ? PT_ATTR(thread) : NULL;
 
 	debug( "cancellation requested\n" );
 
@@ -156,7 +180,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_
 
 	debug( "creating new thread\n" );
 
-	pthread = malloc( sizeof( pthread_t ) );
+	pthread = __pt_new_thread();
 	if( pthread == NULL )
 		return ENOMEM;
 
@@ -179,21 +203,45 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_
 		thread_attr = (pthread_attr_t*)attr;
 	}
 
-	entry_data = malloc( sizeof( entry_data ) );
+	/* joinable: one reference for the thread, one for its joiner */
+	if( thread_attr->__detachstate == PTHREAD_CREATE_DETACHED )
+		PT_PRIV(pthread)->detached = true;
+	else
+	{
+		PT_PRIV(pthread)->done = create_semaphore( "pthread_join", 0, 0 );
+		if( PT_PRIV(pthread)->done < 0 )
+		{
+			pthread->attr = thread_attr;
+			__pt_release( pthread );
+			return EAGAIN;
+		}
+		atomic_set( &PT_PRIV(pthread)->refs, 2 );
+	}
+	pthread->attr = thread_attr;
+
+	entry_data = malloc( sizeof( *entry_data ) );
 	if( entry_data == NULL )
+	{
+		atomic_set( &PT_PRIV(pthread)->refs, 1 );
+		__pt_release( pthread );
 		return ENOMEM;
+	}
 	entry_data->start_routine = start_routine;
 	entry_data->arg = arg;
 	entry_data->pthread = pthread;
 
 	kthread = spawn_thread( thread_attr->__name, __pt_entry, thread_attr->__schedpriority, thread_attr->__stacksize, entry_data);
 	if( kthread < 0 )
+	{
+		free( entry_data );
+		atomic_set( &PT_PRIV(pthread)->refs, 1 );
+		__pt_release( pthread );
 		return( kthread );
+	}
 
 	debug( "spawn_thread gives thread id %d\n", kthread );
 
 	pthread->id = kthread;
-	pthread->attr = thread_attr;
 
 	*thread = pthread;
 
@@ -206,8 +254,14 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_
 
 int pthread_detach(pthread_t thread)
 {
-	debug( "not implemented\n" );
-	/* XXXKV: Not needed on Syllable? */
+	if( thread == NULL )
+		return ESRCH;
+	if( PT_PRIV(thread)->detached || PT_PRIV(thread)->done < 0 )
+		return EINVAL;
+
+	/* nobody will join it: give up the joiner's reference */
+	PT_PRIV(thread)->detached = true;
+	__pt_release( thread );
 	return 0;
 }
 
@@ -221,7 +275,8 @@ int pthread_equal(pthread_t t1, pthread_t t2)
 
 void pthread_exit(void *value_ptr)
 {
-	__pt_cleanup *cleanup;
+	__pt_cleanup *cleanup, *prev;
+	pthread_t self;
 	int result = 0;
 
 	debug( "exit thread %d\n", PT_TID(pthread_self()) );
@@ -232,8 +287,18 @@ void pthread_exit(void *value_ptr)
 	{
 		if ( cleanup->routine )
 			(*cleanup->routine) (cleanup->arg);
-		cleanup = cleanup->prev;
+		prev = cleanup->prev;
 		free( cleanup );
+		cleanup = prev;
+	}
+	pthread_setspecific( cleanupKey, NULL );
+
+	/* hand the value to pthread_join(), which may come before or after this */
+	self = pthread_getspecific( selfKey );
+	if( self != NULL && PT_PRIV(self)->done >= 0 )
+	{
+		PT_PRIV(self)->result = value_ptr;
+		unlock_semaphore( PT_PRIV(self)->done );
 	}
 
 	if( NULL != value_ptr )
@@ -262,29 +327,48 @@ void *pthread_getspecific(pthread_key_t key)
 
 int pthread_join(pthread_t thread, void **value_ptr)
 {
-	int result;
-	pthread_attr_t *target_attr = PT_ATTR(thread);
+	__pt_thread *t;
+	status_t error;
+
+	if( thread == NULL )
+		return ESRCH;
+	t = PT_PRIV(thread);
 
 	debug( "thread %d joins on thread %d\n", PT_TID(pthread_self()), PT_TID(thread) );
-
-	/* if the thread has exited via. pthread_exit() before another thread attempts to join
-	   we will return ESRCH. */
-	if( !__pt_thread_exists( thread ) )
-		return ESRCH;
 
 	if( pthread_equal( pthread_self(), thread ) )
 		return EDEADLK;
 
-	if( target_attr && target_attr->__detachstate == PTHREAD_CREATE_DETACHED )
+	if( t->detached )
 		return EINVAL;
 
-	/* wait for the target thread to exit. if the target thread has exited between the check
-	   above and the call to wait_for_thread(), the result will be inconsistent. */
-	result = wait_for_thread( PT_TID(thread) );
-	debug( "result was %d\n", result );
-	if( NULL != value_ptr )
-		*value_ptr = (void*)result;
+	/* a record pthread_self() made (the main thread): there is no exit value to
+	   wait for, only the kernel thread */
+	if( t->done < 0 )
+	{
+		int result;
 
+		if( !__pt_thread_exists( thread ) )
+			return ESRCH;
+		result = wait_for_thread( PT_TID(thread) );
+		if( NULL != value_ptr )
+			*value_ptr = (void*)result;
+		return 0;
+	}
+
+	/* the thread unlocks done in pthread_exit(), whether that was before now
+	   or not: the record outlives it until we let go */
+	while( ( error = lock_semaphore( t->done ) ) < 0 && ( error == -EINTR || errno == EINTR ) )
+		;
+	if( error < 0 )
+		return ESRCH;
+
+	debug( "result was %p\n", t->result );
+	if( NULL != value_ptr )
+		*value_ptr = t->result;
+
+	t->detached = true;
+	__pt_release( thread );
 	return 0;
 }
 
@@ -341,7 +425,7 @@ pthread_t pthread_self(void)
 	   been set, so we must create one */
 	if( thread == NULL )
 	{
-		thread = malloc( sizeof( pthread_t ) );
+		thread = __pt_new_thread();
 		if( thread == NULL )
 			return NULL;
 
@@ -363,11 +447,15 @@ pthread_t pthread_self(void)
 
 int pthread_setcancelstate(int state, int *oldstate)
 {
-	pthread_t thread = pthread_getspecific( selfKey );
-	pthread_attr_t *attr = PT_ATTR(thread);
+	/* pthread_self(): the main thread has no self record until it is made */
+	pthread_t thread = pthread_self();
+	pthread_attr_t *attr;
 
 	if( ( state != PTHREAD_CANCEL_ENABLE ) && ( state != PTHREAD_CANCEL_DISABLE ) )
 		return EINVAL;
+	if( thread == NULL )
+		return ENOMEM;
+	attr = PT_ATTR(thread);
 
 	if( oldstate != NULL )
 		*oldstate = attr->cancellation->state;
@@ -378,11 +466,14 @@ int pthread_setcancelstate(int state, int *oldstate)
 
 int pthread_setcanceltype(int type, int *oldtype)
 {
-	pthread_t thread = pthread_getspecific( selfKey );
-	pthread_attr_t *attr = PT_ATTR(thread);
+	pthread_t thread = pthread_self();
+	pthread_attr_t *attr;
 
 	if( ( type != PTHREAD_CANCEL_DEFERRED ) && ( type != PTHREAD_CANCEL_ASYNCHRONOUS ) )
 		return EINVAL;
+	if( thread == NULL )
+		return ENOMEM;
+	attr = PT_ATTR(thread);
 
 	if( oldtype != NULL )
 		*oldtype = attr->cancellation->type;
@@ -414,7 +505,12 @@ int pthread_setspecific(pthread_key_t key, const void *data)
 void pthread_testcancel(void)
 {
 	pthread_t thread = pthread_getspecific( selfKey );
-	pthread_attr_t *attr = PT_ATTR(thread);
+	pthread_attr_t *attr;
+
+	/* no self record: the main thread, which nothing can have cancelled */
+	if( thread == NULL )
+		return;
+	attr = PT_ATTR(thread);
 
 	if( attr->cancellation->state == PTHREAD_CANCEL_ENABLE && attr->cancellation->cancelled )
 		pthread_exit( NULL );
