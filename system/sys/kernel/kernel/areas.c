@@ -778,6 +778,21 @@ static status_t alloc_area( const char *pzName, MemContext_s *psCtx,
 
 	kassertw( is_semaphore_locked( g_hAreaTableSema ) );
 
+	/* Whole pages: an area ends just before a page boundary.  mmap() passes
+	   its length through unrounded, and code that walks an area a page at a
+	   time until it reaches a_nEnd + 1 (do_clone_area() on fork()) never
+	   stops on an area that ends mid-page: it runs into page tables that
+	   don't exist. */
+	if ( nSize > ( ( nSize + PAGE_SIZE - 1 ) & PAGE_MASK ) || nMaxSize > ( ( nMaxSize + PAGE_SIZE - 1 ) & PAGE_MASK ) )
+	{
+		nError = -ENOADDRSPC;
+		goto error;
+	}
+	nSize = ( nSize + PAGE_SIZE - 1 ) & PAGE_MASK;
+	nMaxSize = ( nMaxSize + PAGE_SIZE - 1 ) & PAGE_MASK;
+	if ( nMaxSize < nSize )
+		nMaxSize = nSize;
+
 	nNewAddr = find_unmapped_area( psCtx, nProtection, nMaxSize, nAddress );
 
 	if ( nNewAddr == (uintptr_t)(-1) && ( nProtection & AREA_ADDR_SPEC_MASK ) == AREA_BASE_ADDRESS )
@@ -981,6 +996,14 @@ status_t resize_area( area_id hArea, size_t nNewSize, bool bAtomic )
 		nError = -EINVAL;
 		goto error1;
 	}
+
+	/* Whole pages, as alloc_area() */
+	if ( nNewSize > ( ( nNewSize + PAGE_SIZE - 1 ) & PAGE_MASK ) )
+	{
+		nError = -ENOADDRSPC;
+		goto error2;
+	}
+	nNewSize = ( nNewSize + PAGE_SIZE - 1 ) & PAGE_MASK;
 
 	// Check that the area won't wrap around the 4G limit
 	if ( psArea->a_nStart + nNewSize < psArea->a_nStart )
