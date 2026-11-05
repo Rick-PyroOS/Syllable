@@ -45,6 +45,21 @@ typedef struct __pt_cleanup_s
 #define PT_TID(x)	(x)->id
 #define PT_ATTR(x)	(x)->attr
 
+/* What a pthread_t points at: the public struct, then what pthread_join()
+   needs after the thread is gone.  The record lives until both the thread
+   (its selfKey TLD, released when it exits) and its joiner (pthread_join() or
+   pthread_detach()) have let go of it. */
+typedef struct __pt_thread_s
+{
+	struct __pthread_s pub;		/* first: a pthread_t points at it */
+	sem_id done;			/* unlocked when the thread exits; -1: not joinable (a pthread_self() record) */
+	void *result;			/* its pthread_exit() value */
+	atomic_t refs;
+	bool detached;			/* joined, detached, or created detached */
+} __pt_thread;
+
+#define PT_PRIV(x)	((__pt_thread *)(x))
+
 #ifdef __cplusplus
 }
 #endif
