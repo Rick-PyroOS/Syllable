@@ -162,6 +162,7 @@ Fields:
 | `stop` | `message` (send `M_SERVER_QUIT`), or `signal` (`SIGTERM`) | `message` |
 | `stop_timeout` | Seconds before `SIGKILL` | 5 |
 | `ping` | Seconds between `M_SERVER_PING`s, 0 for off. Three missed replies count as a hang, and init restarts the service | 0 |
+| `start_when` | Start only once a condition is true, such as `node:/dev/bluetooth/` (a device node appears). Init watches the path with a node monitor (Section 2.19) | start at boot |
 | `control` | Who may stop, restart or disable it through init: `system`, `admin` or `user` (Section 2.18) | `admin` |
 | `enabled` | `false` keeps the file but doesn't start it. Replaces the `/system/config/sshd`-style "on/off" files | true |
 
@@ -227,6 +228,7 @@ syslogserver ─┬─ appserver ─┬─ inputserver
               │             ├─ waiterserver   (wants inputserver)
               │             └─ loginserver    (requires registrar, wants inputserver)
               ├─ translation_server   (no appserver needed)
+              ├─ bluetoothserver      (no appserver needed; feeds inputserver)
               └─ unixserver   (network, inetd, sshd, cupsd, package tasks)
 ```
 
@@ -757,6 +759,94 @@ So this needs one more kernel change (Section 2.12, item 5): when a message is q
 
 Until that change is in, init applies `control = system` (refuse) for everyone and treats every other request as if it came from root, which matches today's root-by-default system. The policy keys and the checks are in place from the start, so turning them on is one kernel change and no service changes.
 
+## 2.19 Bluetooth (from Haiku), libinput, and gestures
+
+Rick asked on 2026-11-08 for three additions: a port of Haiku's Bluetooth service, libinput, and gesture support. "libinput" here means the freedesktop.org library (version 1.31 at the time of writing) that Wayland compositors and X use for touchpads, tablets and gestures. All three end up feeding inputserver, so they're one section.
+
+### What the tree has today (checked 2026-11-08)
+
+- USB host drivers for UHCI, OHCI and EHCI (`kernel/drivers/hcd/`), but **no xHCI** (USB 3), so on most current machines USB devices only work behind a USB 2 controller or in USB 2 mode.
+- `kernel/drivers/input/usb_hid` and `usb_mouse`, and appserver input plugins for `keyboard`, `ps2mouse` (it detected IMPS/2 in QEMU), `sermouse`, `usbkeyboard` and `usbmouse` (`appserver/drivers/input/`).
+- **No touchpad driver.** The PS/2 mouse driver handles relative mice only, with no Synaptics, ALPS or Elantech absolute mode, and there's no I²C-HID or HID multitouch.
+- **No `epoll` or `timerfd`** in the headers. libinput needs both (below).
+- No Bluetooth at all.
+
+### Bluetooth: porting Haiku's stack
+
+**What Haiku has.** Haiku's stack is in five parts: an L2CAP protocol module with a socket interface (`network/protocols/l2cap`), two HCI kernel modules (one for global data such as connection handles and L2CAP channels, one for frames), the `h2generic` USB transport driver, `bluetooth_server` (`src/servers/bluetooth`), which owns the local devices and forwards Kit calls to them, and the Bluetooth Kit (`libbluetooth`, a C++ API modelled on JSR-82: `LocalDevice`, `RemoteDevice`, `DiscoveryAgent`, `DiscoveryListener`) plus a preferences app. It's MIT licensed, so it can go into Syllable.
+
+**What it doesn't have.** Haiku's own docs say no profile is implemented on top of L2CAP yet, and Haiku's 2026 GSoC proposals list the gaps: modern HCI event and command handling, persistent link-key storage, an SDP client, and the HID profile with an input_server add-on for Bluetooth keyboards and mice. **So porting Haiku gets discovery, pairing and L2CAP, not working Bluetooth keyboards, mice or audio.** HID is work we'd write ourselves (or take from Haiku if their GSoC work lands first).
+
+**How it maps onto Syllable.** The user-space half maps almost one to one: Haiku's `BApplication`, `BLooper`, `BMessage` and `BMessenger` are the BeOS ancestors of Syllable's `os::Application`, `os::Looper`, `os::Message` and `os::Messenger`. The kernel half is a rewrite against Syllable's driver, USB and network interfaces, since Haiku's module API and net stack are different.
+
+| Haiku part | Syllable equivalent | Work |
+|---|---|---|
+| `h2generic` USB driver | `kernel/drivers/bluetooth/h2generic` on Syllable's USB bus manager | Rewrite of the USB glue, the HCI framing logic ports |
+| HCI modules | A `bluetooth` kernel module, or folded into the driver | Rewrite of the module API, logic ports |
+| L2CAP protocol module | An `AF_BLUETOOTH` socket family in `kernel/kernel/net/` | The hardest part. Syllable's socket layer has no plug-in protocol families like Haiku's, so it needs a small registration hook first |
+| `bluetooth_server` (a `BApplication`) | **bluetoothserver**, a libserver `os::Server` (it needs no GUI) on `l:bluetooth_server` | Port. Its device and command handling move from `BMessage` to `os::Message` |
+| Bluetooth Kit (`libbluetooth`) | `libbluetooth` in Syllable's namespace, with a `BluetoothManager` on `ServerLink` | Port, mostly mechanical |
+| Bluetooth preferences | `/applications/preferences/Bluetooth` | Port the logic, redo the layout with libsyllable layout classes |
+
+**How it fits the init design:**
+- bluetoothserver is a **system server**: `requires` nothing but the kernel driver, `wants` syslogserver, `control = admin`. Nothing else waits for it, and it's `enabled = false` until a controller is found (init can start it when the driver's device node appears, using a `ready`-like `start_when = node:/dev/bluetooth/...` key).
+- **Link keys** (pairings) are system-wide, in `/system/config/bluetooth/`, so a Bluetooth keyboard works at the login screen.
+- **Pairing requests** (PIN or "confirm this code") go to the user through notification_server with actions (Section 2.16), and to the Bluetooth preferences app if it's open. At the login screen, loginserver's session-less notification instance shows them.
+- **HID** devices become input devices for **inputserver**: a `bluetooth_hid` device add-on that gets the HID reports from bluetoothserver (or straight from an L2CAP HID channel) and runs them through the same HID report parser as `usb_hid`. So a Bluetooth mouse is treated exactly like a USB one, and libinput (below) sees it too.
+- **Audio** (A2DP, HFP) would go to mediaserver as an output and input device later. That needs SDP, AVDTP and an SBC codec, and is a project of its own.
+
+### libinput
+
+**Where it goes.** libinput belongs **inside inputserver**, as the layer between raw device events and the events inputserver sends to the appserver. It does the parts that are hard to get right and that Syllable doesn't have: touchpad tapping, two-finger and edge scrolling, palm and thumb detection, disable-while-typing, pointer acceleration profiles, middle-button emulation, tablet tools, and the gesture recognition below.
+
+**What it needs, and how to provide it on Syllable.** libinput is written for Linux. FreeBSD's port shows what a non-Linux system has to supply: it links `libevdev`, `libmtdev`, `libudev-devd` (a libudev replacement) and `libepoll-shim`.
+1. **evdev devices.** libinput reads Linux `struct input_event` records and `EVIOCG*` ioctls from `/dev/input/event*` nodes, through libevdev. The cleanest route is for Syllable's input drivers (`usb_hid`, the touchpad driver, the Bluetooth HID add-on) to also offer an **evdev-compatible node**: the same event records and the subset of ioctls libevdev uses. libevdev and mtdev then port almost unchanged. The alternative, a translation layer from Syllable's input-node events to evdev in user space, loses multitouch detail, so I'd do the kernel interface.
+2. **No udev.** libinput's *path* backend (`libinput_path_create_context()` plus `libinput_path_add_device()`) needs no udev: inputserver adds devices itself as their nodes appear. It still links libudev symbols, so a stub library or a build patch is needed, as FreeBSD's `libudev-devd` does.
+3. **epoll and timerfd.** libinput hands its caller an epoll descriptor and uses `timerfd` for tap and scroll timers. Neither exists here. `epoll-shim` (from FreeBSD) emulates both, but on kqueue. For Syllable, either write a small shim on `select()` and a timer thread, or patch libinput's event-loop file to use `poll()` and its own timers. The patch is smaller and easier to keep, so I'd start there.
+4. **Build.** libinput uses Meson and needs a modern C compiler: build it with GCC 9.5 (installed alongside 4.1.2) and a CMake port file in `cmake/ports/`, as the other ports are.
+5. **Devices to feed it.** A **touchpad driver** has to exist first: Synaptics and Elantech PS/2 absolute mode, and later I²C-HID (most laptops since 2015 use I²C, which also needs an I²C bus manager). USB HID multitouch devices (Windows Precision touchpads on USB, touchscreens) come through `usb_hid` once it understands the multitouch usages. **xHCI** matters here too, for any newer machine.
+
+**Settings.** The libinput options (tap to click, natural scrolling, acceleration profile and speed, disable while typing, click method) go in the Mouse preferences, which become Mouse and Touchpad. They're stored by inputserver in `/system/config/inputserver` and per user in `~/Settings/inputserver`, loaded through libserver's `M_SERVER_LOAD_USER_CONFIG` at login.
+
+### Gestures
+
+**Recognition** comes from libinput for touchpads: swipes and pinches with three or more fingers, and holds. Touchscreen gestures come later, from inputserver's own recogniser on top of libinput's touch events.
+
+**Delivery** goes through inputserver to the appserver, which decides where each one goes, because only it knows the window tree (appserver review, Section 3.3):
+
+| Message | Fields |
+|---|---|
+| `M_GESTURE_SWIPE` | `_phase` (begin, update, end, cancel), `_fingers`, `_delta`, `_delta_unaccel` (Points, since the last update), `_scr_pos` |
+| `M_GESTURE_PINCH` | `_phase`, `_fingers`, `_scale` (1.0 at the start), `_angle` (degrees since the last update), `_delta`, `_delta_unaccel`, `_scr_pos` |
+| `M_GESTURE_HOLD` | `_phase`, `_fingers`, `_scr_pos` |
+
+The names follow the other input messages (`_scr_pos`, `_button`, `_qualifiers`). There's no separate time field: `InputNode::EnqueueEvent()` already stamps every input event with `_timestamp`. The app-side API built on these (`on_swipe_*`, `on_pinch_*` lambda handlers) is in `lambda-event-handlers.md` section 13.
+
+- **System gestures first.** The appserver checks a gesture-binding table before giving the gesture to a window, the way it handles hotkeys (`AppServer::SendKeyCode()`, `server/server.cpp:297-437`). Defaults: three-finger swipe left or right switches virtual desktop (the appserver already has virtual desktops), and a three-finger swipe up opens a window overview once there is one. Bindings are `os::Event`s, like key shortcuts, so a Dock plugin or the Assistant can bind one. The table lives in the Mouse and Touchpad preferences.
+- **Then the focused window.** `os::View` gets a new `virtual void GestureReceived( const os::GestureEvent& )`, in the reserved slot `__VW_reserved4__` so the vtable layout doesn't change. Lambda handlers registered with `on_swipe`, `on_pinch` and the others run first, and the virtual runs unless one of them accepts the event. The default does nothing, except that a two-finger pinch with Ctrl held is turned into the same zoom shortcut apps already use, so old apps get some benefit. Webster, AView and the file browser would handle pinch to zoom directly.
+- **Scrolling stays scrolling.** Two-finger scrolling is not a gesture: libinput sends it as scroll events, and inputserver turns those into the wheel messages views already get (with fractional deltas for smooth scrolling as a later step).
+
+### Order and milestones
+
+These depend on inputserver existing (`feat/input-server` building, Section 2.10), so they come after M6:
+1. **xHCI and the evdev-compatible node** for `usb_hid` (kernel), then libevdev and mtdev ports.
+2. **libinput** in inputserver, with a USB mouse and the QEMU `usb-tablet` first, then the event-loop patch, then the settings.
+3. **A PS/2 touchpad driver** (Synaptics absolute mode), which QEMU can't emulate, so it's tested on real hardware. QEMU's `virtio-multitouch` device may be usable for multitouch testing if it can be driven through a virtio input driver.
+4. **Gestures:** the messages, the appserver binding table, `View::GestureReceived()` and the lambda handlers.
+5. **Bluetooth:** the kernel transport and HCI, the `AF_BLUETOOTH` hook and L2CAP, then bluetoothserver, the Kit and the preferences app, then pairing through notification_server. In QEMU this needs a USB Bluetooth dongle passed through with `usb-host`, which works on a Linux host and is awkward on macOS, so expect to test on real hardware or a Linux box.
+6. **Bluetooth HID:** SDP, the HID profile, and inputserver's `bluetooth_hid` add-on.
+
+### Testing with Rick's Magic Trackpad
+
+QEMU on the Mac can't emulate a touchpad, but Rick has an external Apple Magic Trackpad, which gives two ways to test. Neither has been tried yet.
+
+1. **USB passthrough.** Plugged in with its cable, the trackpad is a USB HID device (Apple's vendor id `0x05ac`; the product id depends on the model, so read it from System Information), and QEMU can hand it to Syllable with `-device usb-host,vendorid=0x05ac,productid=0x....` on an EHCI controller. On macOS this is the shaky part: macOS's own HID driver holds the device, QEMU needs root, and detaching a HID device from macOS often fails. The trackpad also stops working for the Mac while Syllable has it. Worth one try; on a Linux host it's reliable.
+2. **A host-side forwarder (recommended for day-to-day work).** A small Mac program reads the trackpad's raw finger data (through macOS's private `MultitouchSupport` framework, which tools such as BetterTouchTool use) and sends each frame's finger positions, sizes and pressure to Syllable over a forwarded port, the way `sb run` already forwards ports for sshd, gdbserver and sb-agent. On the Syllable side, a small `virtual_touchpad` kernel driver turns those frames into the same evdev-compatible multitouch events a real touchpad driver would produce. libinput then sees an ordinary touchpad. This works on the Mac with no root, the Mac keeps its trackpad, and it can become an `sb run --touchpad` option.
+
+**For the trackpad to work as real hardware**, either over USB or later over Bluetooth, Syllable needs a driver for it, because it doesn't use the standard HID multitouch format. It has to be switched into multitouch mode with a feature report, and then it sends Apple's own report layout. Linux's `hid-magicmouse` driver does both, and as GPL code it can be ported into Syllable's kernel. libinput already has device quirks for Apple trackpads.
+
+Sources for the Haiku and libinput facts: [Haiku's Bluetooth overview](https://git.haiku-os.org/haiku.git/tree/docs/develop/busses/bluetooth/overview.rst?h=master), [the 2026 GSoC Bluetooth and HID proposal thread](https://discuss.haiku-os.org/t/gsoc-2026-modernizing-bluetooth-stack-and-adding-hid-profile-3rd-offering/18924), [FreeBSD's libinput port](https://cgit.freebsd.org/ports/plain/x11/libinput/Makefile), and [the "libinput without udev" discussion](https://lists.freedesktop.org/archives/wayland-devel/2014-December/018814.html).
+
 ---
 
 # Part 3: Plan
@@ -775,6 +865,7 @@ Each step boots in QEMU with `sb run` and passes the existing boot test, which r
 9. **M8, user servers.** `PER_USER` ports in libserver, `SESSION` in the CMake helper, and session service files from `~/Settings/Session/`, after loginserver exists. assistant_server is the first: move `ProviderThread` and the providers out of the Assistant app.
 10. **M9, notification_server.** A user server on libserver: `NOTIFY` and the other spec messages, popups, `notify-send`, `os::NotificationManager`, then the OSD messages, history, the Dock plugin and Do Not Disturb. Test: `notify-send` from `sb execute` in QEMU, checking the `NOTIFY_CLOSED` reasons and the action messages.
 11. **M10, translation_server.** Fold in `feat/move-libtranslation` and `translator-changes` first. Then the server with `TRANS_IDENTIFY`, `TRANS_LIST_FORMATS` and `TRANS_CONVERT` by path, the `TranslatorFactory` client with its in-process fallback, then streams for Webster, plugin API version 2 and the registrar link. Test: images still load in Webster, AView and FileBrowser icons with the server running, with it stopped, and after `kill -9` while decoding. It doesn't depend on loginserver, so it can go any time after M3.
+12. **M11 and later, input hardware and Bluetooth** (Section 2.19, after inputserver exists): xHCI and an evdev-compatible input node, libevdev and mtdev, libinput inside inputserver, a PS/2 touchpad driver, gestures, then Haiku's Bluetooth stack (bluetoothserver, the Kit, preferences, pairing through notification_server), then Bluetooth HID.
 
 ## Decisions
 
@@ -788,4 +879,5 @@ Each step boots in QEMU with `sb run` and passes the existing boot test, which r
 - **OSD:** proposed as part of notification_server with its own messages (Section 2.16). Waiting for Rick's call.
 - **translation_server:** all translators move to their own server, images first, other format types later (2026-11-08, Section 2.17).
 - **Stop protection:** a `control` policy per service, enforced by init, with the kernel's sender stamp to identify callers (Section 2.18).
+- **Bluetooth, libinput and gestures:** port Haiku's Bluetooth stack as bluetoothserver, put freedesktop libinput inside inputserver, add gestures through inputserver and the appserver (2026-11-08, Section 2.19).
 - **dlogin, Desktop and Dock:** proposed as session components, not system servers (Section 2.14). Waiting for Rick's call.
