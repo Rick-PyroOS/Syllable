@@ -1,0 +1,6 @@
+# SVG translator (libsyllable add-on)
+add_library(svgtrans MODULE svgtrans.cpp)
+set_target_properties(svgtrans PROPERTIES PREFIX "")
+syllable_userland_headers(svgtrans)
+target_link_libraries(svgtrans PRIVATE libsyllable syllable::librsvg libpthread)
+install(TARGETS svgtrans DESTINATION system/extensions/translators)

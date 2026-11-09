@@ -46,4 +46,5 @@ MSG_MIMETYPE_IMAGE_XBM						XBM-afbeelding
 MSG_MIMETYPE_IMAGE_XPM						XPM-afbeelding
 MSG_MIMETYPE_IMAGE_TGA						TGA-afbeelding
 MSG_MIMETYPE_IMAGE_PCX						PCX-afbeelding
+MSG_MIMETYPE_IMAGE_SVG						SVG-afbeelding
 

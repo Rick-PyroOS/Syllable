@@ -329,23 +329,36 @@ status_t BitmapImage::Load( StreamableIO * pcSource, const String & cType )
 		int y = 0;
 
 		BitmapFrameHeader frameHeader;
+		bool finalSent = false;
 
 		for( ;; )
 		{
 			int bytesRead = pcSource->Read( buffer, sizeof( buffer ) );
 
 			if( bytesRead == 0 )
-				break;
-
-			if( trans == NULL )
 			{
-				int error = factory->FindTranslator( "", TRANSLATOR_TYPE_IMAGE, buffer, bytesRead, &trans );
-
-				if( error < 0 )
-					return false;
+				// A source that is an exact multiple of the buffer size never
+				// had a short (final) read: tell the translator the data has
+				// ended (translators that need all of it, such as SVG's,
+				// produce their output only then), and take what it gives
+				if( trans == NULL || finalSent )
+					break;
+				trans->AddData( NULL, 0, true );
+				finalSent = true;
 			}
+			else
+			{
+				if( trans == NULL )
+				{
+					int error = factory->FindTranslator( "", TRANSLATOR_TYPE_IMAGE, buffer, bytesRead, &trans );
 
-			trans->AddData( buffer, bytesRead, bytesRead != sizeof( buffer ) );
+					if( error < 0 )
+						return false;
+				}
+
+				finalSent = bytesRead != sizeof( buffer );
+				trans->AddData( buffer, bytesRead, finalSent );
+			}
 
 			while( true )
 			{

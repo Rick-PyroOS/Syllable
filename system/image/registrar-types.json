@@ -907,6 +907,75 @@
         "type": 9,
         "fixed": false,
         "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "handler_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "extension",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "svg"
+        ]
+       },
+       {
+        "name": "extension_count",
+        "type": 4,
+        "fixed": true,
+        "values": [
+         1
+        ]
+       },
+       {
+        "name": "default_handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/boot/system/bin/aview"
+        ]
+       },
+       {
+        "name": "icon",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "/system/icons/filetypes/image_svg.png"
+        ]
+       },
+       {
+        "name": "identifier",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "SVG Image"
+        ]
+       },
+       {
+        "name": "mimetype",
+        "type": 9,
+        "fixed": false,
+        "values": [
+         "image/svg+xml"
+        ]
+       }
+      ]
+     },
+     {
+      "header": "00000000ffffffffffffffffffffffff9c461ba000000000",
+      "fields": [
+       {
+        "name": "handler",
+        "type": 9,
+        "fixed": false,
+        "values": [
          "/boot/system/bin/browse"
         ]
        },
@@ -1458,7 +1527,7 @@
     "type": 4,
     "fixed": true,
     "values": [
-     20
+     21
     ]
    }
   ]
