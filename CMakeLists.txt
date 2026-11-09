@@ -57,6 +57,7 @@ add_subdirectory(system)                            # everything else, area by a
 add_dependencies(curl libdl)                        # static libcrypto's dlopen()
 add_dependencies(perl libdl)                        # DynaLoader (cmake/ports/10-compilers.cmake)
 add_dependencies(doxygen libpthread)                # QThread (cmake/ports/10-compilers.cmake)
+add_dependencies(git libpthread)                    # threads (cmake/ports/50-git.cmake)
 
 # Layout, configuration, headers and boot scripts
 include(Layout)

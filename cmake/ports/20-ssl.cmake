@@ -88,15 +88,19 @@ syllable_port(curl8
 # keys, ssh-keygen -A, and the privilege separation user "sshd" and /var/empty).
 # install-nokeys: make install would run the new ssh-keygen to make host keys.
 # No PAM, no PKCS#11 or FIDO keys (they need dlopen() at configure time).
+# DISABLE_FD_PASSING: Syllable's sendmsg() ignores msg_control (no SCM_RIGHTS),
+# so sshd's monitor can't hand a pty to the session; with it, the session
+# allocates its own pty and keeps root, as on Cygwin.  Its socketpair()s
+# (sshd -> sshd-session, the monitor) are glibc's loopback TCP pairs.
 syllable_port(openssh
-  PORT OpenSSH-5.2p1
+  PORT OpenSSH--current
   URL https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.6p1.tar.gz
   SHA256 a9dc9565dffe8640f64d863cd29a32bc4a3dbdec0566a7fc44c5d6ee767d5f39
   PREFIX /usr/openssh/10.6p1
   CONFIGURE --sysconfdir=/etc/ssh --with-privsep-path=/var/empty
             --with-ssl-dir=${_ossl_dest}${SYLLABLE_OPENSSL3_PREFIX} --with-zlib=${SYLLABLE_STAGING}
             --without-pam --without-hardening --disable-strip
-            "CPPFLAGS=-I${_ossl_dest}${SYLLABLE_OPENSSL3_PREFIX}/include -I${SYLLABLE_STAGING}/include"
+            "CPPFLAGS=-DDISABLE_FD_PASSING -I${_ossl_dest}${SYLLABLE_OPENSSL3_PREFIX}/include -I${SYLLABLE_STAGING}/include"
             "LDFLAGS=-static-libgcc -L${_ossl_dest}${SYLLABLE_OPENSSL3_PREFIX}/lib -L${SYLLABLE_STAGING}/lib"
   INSTALL_TARGETS install-nokeys
   COMPILER 9.5.0 DEPENDS openssl3 zlib

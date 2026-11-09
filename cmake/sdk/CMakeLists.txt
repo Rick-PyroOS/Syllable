@@ -44,6 +44,7 @@ set(SYLLABLE_BUILDER_PORTS ${SYLLABLE_SOURCE_DIR}/system/apps/utils/Builder/pack
 # the tree's helpers depend on these targets, which are already built there
 add_custom_target(hosttools)
 add_custom_target(libkernel)
+add_custom_target(freetype)
 
 include(Syllable)
 set(SYLLABLE_KERNEL_LIBDIR ${SYLLABLE_BUILD}/system/sys/kernel/kernel)

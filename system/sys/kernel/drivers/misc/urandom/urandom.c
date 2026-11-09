@@ -1,7 +1,11 @@
 /*
- * /dev/urandom: the generator in rng.c, never blocking.  It is seeded when
- * the driver loads (normally from the full 256 bits of entropy; if not, the
- * kernel log says so).  Writes are mixed into the pool, never credited.
+ * /dev/urandom: the generator in rng.c.  It is seeded when the driver loads,
+ * normally from the full 256 bits of entropy.  If that load-time seeding
+ * fell short (no RDRAND/RDSEED and a steady timestamp counter; the kernel log
+ * says so), the first reads wait until it has the 256 bits, as Linux's
+ * getrandom() does: OpenSSL reads this device, and ssh-keygen makes sshd's
+ * host keys from it on the first boot.  Once seeded it never waits again.
+ * Writes are mixed into the pool, never credited.
  *
  * /dev/random is the random driver (../random/random.c), with its own
  * generator.
@@ -29,6 +33,10 @@ static status_t urandom_close( void *pNode, void *pCookie )
 
 static int urandom_read( void *pNode, void *pCookie, off_t nPos, void *pBuf, size_t nLen )
 {
+	status_t nError = rng_wait_seeded( false );	/* returns at once when seeded */
+
+	if ( nError < 0 )
+		return nError;
 	return rng_read( pBuf, nLen );
 }
 

@@ -1,0 +1,21 @@
+# sshd (OpenSSH, cmake/ports/20-ssl.cmake): started when /system/config/sshd
+# says "on", which only ./sb image's disks do (./sb run forwards the Mac's
+# localhost:2222 here, and nothing else reaches it).  sb release writes "off":
+# root's password is "root", and Syllable has no firewall.  start.sh sources
+# this.
+if [ "$(cat /system/config/sshd 2>/dev/null)" = on ] && [ -x /usr/index/sbin/sshd ]
+then
+	# In the background, so the rest of the boot doesn't wait for it.
+	# Host keys on the first boot, never in the image: each disk gets its own.
+	# ssh-keygen reads /dev/urandom (OpenSSL), which waits until the kernel's
+	# generator is fully seeded (./sb run gives QEMU RDRAND/RDSEED: -cpu max).
+	# IPv4 only: glibc's getaddrinfo asserts on IPv6, which Syllable's network
+	# stack doesn't have.  root logs in with its password (a dev disk's root).
+	# SetEnv: sessions get /etc/profile's PATH and DLL_PATH (start.sh sourced
+	# it), as login shells do; otherwise "ssh host CMD" runs with OpenSSH's
+	# bare default PATH and no DLL_PATH, so programs can't find their
+	# libraries.  (/etc/profile's values have no spaces.)
+	( [ -f /etc/ssh/ssh_host_ed25519_key ] || /usr/index/bin/ssh-keygen -A > /var/log/sshd-keys.log 2>&1
+	  /usr/index/sbin/sshd -o AddressFamily=inet -o PermitRootLogin=yes \
+	    -o "SetEnv=PATH=$PATH:/usr/index/bin:/usr/index/sbin DLL_PATH=$DLL_PATH" -E /var/log/sshd.log ) &
+fi

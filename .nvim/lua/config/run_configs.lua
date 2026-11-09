@@ -39,7 +39,10 @@ end
 
 local function join(...)
   local out = {}
-  for _, c in ipairs({ ... }) do if c and c ~= "" then out[#out + 1] = c end end
+  for i = 1, select("#", ...) do
+    local c = select(i, ...)
+    if c and c ~= "" then out[#out + 1] = c end
+  end
   return #out > 0 and table.concat(out, " && ") or nil
 end
 
@@ -72,7 +75,10 @@ M.kinds = {
       { key = "debug_what", label = "Debug", kind = "choice", choices = DEBUG_WHAT, default = DEBUG_WHAT[1] },
       { key = "gdbserver", label = "gdbserver at", default = "localhost:2345" },
       { key = "app_path", label = "App on Syllable", default = "", help = "e.g. /boot/Applications/Foo/Foo" },
-      { key = "app_symbols", label = "App with symbols", default = "", help = "The local copy, e.g. out/sysroot/Applications/Foo/Foo" },
+      { key = "fetch_symbols", label = "Fetch symbols", default = "./sb sysroot",
+        help = "Copies the app and its libraries into out/sysroot before debugging (the app's path is added)" },
+      { key = "app_symbols", label = "App with symbols", default = "",
+        help = "The fetched copy in out/sysroot, e.g. out/sysroot/Applications/Foo/Foo" },
       { key = "qemu_debug", label = "Start QEMU (kernel)", default = "./sb run --gdb" },
       { key = "stub", label = "Kernel stub at", default = "localhost:1234" },
       { key = "kernel", label = "Kernel symbols", default = "out/kernel.so" },
@@ -89,7 +95,10 @@ M.kinds = {
         s.debug_cmd, s.debug_target, s.debug_program = join(c.deploy, c.qemu_debug), nonempty(c.stub), nonempty(c.kernel)
         s.debug_remote = false
       elseif c.debug_what == DEBUG_WHAT[1] then
-        s.debug_cmd, s.debug_remote = join(c.deploy, c.qemu), nonempty(c.gdbserver)
+        -- Symbols live in a Docker volume; out/sysroot is only a cache of them.
+        local fetch = c.fetch_symbols == nil and "./sb sysroot" or nonempty(c.fetch_symbols)
+        fetch = fetch and nonempty(c.app_path) and (fetch .. " " .. vim.fn.shellescape(c.app_path))
+        s.debug_cmd, s.debug_remote = join(c.deploy, fetch, c.qemu), nonempty(c.gdbserver)
         s.debug_remote_exec, s.debug_program = nonempty(c.app_path), nonempty(c.app_symbols)
         s.debug_target = false
       end
