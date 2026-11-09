@@ -114,6 +114,12 @@ AViewApplication::AViewApplication( char **ppzArgv, int nArgc ) : Application( "
 		pcRegistrar->RegisterTypeIcon( "image/x-pcx", Path( "/system/icons/filetypes/image_pcx.png" ) );
 		pcRegistrar->RegisterAsTypeHandler( "image/x-pcx" );
 
+		/* SVG */
+		pcRegistrar->RegisterType( "image/svg+xml", MSG_MIMETYPE_IMAGE_SVG );
+		pcRegistrar->RegisterTypeExtension( "image/svg+xml", "svg" );
+		pcRegistrar->RegisterTypeIcon( "image/svg+xml", Path( "/system/icons/filetypes/image_svg.png" ) );
+		pcRegistrar->RegisterAsTypeHandler( "image/svg+xml" );
+
 		pcRegistrar->Put();
 	}
 	catch( std::exception e )

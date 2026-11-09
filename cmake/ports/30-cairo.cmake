@@ -138,3 +138,36 @@ syllable_port(libxml2_shared
   CONFIGURE ${_cairo_cflags} --without-python --without-threads --with-zlib=${SYLLABLE_STAGING}
   SHARED DEPENDS zlib
   LINKS @bin:/usr/index/bin ${_lib_links})
+
+# SVG rendering, for the SVG translator (system/sys/translators/svg).  The
+# archive is the 2008 Syllable port, kept only in Syllable-Ports, whose
+# archives/ sb mounts at /ports-archives (ExternalProject takes a local
+# archive only as the sole URL, so no GitHub fallback): librsvg 2.22's
+# configure requires GTK+'s gdk-pixbuf, which Syllable hasn't, so the port
+# (Builder/packages/librsvg-2.22.3) builds just the library with its own
+# Makefile and a small GdkPixbuf stand-in.  libxml2 is the shared 2.7.8 above
+# (the staging sysroot's is Webster's static 2.6.29).
+set(_xml2 ${CMAKE_BINARY_DIR}/ports/libxml2_shared/dest/usr/libxml2/2.7.8)
+syllable_port(librsvg
+  PORT librsvg-2.22.3
+  URL /ports-archives/librsvg-2.22.3.zip
+  SHA256 b42efa86deb8ddaa6b8186c7ba0debca9edcd2dd63e87dd7bd57f3413c7afc51
+  PREFIX /usr/librsvg/2.22.3
+  COMPILER 9.5.0
+  STYLE plain
+  MAKE_ARGS CFLAGS=-O2 PCPREFIX=/usr/librsvg/2.22.3
+            XML_CFLAGS=-I${_xml2}/include/libxml2 "XML_LIBS=-L${_xml2}/lib -lxml2"
+  SHARED SYSROOT DEPENDS pango libxml2_shared
+  LINKS ${_lib_links})
+
+# To link against (the SVG translator): librsvg and what its headers use
+add_library(syllable_librsvg INTERFACE)
+target_include_directories(syllable_librsvg SYSTEM INTERFACE
+  ${SYLLABLE_STAGING}/include/librsvg-2 ${SYLLABLE_STAGING}/include/glib-2.0
+  ${SYLLABLE_STAGING}/lib/glib-2.0/include ${SYLLABLE_STAGING}/include/cairo
+  ${SYLLABLE_STAGING}/include)              # rsvg-cairo.h: <cairo/cairo.h>
+target_link_libraries(syllable_librsvg INTERFACE
+  ${SYLLABLE_STAGING}/lib/librsvg-2.so ${SYLLABLE_STAGING}/lib/libcairo.so
+  ${SYLLABLE_STAGING}/lib/libgobject-2.0.so ${SYLLABLE_STAGING}/lib/libglib-2.0.so)
+add_dependencies(syllable_librsvg librsvg)
+add_library(syllable::librsvg ALIAS syllable_librsvg)
