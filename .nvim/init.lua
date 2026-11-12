@@ -59,6 +59,7 @@ require("config.usages").setup()
 require("config.tabs").setup()
 require("config.split_tabs").setup() -- each split's own tab row
 require("config.explorer").setup()
+require("config.makefile_cmake").setup() -- after explorer: right-click a Makefile > Convert to CMakeLists.txt (Syllable checkouts)
 require("config.scrollbar").setup()
 require("config.pointer").setup()
 require("config.clion_keys")
