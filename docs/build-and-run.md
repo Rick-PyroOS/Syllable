@@ -17,7 +17,7 @@ Syllable-Build-System, does everything:
    GCC 4.1.2 and 9.5.0 cross compilers for Syllable) and `syllable-os-x86`
    (that plus CMake, Ninja and the other build tools). It also makes two
    Docker volumes: `syllable-build` (the build tree) and `syllable-golden`
-   (the reference disk the image is built from).
+   (the release disk, to compare against).
 2. `sb image` builds Syllable from your checkout and writes a bootable disk,
    `out/syllable.qcow2`.
 3. `sb run` boots that disk in QEMU on the host.
