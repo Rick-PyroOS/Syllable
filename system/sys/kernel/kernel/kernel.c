@@ -42,6 +42,7 @@
 #include <inc/global.h>
 #include <inc/smp.h>
 #include <inc/bcache.h>
+#include <inc/bootsplash.h>
 
 #include <version.h>
 
@@ -410,6 +411,7 @@ void panic( const char *pzFmt, ... )
 	va_start(args, pzFmt);
 	vsprintf( zBuf, pzFmt, args );
 	va_end(args);
+	bootsplash_panic();	/* put the log on screen, over any splash */
 	printk( "kernel panic : %s\n", zBuf );
 
 /*    printk( "%p\n", __builtin_return_address(0) );

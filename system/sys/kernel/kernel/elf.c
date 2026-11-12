@@ -41,6 +41,7 @@
 #include <inc/image.h>
 #include <inc/mman.h>
 #include <inc/ksyms.h>
+#include <inc/bootsplash.h>
 
 static sem_id g_hImageList;
 static ImageContext_s *g_psKernelCtx;
@@ -2614,6 +2615,8 @@ static void init_boot_modules( void )
 		const char *pzPath;
 		int nError;
 		int j;
+
+		bootsplash_progress( 5 + 15 * ( i + 1 ) / g_sSysBase.ex_nBootModuleCount );
 
 		pzPath = strstr( psModule->bm_pzModuleArgs, "/drivers/" );
 		if ( pzPath == NULL )

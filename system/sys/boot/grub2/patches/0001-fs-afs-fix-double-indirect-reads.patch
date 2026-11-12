@@ -1,0 +1,28 @@
+From: Pyro project
+Subject: [PATCH] fs/afs: Fix double-indirect reads
+
+In AFS mode the inode's max_*_range fields count blocks, not bytes, so
+every comparison against them in read_bfs_file() shifts by RANGE_SHIFT.
+The double-indirect branch subtracts max_indirect_range unshifted, so the
+offset into the double-indirect area is off by a factor of the block
+size, l1n points past the level-1 table and every read beyond the
+indirect range fails with "incorrect double-indirect block".
+
+BFS is unaffected (RANGE_SHIFT is 0 there).
+
+Reproduced with grub-fstest on an AFS image written by Syllable's own AFS
+code (two 40 MB files interleaved in 4 KiB chunks): cmp failed at the
+first byte past the indirect range before the fix and matches after it.
+
+---
+--- a/grub-core/fs/bfs.c
++++ b/grub-core/fs/bfs.c
+@@ -350,7 +350,7 @@
+ 	grub_size_t read_size;
+ 	grub_off_t double_indirect_offset;
+ 	double_indirect_offset = off
+-	  - grub_bfs_to_cpu64 (ino->max_indirect_range);
++	  - (grub_bfs_to_cpu64 (ino->max_indirect_range) << RANGE_SHIFT);
+ 	boff = (double_indirect_offset
+ 		& ((1 << (grub_bfs_to_cpu32 (sb->log2_bsize)
+ 			  + DOUBLE_INDIRECT_SHIFT)) - 1));

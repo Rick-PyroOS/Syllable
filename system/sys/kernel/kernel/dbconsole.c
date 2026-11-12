@@ -22,6 +22,8 @@
 #include <kernel/stdlib.h>
 #include <kernel/isa_io.h>
 
+#include <inc/bootsplash.h>
+
 static int g_nCsrX = 0;
 static int g_nCsrY = 0;
 static int g_nWidth = 80;
@@ -52,6 +54,17 @@ void dbcon_set_color( int Color, int R, int G, int B )
 void dbcon_write( const char *pData, int nSize )
 {
 	int i;
+
+	/* quiet=true: nothing on screen unless it's a panic */
+	if ( bootsplash_text_wanted() == false )
+	{
+		return;
+	}
+	/* in a graphics mode the boot splash decides (bootsplash.c) */
+	if ( bootsplash_fb_write( pData, nSize ) )
+	{
+		return;
+	}
 
 	for ( i = 0; i < nSize; ++i )
 	{
@@ -87,8 +100,13 @@ void dbcon_clear( void )
 {
 	int i;
 
+	if ( bootsplash_fb_write( NULL, 0 ) )
+	{
+		return;		/* graphics mode */
+	}
+
 	for ( i = 0; i < g_nWidth * g_nHeight; ++i )
 	{
-		( ( uint16 * )g_pFrameBuffer )[i] = 0x1720;
+		( ( uint16 * )g_pFrameBuffer )[i] = 0x0720;	/* light grey on black */
 	}
 }

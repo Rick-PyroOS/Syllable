@@ -40,6 +40,7 @@ set(KERNEL_SOURCES
   smp.c apic.c udelay.c fault.c exec.c pci.c pgroup.c kmalloc.c swap.c dma.c
   elf.c timecalc.c virt86.c irq.c array.c schedule.c psignals.c mman.c
   areas.c vmalloc.c pagefault.c bcache.c bcalloc.c vesa_gfx.c random.c
+  bootsplash.c bootsplash_font.c
   devices.c config.c ptrace.c save_i387.c resource.c
   lib/ct_flags.c lib/ct_upper.c lib/ct_lower.c lib/vsprintf.c lib/string.c
   lib/strstr.c lib/qsort.c lib/gcc34_memcpy.c lib/strlcpy.c lib/strlcat.c
