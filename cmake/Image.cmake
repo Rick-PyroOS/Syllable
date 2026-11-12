@@ -4,8 +4,7 @@
 
 set(SYLLABLE_AFSTOOL_SOURCE ${PROJECT_SOURCE_DIR}/../linux-afs/tools/afstool CACHE PATH
     "afstool sources (linux-afs)")
-set(SYLLABLE_REFERENCE_DISK "" CACHE FILEPATH
-    "Raw Syllable disk whose boot sectors and GRUB files the image reuses")
+include(Grub)                                       # SYLLABLE_GRUB_DIR: boot.img, core.img
 set(SYLLABLE_IMAGE_OVERLAY "" CACHE PATH "Directory copied over the boot volume in the image")
 set(SYLLABLE_IMAGE_DIR ${CMAKE_BINARY_DIR}/image CACHE PATH "Where the image is written")
 set(SYLLABLE_IMAGE_SIZE 2G CACHE STRING "Size of the boot partition (the ports with both native compilers need over 256M)")
@@ -37,8 +36,8 @@ foreach(target image image-full)
   endif()
   add_custom_target(${target}
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/make-image.sh ${mode} ${AFSTOOL}
-            "${SYLLABLE_REFERENCE_DISK}" ${CMAKE_INSTALL_PREFIX} "${SYLLABLE_IMAGE_OVERLAY}"
+            ${SYLLABLE_GRUB_DIR} ${CMAKE_INSTALL_PREFIX} "${SYLLABLE_IMAGE_OVERLAY}"
             ${SYLLABLE_IMAGE_DIR} ${SYLLABLE_IMAGE_SIZE} ${CMAKE_BINARY_DIR}/image-root
-    DEPENDS afstool
+    DEPENDS afstool grub
     USES_TERMINAL VERBATIM)
 endforeach()

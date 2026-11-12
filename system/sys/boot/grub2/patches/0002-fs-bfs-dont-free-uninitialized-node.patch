@@ -1,0 +1,38 @@
+From: Pyro project
+Subject: [PATCH] fs/bfs: Don't free an uninitialized node when a lookup fails
+
+find_file() passes &found to grub_fshelp_find_file_lookup(), which only
+sets it on success. On any failure (a missing file, a dangling symlink, a
+bad path component) found is left uninitialized, and the function then
+frees it unless it happens to equal &root. Depending on what is on the
+stack this crashes ("double free or corruption" from grub-fstest 2.06,
+SIGSEGV from a 2.12 build) or silently corrupts the heap. It affects both
+the bfs and afs modules.
+
+Initialize found to NULL and free it only if it was set.
+
+Reproduced with grub-fstest on Syllable AFS images: "cp (loop0,msdos1)/nope"
+or reading through a dangling symlink crashes before the fix and reports
+"file not found" after it.
+
+---
+--- a/grub-core/fs/bfs.c
++++ b/grub-core/fs/bfs.c
+@@ -809,7 +809,7 @@
+     .disk = disk,
+     .sb = sb,
+   };
+-  struct grub_fshelp_node *found;
++  struct grub_fshelp_node *found = NULL;
+ 
+   err = read_extent (disk, sb, &sb->root_dir, 0, 0, &root.ino,
+ 		     sizeof (root.ino));
+@@ -819,7 +819,7 @@
+   if (!err)
+     grub_memcpy (ino, &found->ino, sizeof (*ino));
+ 
+-  if (&root != found)
++  if (found != NULL && &root != found)
+     grub_free (found);
+   return err;
+ }

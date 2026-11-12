@@ -1,0 +1,46 @@
+# Pyro GRUB theme: the flame icon on a dark background with fire along the
+# bottom, the menu in a
+# dark panel below it, the selected entry on an ember-red bar with an
+# orange edge.  Made by ../make-background.py from ../pyro-icon.png.
+title-text: ""
+desktop-image: "../pyro-boot.png"
+desktop-color: "#0c0808"
+terminal-font: "DejaVu Sans Mono Regular 16"
+
++ boot_menu {
+    left = 27%
+    top = 43%
+    width = 46%
+    height = 33%
+    menu_pixmap_style = "menu_*.png"
+    selected_item_pixmap_style = "select_*.png"
+    item_font = "DejaVu Sans Regular 14"
+    item_color = "#e8d2bc"
+    selected_item_font = "DejaVu Sans Regular 14"
+    selected_item_color = "#fff1d6"
+    item_height = 32
+    item_padding = 16
+    item_spacing = 16
+    scrollbar = false
+}
+
++ label {
+    id = "__timeout__"
+    left = 27%
+    top = 78%
+    width = 46%
+    align = "center"
+    color = "#ffe2c2"
+    font = "DejaVu Sans Bold 16"
+    text = "Starting Pyro in %d s"
+}
+
++ label {
+    left = 0
+    top = 82%
+    width = 100%
+    align = "center"
+    color = "#e6c7a8"
+    font = "DejaVu Sans Bold 16"
+    text = "Enter: start    E: edit    C: GRUB command line"
+}
