@@ -299,12 +299,22 @@ syllable_port(libxml2
   CONFIGURE --without-threads --without-python --with-zlib=${SYLLABLE_STAGING}
   DEST sysroot DEPENDS zlib BYPRODUCTS ${SYLLABLE_STAGING}/lib/libxml2.a)
 
+# SQLite: libsqlite3.so.0 in /system/libraries with its headers, for programs
+# built on Syllable, and the sqlite3 shell.  Built from the tarball's
+# amalgamation with the port's own Makefile (patches/Makefile: the Syllable
+# options), not its configure script.  The build tree links the static library
+# (PIC): libsyllable (os::SettingsCache, its symbols kept private) and Webster.
+# The staging sysroot has no libsqlite3.so, so -lsqlite3 there is the static one.
 syllable_port(sqlite
-  PORT sqlite-3.5.5
-  URL https://www.sqlite.org/sqlite-3.5.5.tar.gz
-  SHA256 c430ec6dca870d7c4af35b07cbdf90a20b8a857cc90c7c93c31c6896a8b5270d
-  CONFIGURE --disable-threadsafe --disable-tcl
-  DEST sysroot BYPRODUCTS ${SYLLABLE_STAGING}/lib/libsqlite3.a)
+  PORT sqlite-3.54.1
+  URL https://www.sqlite.org/2026/sqlite-autoconf-3540100.tar.gz
+  SHA256 926ef8d3eab93fbf6e06011901273eec076b25594a4e1cdadd50c987f4f6d64e
+  PREFIX /system/resources/sqlite/3.54.1
+  STYLE plain MAKE_ARGS ${_cc} SYSROOT
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libsqlite3.a
+  LINKS lib/libsqlite3.so.0:/system/libraries/libsqlite3.so.0 lib/libsqlite3.so.0:/usr/index/lib/libsqlite3.so
+        include/sqlite3.h:/usr/index/include/sqlite3.h include/sqlite3ext.h:/usr/index/include/sqlite3ext.h
+        bin/sqlite3:/usr/index/bin/sqlite3)
 
 syllable_port(icu
   PORT icu-3.6
@@ -370,7 +380,7 @@ target_link_libraries(syllable_curl INTERFACE ${SYLLABLE_STAGING}/lib/libcurl.a 
 add_dependencies(syllable_curl curl)
 add_library(syllable::curl ALIAS syllable_curl)
 
-foreach(lib ssl crypto xml2 sqlite3)
+foreach(lib ssl crypto xml2)
   add_library(syllable_${lib} INTERFACE)
   target_include_directories(syllable_${lib} SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
   target_link_libraries(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/lib/lib${lib}.a)
@@ -379,7 +389,11 @@ endforeach()
 add_dependencies(syllable_ssl openssl)
 add_dependencies(syllable_crypto openssl)
 add_dependencies(syllable_xml2 libxml2)
+add_library(syllable_sqlite3 INTERFACE)
+target_include_directories(syllable_sqlite3 SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+target_link_libraries(syllable_sqlite3 INTERFACE ${SYLLABLE_STAGING}/lib/libsqlite3.a)
 add_dependencies(syllable_sqlite3 sqlite)
+add_library(syllable::sqlite3 ALIAS syllable_sqlite3)
 target_link_libraries(syllable_curl INTERFACE syllable_ssl syllable_crypto libdl)
 
 # ---- Development ------------------------------------------------------------------
