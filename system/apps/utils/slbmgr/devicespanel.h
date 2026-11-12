@@ -20,11 +20,8 @@
 #ifndef __F_SYLLABLEPANEL_H__
 #define __F_SYLLABLEPANEL_H__
 
-#include <atheos/kernel.h>
 #include <gui/view.h>
 #include <gui/layoutview.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 
 using namespace os;
