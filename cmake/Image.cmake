@@ -1,6 +1,7 @@
 # Disk image of the boot volume, built on demand after `cmake --install .`:
 # `cmake --build . --target image` updates it incrementally (see
-# cmake/scripts/make-image.sh), `--target image-full` rebuilds it.
+# cmake/scripts/make-image.sh), `--target image-full` rebuilds it.  Its
+# version (package.json) is written beside it, to syllable.version.
 
 set(SYLLABLE_AFSTOOL_SOURCE ${PROJECT_SOURCE_DIR}/../linux-afs/tools/afstool CACHE PATH
     "afstool sources (linux-afs)")
@@ -38,6 +39,7 @@ foreach(target image image-full)
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/make-image.sh ${mode} ${AFSTOOL}
             ${SYLLABLE_GRUB_DIR} ${CMAKE_INSTALL_PREFIX} "${SYLLABLE_IMAGE_OVERLAY}"
             ${SYLLABLE_IMAGE_DIR} ${SYLLABLE_IMAGE_SIZE} ${CMAKE_BINARY_DIR}/image-root
+            ${SYLLABLE_VERSION}
     DEPENDS afstool grub
     USES_TERMINAL VERBATIM)
 endforeach()
