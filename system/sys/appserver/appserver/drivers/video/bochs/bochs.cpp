@@ -92,8 +92,13 @@ using namespace os;
 
 #define BOCHS_MIN_BACKBUFFER_MEM	( 4 * 1024 * 1024 )
 
-/* QEMU allows up to 512 MB of VGA memory; map no more than this of it into the appserver */
-#define BOCHS_MAX_MAPPED_VRAM		( 128 * 1024 * 1024 )
+/*
+ * The most framebuffer memory mapped into the appserver: 1 GB.  The driver
+ * maps the device's video memory up to this, so it is the device that
+ * limits it: QEMU's std VGA gives at most 512 MB (a larger vgamem_mb is cut
+ * to 512).  The mapping is one area in the appserver's 2 GB of address space.
+ */
+#define BOCHS_MAX_MAPPED_VRAM		( 1024 * 1024 * 1024 )
 
 /* MMIO access.  A host test build can replace these to emulate the device */
 #ifndef BOCHS_MMIO_ACCESSORS

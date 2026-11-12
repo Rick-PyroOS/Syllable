@@ -5,7 +5,7 @@ Bochs VBE "DISPI" registers:
 
 | QEMU option | Proxmox `vga:` | PCI ID | Registers |
 |---|---|---|---|
-| `-vga std` (QEMU's default, what `sb run` uses) | `std` (Proxmox's default) | `1234:1111` | MMIO (BAR2), or the I/O ports if there's no BAR2 |
+| `-vga std` (QEMU's default), or `-device VGA,vgamem_mb=N` (what `sb run` uses: 256 MB, `--vga-mem N`) | `std` (Proxmox's default) | `1234:1111` | MMIO (BAR2), or the I/O ports if there's no BAR2 |
 | `-device bochs-display` | none | `1234:1111`, class 0x0380 | MMIO only |
 | `-vga qxl` | `qxl` ("SPICE") | `1b36:0100` | I/O ports `0x1ce`/`0x1cf`, while QXL is in its VGA mode |
 
@@ -41,7 +41,12 @@ backbuffers:
   stay single-buffered, as under VESA.
 - **32 MB or more**: only modes that fit in half of video memory are listed,
   and the other half is used for backbuffers. 64 MB gives up to 3840x2160 at
-  32 bpp and about 32 MB of backbuffers.
+  32 bpp and about 32 MB of backbuffers. Above 64 MB the largest listed mode
+  stays 3840x2160 (unless EDID asks for more), so nearly all the extra memory
+  goes to backbuffers: 128 MB leaves about 96 MB, 512 MB about 480 MB.
+
+The driver maps all of the device's video memory up to 1 GB
+(`BOCHS_MAX_MAPPED_VRAM`); QEMU's std VGA gives at most 512 MB.
 
 To raise it: QEMU `-device VGA,vgamem_mb=64` (instead of `-vga std`), Proxmox
 `vga: std,memory=64`. For QXL, `vgamem_mb` is the part that counts here.
