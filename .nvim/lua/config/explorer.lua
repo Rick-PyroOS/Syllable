@@ -110,6 +110,12 @@ function M.new_entry(p, is_dir)
     end)
 end
 
+-- Extra right-click entries from other modules or a project's .nvim.lua:
+-- fn(item) returns a list of { label, fn } (or nil), shown for that row
+-- after Local History. item.file is the row's path, item.dir true on folders.
+M.menu_extras = M.menu_extras or {}
+function M.add_menu_entries(fn) table.insert(M.menu_extras, fn) end
+
 -- Select the row under the mouse and define its menu; returns the keys that show it.
 local function context_menu(p, m)
   local item
@@ -141,6 +147,15 @@ local function context_menu(p, m)
       if item.dir then lh.show_project(item.file) else lh.show(item.file) end
     end },
   }
+  local extra = {}
+  for _, fn in ipairs(M.menu_extras) do
+    local ok, more = pcall(fn, item)
+    if ok and type(more) == "table" then vim.list_extend(extra, more) end
+  end
+  if #extra > 0 then
+    table.insert(entries, { "-" })
+    vim.list_extend(entries, extra)
+  end
   if not item.dir then table.insert(entries, 2, { "Open in Right Split", act("edit_vsplit") }) end
   if item.severity then
     table.insert(entries, { "-" })

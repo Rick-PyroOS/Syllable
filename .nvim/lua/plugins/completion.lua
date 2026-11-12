@@ -42,6 +42,9 @@ return {
         end,
         "fallback",
       },
+      -- Esc with the list open closes it (and drops a suggestion the arrows
+      -- put in) but stays in insert mode, as in CLion; a second Esc leaves.
+      ["<Esc>"] = { "cancel", "fallback" },
       -- Tab takes the AI suggestion when one shows (config/ai_complete.lua).
       ["<Tab>"] = {
         function() return require("config.ai_complete").accept() end,
