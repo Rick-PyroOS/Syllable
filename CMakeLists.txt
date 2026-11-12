@@ -11,7 +11,20 @@
 # Syllable-Build-System/docs/cmake-plan.md for the plan this follows.
 
 cmake_minimum_required(VERSION 3.20)
-project(Syllable LANGUAGES C CXX)
+
+# The version of Syllable (Pyro): "version" in package.json, MAJOR.MINOR.PATCH
+# with an optional -SUFFIX (0.0.1, 0.1.0-beta1).  SYLLABLE_VERSION is all of
+# it, PROJECT_VERSION its numbers.  Editing package.json reconfigures.
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/package.json SYLLABLE_PACKAGE_JSON)
+string(JSON SYLLABLE_VERSION ERROR_VARIABLE version_error GET "${SYLLABLE_PACKAGE_JSON}" version)
+if(version_error OR NOT SYLLABLE_VERSION MATCHES "^([0-9]+\\.[0-9]+\\.[0-9]+)(-[A-Za-z0-9.]+)?$")
+  message(FATAL_ERROR "package.json: \"version\" must be MAJOR.MINOR.PATCH[-SUFFIX], not '${SYLLABLE_VERSION}' ${version_error}")
+endif()
+set(syllable_version_numbers ${CMAKE_MATCH_1})
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/package.json)
+
+project(Syllable VERSION ${syllable_version_numbers} LANGUAGES C CXX)
+message(STATUS "Syllable (Pyro) ${SYLLABLE_VERSION}")
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Syllable")
   message(FATAL_ERROR "Configure with -DCMAKE_TOOLCHAIN_FILE=cmake/syllable-i586.cmake")

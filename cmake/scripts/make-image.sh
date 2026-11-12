@@ -2,7 +2,7 @@
 # Bring the disk image up to date with the boot volume tree (`cmake
 # --install`'s stage).
 #
-#   make-image.sh MODE AFSTOOL GRUB_DIR STAGE OVERLAY OUT_DIR SIZE ROOT
+#   make-image.sh MODE AFSTOOL GRUB_DIR STAGE OVERLAY OUT_DIR SIZE ROOT [VERSION]
 #
 # MODE auto: if the image exists and was made with the same size and boot
 # code, sync it (afstool sync writes only what changed: new, changed and
@@ -14,6 +14,10 @@
 # (Syllable attributes), so sync can tell what changed by size and mtime.
 # ROOT must be on a filesystem with xattrs.
 #
+# VERSION (package.json's) goes to OUT_DIR/syllable.version once the image
+# is good, so what names the image's copies (sb: syllable-VERSION.qcow2) knows
+# which version it holds.
+#
 # Disk layout (GRUB 2, BIOS):
 #   sector 0          MBR: GRUB_DIR/boot.img's code + one partition entry
 #   sectors 1..2047   GRUB_DIR/core.img (finds /boot/grub by searching for it)
@@ -21,10 +25,11 @@
 # The partition starts at 1 MiB because core.img (about 155 KiB) does not fit
 # in the 31 KiB that the old sector-63 layout left.
 set -euo pipefail
-mode=$1 afstool=$2 grub=$3 stage=$4 overlay=$5 out=$6 size=$7 root=$8
+mode=$1 afstool=$2 grub=$3 stage=$4 overlay=$5 out=$6 size=$7 root=$8 version=${9:-}
 offset=1048576
 img=$out/syllable.img
 state=$out/syllable.image-state
+version_file=$out/syllable.version
 afs(){ AFSTOOL_OFFSET=$offset "$afstool" "$@"; }
 
 for f in boot.img core.img; do
@@ -70,6 +75,8 @@ PY
 }
 
 # ---- sync or rebuild ------------------------------------------------------------
+# (the image is about to change: no version until it is good again)
+rm -f "$version_file"
 want="size=$size offset=$offset layout=grub2"
 if [ "$mode" = auto ] && [ -f "$img" ] && [ "$(cat "$state" 2>/dev/null)" = "$want" ]; then
   echo "image: syncing $img"
@@ -88,4 +95,5 @@ afs "$img" fsck --strict
 rm -f "$out/syllable.manifest" "$state"
 afs "$img" manifest / > "$out/syllable.manifest"
 echo "$want" > "$state"
-echo "image: $img"
+[ -z "$version" ] || echo "$version" > "$version_file"
+echo "image: $img${version:+ (version $version)}"

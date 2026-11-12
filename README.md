@@ -18,4 +18,14 @@ repositories to check out (this one, Syllable-Build-System, Syllable-Ports and
 linux-afs) and the steps: [docs/build-and-run.md](docs/build-and-run.md).
 
 
+Version
+---
+
+The version of Syllable (Pyro) is `"version"` in [package.json](package.json)
+(`MAJOR.MINOR.PATCH`, optionally `-SUFFIX`; it starts at 0.0.1). CMake reads
+it into `SYLLABLE_VERSION` (and `PROJECT_VERSION`), and `sb` names its disk
+images and releases after it: `out/syllable-VERSION.qcow2`,
+`syllable-VERSION.iso.gz`. Bump it there, and nowhere else.
+
+
 
