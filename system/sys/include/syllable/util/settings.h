@@ -21,6 +21,7 @@
 #define	__F_UTIL_SETTINGS_H__
 
 #include <util/message.h>
+#include <util/json.h>
 #include <storage/file.h>
 #include <storage/path.h>
 #include <storage/seekableio.h>
@@ -78,6 +79,7 @@ public:
     IPoint	GetIPoint( const char* pzName, const IPoint& cDefault, int nIndex = 0 ) const;
     Color32_s	GetColor32( const char* pzName, const Color32_s& cDefault, int nIndex = 0 ) const;
     Variant	GetVariant( const char* pzName, const Variant& cDefault, int nIndex = 0 ) const;
+    JSON	GetJSON( const char* pzName, int nIndex = 0 ) const;
 	// Note: GetMessage() and GetPointer() are deliberately left out.
 	// Reason: You can't store pointers in settings files, and it would not
 	// be efficent to work with this concept of default values with messages,
@@ -99,6 +101,7 @@ public:
     status_t	SetColor32( const char* pzName, const Color32_s& cValue, int nIndex = 0 );
     status_t	SetMessage( const char* pzName, const Message& cValue, int nIndex = 0 );
     status_t	SetVariant( const char* pzName, const Variant& cValue, int nIndex = 0 );
+    status_t	SetJSON( const char* pzName, const JSON& cValue, int nIndex = 0 );
 
 private:
 
