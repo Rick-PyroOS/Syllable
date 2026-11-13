@@ -316,6 +316,24 @@ syllable_port(sqlite
         include/sqlite3.h:/usr/index/include/sqlite3.h include/sqlite3ext.h:/usr/index/include/sqlite3ext.h
         bin/sqlite3:/usr/index/bin/sqlite3)
 
+# cJSON: JSON parsing and printing for C and C++ programs (libcjson.so.1 and
+# libcjson_utils.so.1, JSON Pointer/Patch, in /system/libraries).  C89 and
+# only the C ABI, so the system's GCC 4.1.2 C++ (C++98) uses it as well as C.
+# Built with the port's own Makefile (patches/Makefile), as SQLite is.  The
+# headers are in include/cjson, as upstream installs them:
+# #include <cjson/cJSON.h>.  The build tree links the static libraries.
+syllable_port(cjson
+  PORT cjson-1.7.19
+  URL https://github.com/DaveGamble/cJSON/archive/refs/tags/v1.7.19.tar.gz
+  SHA256 7fa616e3046edfa7a28a32d5f9eacfd23f92900fe1f8ccd988c1662f30454562
+  PREFIX /system/resources/cjson/1.7.19
+  STYLE plain MAKE_ARGS ${_cc} SYSROOT
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libcjson.a ${SYLLABLE_STAGING}/lib/libcjson_utils.a
+  LINKS lib/libcjson.so.1:/system/libraries/libcjson.so.1 lib/libcjson.so.1:/usr/index/lib/libcjson.so
+        lib/libcjson_utils.so.1:/system/libraries/libcjson_utils.so.1
+        lib/libcjson_utils.so.1:/usr/index/lib/libcjson_utils.so
+        include/cjson:/usr/index/include/cjson)
+
 syllable_port(icu
   PORT icu-3.6
   URL https://sourceforge.net/projects/icu/files/ICU4C/3.6/icu4c-3_6-src.tgz/download
@@ -394,6 +412,12 @@ target_include_directories(syllable_sqlite3 SYSTEM INTERFACE ${SYLLABLE_STAGING}
 target_link_libraries(syllable_sqlite3 INTERFACE ${SYLLABLE_STAGING}/lib/libsqlite3.a)
 add_dependencies(syllable_sqlite3 sqlite)
 add_library(syllable::sqlite3 ALIAS syllable_sqlite3)
+add_library(syllable_cjson INTERFACE)
+target_include_directories(syllable_cjson SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+target_link_libraries(syllable_cjson INTERFACE ${SYLLABLE_STAGING}/lib/libcjson_utils.a
+                      ${SYLLABLE_STAGING}/lib/libcjson.a m)
+add_dependencies(syllable_cjson cjson)
+add_library(syllable::cjson ALIAS syllable_cjson)
 target_link_libraries(syllable_curl INTERFACE syllable_ssl syllable_crypto libdl)
 
 # ---- Development ------------------------------------------------------------------
