@@ -334,6 +334,23 @@ syllable_port(cjson
         lib/libcjson_utils.so.1:/usr/index/lib/libcjson_utils.so
         include/cjson:/usr/index/include/cjson)
 
+# Google Test and Google Mock 1.8.1: unit tests for C++ programs, GUI ones
+# included (libguitest, system/libs/guitest).  1.8.1 is the last C++98
+# release, so GCC 4.1.2 builds it.  Static libraries only, as upstream
+# recommends, with their headers for programs built on Syllable
+# (#include <gtest/gtest.h>; -lgtest_main -lgtest, or -lgmock).  Built with the
+# port's own Makefile (patches/Makefile), as cJSON is.
+syllable_port(googletest
+  PORT googletest-1.8.1
+  URL https://github.com/google/googletest/archive/release-1.8.1.tar.gz
+  SHA256 9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
+  PREFIX /system/resources/googletest/1.8.1
+  STYLE plain MAKE_ARGS ${_cc} CXX=i586-pc-syllable-g++ SYSROOT
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libgtest.a ${SYLLABLE_STAGING}/lib/libgtest_main.a
+             ${SYLLABLE_STAGING}/lib/libgmock.a ${SYLLABLE_STAGING}/lib/libgmock_main.a
+  LINKS include/gtest:/usr/index/include/gtest include/gmock:/usr/index/include/gmock
+        @lib:/usr/index/lib)
+
 syllable_port(icu
   PORT icu-3.6
   URL https://sourceforge.net/projects/icu/files/ICU4C/3.6/icu4c-3_6-src.tgz/download
@@ -418,6 +435,19 @@ target_link_libraries(syllable_cjson INTERFACE ${SYLLABLE_STAGING}/lib/libcjson_
                       ${SYLLABLE_STAGING}/lib/libcjson.a m)
 add_dependencies(syllable_cjson cjson)
 add_library(syllable::cjson ALIAS syllable_cjson)
+# syllable::gtest: Google Test; syllable::gtest_main adds its main().
+# syllable::gmock carries Google Test as well.  Not SYSTEM: GCC 4.1.2 for
+# Syllable takes -isystem headers as extern "C", which C++ headers can't be.
+foreach(lib gtest gtest_main gmock gmock_main)
+  add_library(syllable_${lib} INTERFACE)
+  target_include_directories(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/include)
+  target_link_libraries(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/lib/lib${lib}.a)
+  add_dependencies(syllable_${lib} googletest)
+  add_library(syllable::${lib} ALIAS syllable_${lib})
+endforeach()
+# a main() library first on the link line, its framework after it
+target_link_libraries(syllable_gtest_main INTERFACE syllable_gtest)
+target_link_libraries(syllable_gmock_main INTERFACE syllable_gmock)
 target_link_libraries(syllable_curl INTERFACE syllable_ssl syllable_crypto libdl)
 
 # ---- Development ------------------------------------------------------------------
