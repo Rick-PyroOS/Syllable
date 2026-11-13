@@ -1,0 +1,17 @@
+authors				Google Inc.
+status				testing
+
+headline			C++ unit testing and mocking framework
+description
+	Google Test is a C++ unit testing framework (TEST, EXPECT_EQ, fixtures, parameterised and typed tests), and Google Mock its library for mock objects.  1.8.1 is the last release that builds as C++98, so the system's GCC 4.1.2 builds it.  On Syllable it has no death tests and is not thread-safe: assertions are made from the thread that runs the tests.  libguitest (system/libs/guitest) runs such tests inside an os::Application, for GUI code.
+licenses			BSD
+
+home				github.com/google/googletest
+locations			https://github.com/google/googletest/archive/
+
+; The CMake build (cmake/Ports.cmake) builds this port with patches/Makefile:
+; the tarball has CMake and autotools builds only.  It builds the static
+; libraries from the fused sources (gtest-all.cc, gmock-all.cc).
+make-file			Makefile
+
+documentation		README.md LICENSE googletest/docs googlemock/docs
