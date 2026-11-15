@@ -646,11 +646,15 @@ function Make:source_for(obj)
 end
 
 -- Strip where the old build put the image: $(IMAGE) (empty here), $(DIST_DIR)/atheos, a leading /.
+-- Old Makefiles also install into /Applications, which the image no longer has:
+-- every program goes into applications/ (the desktop's Applications icon).
 local function image_path(p)
   p = p:gsub("^/+", "/")
   p = p:gsub("^/atheos/", "/")
   p = p:gsub("^/boot/", "/")
-  return (p:gsub("^/+", ""):gsub("/+$", ""))
+  p = p:gsub("^/+", ""):gsub("/+$", "")
+  if p == "Applications" or p:sub(1, 13) == "Applications/" then p = "applications" .. p:sub(13) end
+  return p
 end
 
 local KNOWN_DIRS = { programs = 1, bin = 1, libraries = 1, lib = 1, headers = 1, include = 1, translators = 1,
