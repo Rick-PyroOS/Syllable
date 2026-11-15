@@ -28,6 +28,8 @@
 #include "DockMenu.h"
 #include <storage/registrar.h>
 #include <cassert>
+#include <string>
+#include <vector>
 #include "resources/Dock.h"
 
 DockMenu::DockMenu( os::Handler* pcHandler, os::Rect cFrame, const char* pzName, os::MenuLayout_e eLayout )
@@ -64,15 +66,33 @@ DockMenu::~DockMenu()
 }
 
 /* The FindItem() method of the Menu class does not return submenus */
-os::MenuItem* DockMenu::FindMenuItem( os::String zName )
+static os::MenuItem* find_submenu_item( os::Menu* pcMenu, const os::String& zName )
 {
-	for( int i = 0; i < GetItemCount(); i++ )
+	for( int i = 0; i < pcMenu->GetItemCount(); i++ )
 	{
-		os::MenuItem* pcItem = GetItemAt( i );
+		os::MenuItem* pcItem = pcMenu->GetItemAt( i );
 		if( pcItem && pcItem->GetLabel() == zName && ( pcItem->GetSubMenu() != NULL ) )
 			return( pcItem );
 	}
 	return( NULL );
+}
+
+os::MenuItem* DockMenu::FindMenuItem( os::String zName )
+{
+	return( find_submenu_item( this, zName ) );
+}
+
+/* The Dock's own folder icon, from its resources */
+static os::Image* folder_icon()
+{
+	os::File cSelf( open_image_file( get_image_id() ) );
+	os::Resources cCol( &cSelf );
+	os::ResStream* pcStream = cCol.GetResourceStream( "folder.png" );
+	os::BitmapImage* pcImg = new os::BitmapImage();
+	pcImg->Load( pcStream );
+	pcImg->SetSize( os::Point( 24, 24 ) );
+	delete( pcStream );
+	return( pcImg );
 }
 
 void DockMenu::AddEntry( os::RegistrarManager* pcManager, os::String zApplicationName, os::String zCategory, os::Path cPath, bool bUseDirIcon, os::Path cDir )
@@ -94,6 +114,26 @@ void DockMenu::AddEntry( os::RegistrarManager* pcManager, os::String zApplicatio
 	}
 	
 	os::Menu* pcAddMenu = this;
+	/* A category can name folders in it: "Other/Mesa" is the Mesa folder in
+	   Other */
+	std::vector<os::String> cFolders;
+	std::string zFull = zCategory.const_str();
+	size_t nSlash = zFull.find( '/' );
+	if( nSlash != std::string::npos )
+	{
+		std::string zRest = zFull.substr( nSlash + 1 );
+		zCategory = os::String( zFull.substr( 0, nSlash ) );
+		size_t nStart = 0;
+		while( nStart <= zRest.size() )
+		{
+			size_t nEnd = zRest.find( '/', nStart );
+			if( nEnd == std::string::npos )
+				nEnd = zRest.size();
+			if( nEnd > nStart )
+				cFolders.push_back( os::String( zRest.substr( nStart, nEnd - nStart ) ) );
+			nStart = nEnd + 1;
+		}
+	}
 	if( zCategory != "" )
 	{
 		os::String zCategoryIcon = zCategory;	// We need the unlocalized name, so we can get the right icon.
@@ -150,6 +190,18 @@ void DockMenu::AddEntry( os::RegistrarManager* pcManager, os::String zApplicatio
 		}
 		if( pcSubMenuItem->GetSubMenu() )
 			pcAddMenu = pcSubMenuItem->GetSubMenu();
+	}
+	/* The folders in the category, made if necessary */
+	for( uint i = 0; i < cFolders.size(); i++ )
+	{
+		os::MenuItem* pcFolderItem = find_submenu_item( pcAddMenu, cFolders[i] );
+		if( !pcFolderItem )
+		{
+			os::Menu* pcMenu = new os::Menu( os::Rect(), cFolders[i], os::ITEMS_IN_COLUMN );
+			pcFolderItem = new os::MenuItem( pcMenu, NULL, "", folder_icon() );
+			pcAddMenu->AddItem( pcFolderItem );
+		}
+		pcAddMenu = pcFolderItem->GetSubMenu();
 	}
 	/* Create the menu item */
 	os::Message *pcMsg = new os::Message( 10002 );
