@@ -1,0 +1,98 @@
+// ImageViewer (C)opyright 2008 Jonas Jarvoll
+//
+// This is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+#ifndef _MESSAGES_H_
+#define _MESSAGES_H_
+
+#include "../include/plugin.h"
+
+enum
+{
+	MSG_CREATE_DOCUMENT_EMPTY_FILE = ITEMS_COUNT+1,
+	MSG_CLOSE_SIDEBAR,
+	MSG_SIDEBAR_SWITCH,
+	MSG_BUTTON_NEXT,
+	MSG_BUTTON_PREV,
+	MSG_BUTTON_OK,
+	MSG_BUTTON_CANCEL,
+	MSG_SETTINGS_VIEW_CHANGED,
+	MSG_SETTINGS_CLOSED,
+	MSG_ADDRESS_FIELD = 20000,
+	MSG_BROWSER_DIR_CHANGE, 
+	MSG_BROWSER_READY, 
+	MSG_BROWSER_SEL_CHANGE, 
+	MSG_BROWSER_OPEN_TAB,
+	MSG_BROWSER_OPEN_WINDOW,
+	MSG_TAB_CHANGE, 
+	MSG_TAB_DRAGDROP, 
+	MSG_TAB_CLOSE,
+	MSG_TOOLBAR_HOME, 
+	MSG_TOOLBAR_DESKTOP, 
+	MSG_TOOLBAR_BACK, 
+	MSG_TOOLBAR_UP, 
+	MSG_TOOLBAR_SHOW_SIDEBAR,
+	MSG_MENU_APP_QUIT, 
+	MSG_MENU_APP_ABOUT,
+	MSG_MENU_VIEW_FULLSCREEN, 
+	MSG_MENU_VIEW_MENU, 
+	MSG_MENU_VIEW_TAB_SHOW, 
+	MSG_MENU_VIEW_TAB_HIDE, 
+	MSG_MENU_VIEW_TAB_AUTOMATIC,
+	MSG_MENU_VIEW_ADDRESSBAR_TEXTUAL, 
+	MSG_MENU_VIEW_ADDRESSBAR_GRAPHICAL, 
+	MSG_MENU_VIEW_ADDRESSBAR_HIDE,
+	MSG_MENU_VIEW_TOOLBAR_BOTH, 
+	MSG_MENU_VIEW_TOOLBAR_ICON, 
+	MSG_MENU_VIEW_TOOLBAR_TEXT, 
+	MSG_MENU_VIEW_TOOLBAR_HIDE, 
+	MSG_SHOW_SIDEBAR,
+	MSG_SIDEBAR_HIDE, 
+	MSG_SIDEBAR_SET_PATH,
+	MSG_SIDEBAR_SET_FILE,
+	MSG_DIR_CHANGE,
+	MSG_FILE_CHANGE,
+	MSG_SPLITTER_CHANGED,
+	MSG_VIEW_ICONS,
+	MSG_VIEW_LIST,
+	MSG_VIEW_DETAILS,
+	MSG_SAVE_WINDOW,
+	MSG_SAVE_DEFAULT,
+	MSG_SHOW_STATUSBAR,
+	MSG_SELECT_ALL,
+	MSG_INVERT_SELECTION,
+	MSG_SHOW_HIDDEN,
+	MSG_MENU_LABEL,
+	MSG_MENU_CLEAR_LABEL,
+	MSG_MENU_CONFIGURE_LABEL,
+	MSG_MENU_SELECT_BY_LABEL,
+	MSG_CUT,
+	MSG_COPY,
+	MSG_PASTE,
+	MSG_SETTINGS_DIALOG,
+	MSG_SHOW_PANE,
+	MSG_ZOOM_MINUS,
+	MSG_ZOOM_RESTORE,
+	MSG_ZOOM_PLUS,
+	
+};
+
+#endif
+
+
+
+
+
+
