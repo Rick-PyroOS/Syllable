@@ -3,11 +3,11 @@
 
 #include <gui/window.h>
 #include <gui/layoutview.h>
-#include <gui/listview.h>
+#include "syll_gui/listview.h"
 #include "syll_gui/textview.h"
 #include "providers/provider.h"
 #include <gui/window.h>
-
+#include <gui/view.h>
 
 class TopView : public os::View{
 public:
@@ -15,8 +15,6 @@ public:
 	void MakeFocus(bool bFocus);
 private:
 	void _Layout();
-	virtual void AllAttached();
-	virtual void AttachedToWindow();
 	virtual void KeyDown(const char*, const char*, uint32);
 	virtual void HandleMessage(os::Message* pcMessage);
 	virtual void TimerTick(int nID);
@@ -25,8 +23,6 @@ private:
 	void _LaunchSelected();
 	os::Point GetPreferredSize(bool);
 	os::String GetContent() const;
-	void Paint(const os::Rect&);
-	void FontChanged(os::Font* font);
 private:
 	os::TextView* m_pcView;
 	os::ListView* m_pcListView;

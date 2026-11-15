@@ -70,11 +70,9 @@ public:
 	virtual status_t Initialize() = 0;
 	virtual std::vector<Result> Process( const os::Variant & ) = 0;
 	virtual status_t Launch( const Result & ) = 0;
-	/* os::Settings has no safe copy constructor, so hand out a reference */
 	virtual const os::Settings& Settings() const = 0;
 	virtual status_t Watch() = 0;
 	virtual status_t RebuildCache() = 0;
-	/* Builds the view on the provider thread; the caller attaches it to a window */
 	virtual os::View *SettingsView() = 0;
 	virtual void WriteCache() = 0;
 };

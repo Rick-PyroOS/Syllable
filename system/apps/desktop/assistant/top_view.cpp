@@ -1,7 +1,7 @@
 #include "top_view.h"
 #include <util/message.h>
 #include "gui/layoutview.h"
-#include "gui/listview.h"
+#include "syll_gui/listview.h"
 #include "messages.h"
 #include "./providers/provider.h"
 #include "./gui/row.h"
@@ -35,7 +35,8 @@ void TopView::_Layout()
 	m_pcLayoutView = new os::LayoutView( frame, "", m_pcRoot, os::CF_FOLLOW_ALL );
 
 	os::HLayoutNode* node1 = new os::HLayoutNode( "text_node" );
-	node1->AddChild( m_pcView = new os::TextView( frame, "", "", os::CF_FOLLOW_ALL ) );
+	m_pcView = new os::TextView( frame, "", "", os::CF_FOLLOW_ALL );
+	node1->AddChild( m_pcView );
 
 
 	m_pcView->SetEventMask( os::TextView::EI_ESC_PRESSED | os::TextView::EI_CONTENT_CHANGED | os::TextView::EI_ENTER_PRESSED );
@@ -47,42 +48,32 @@ void TopView::_Layout()
 
 
 	m_pcView->SetMessage( new os::Message( M_CHANGED ) );
-	m_pcView->SetTarget( this );
 
 
 	os::HLayoutNode* node2 = new os::HLayoutNode( "list_node" );
 
 	m_pcListView = new os::ListView( frame, "_listview", os::ListView::F_NO_HEADER, os::CF_FOLLOW_ALL );
+	m_pcListView->SetInvokeMsg( new os::Message( M_ENTER ) );
 	m_pcListView->InsertColumn( "col", 200 );
-
+	m_pcListView->SetTarget( this );
 	node2->AddChild( m_pcListView );
 	
 	m_pcRoot->AddChild( node1 );
 	m_pcRoot->AddChild( node2 );
-
-	m_pcView->SetTarget( this );
-	m_pcListView->SetTarget( this );
-	m_pcListView->SetInvokeMsg( new os::Message( M_ENTER ) );
-
-	m_pcLayoutView->SetRoot( m_pcRoot );
-	AddChild( m_pcLayoutView );
-}
-
-void TopView::AllAttached()
-{
-	View::AllAttached();
+	if( m_pcListView )
+	{
+		m_pcListView->SetTarget( this );
+	}
+	if (m_pcView){
+		 m_pcView->SetTarget(this);
+	}
+	m_pcLayoutView->SetRoot(m_pcRoot);
+	AddChild(m_pcLayoutView);
 }
 
 os::Point TopView::GetPreferredSize( bool max )
 {
 	return m_pcLayoutView->GetPreferredSize( max );
-}
-
-void TopView::AttachedToWindow()
-{
-	os::Font* font = GetFont();
-	font->SetSize( 28 );
-	SetFont( font );
 }
 
 
@@ -105,6 +96,9 @@ void TopView::KeyDown( const char* pzKey, const char* pzRawString, uint32 nQuali
 	else if( pzKey[0] == os::VK_ENTER )
 	{
 		m_pcListView->KeyDown( pzKey, pzRawString, nQualifiers );
+	}
+	else{
+		View::KeyDown(pzKey,pzRawString,nQualifiers);
 	}
 }
 
@@ -265,15 +259,3 @@ void TopView::MakeFocus( bool bFocus )
 }
 
 
-void TopView::Paint( const os::Rect& cFrame )
-{
-	View::Paint( cFrame );
-}
-
-
-void TopView::FontChanged( os::Font* font )
-{
-	m_pcListView->FontChanged( font );
-	m_pcView->FontChanged( font );
-	m_pcLayoutView->FontChanged( font );
-}

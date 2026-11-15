@@ -37,9 +37,8 @@ void MainWindow::HandleMessage( os::Message* pcMessage )
 			break;
 		}
 		default:
-			printf("window::handlemessage: %d\n",pcMessage->GetCode());
-			Window::HandleMessage(pcMessage);
-		break;
+			this->PostMessage(pcMessage,m_pcView);
+			break;
 	}
 }
 
@@ -53,5 +52,5 @@ bool MainWindow::OkToQuit()
 //TODO: figure out why the shortcut key is not being deleted
 void MainWindow::SetFocus(){
 	Window::MakeFocus(true);
-	m_pcView->MakeFocus(true);
+//	m_pcView->MakeFocus(true);
 }
