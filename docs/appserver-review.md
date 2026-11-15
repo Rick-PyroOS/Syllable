@@ -336,7 +336,7 @@ This is the best integration point for new servers. It is also how the shortcut 
 - `init_desktops()` tries each `/dev/graphics/*` node, asks it which appserver driver to load, and falls back to the built-in VESA driver (`server/desktop.cpp:769-877`).
 - A driver subclasses `DisplayDriver` (`server/ddriver.h:49`), providing mode setting and optionally `FillRect`, `BltBitmap` and `DrawLine` acceleration. Software versions are the defaults.
 - Video memory is managed by `server/ddmemory.cpp`.
-- The cursor is a sprite (`server/sprite.cpp`) that is hidden around overlapping screen draws, unless the driver has a hardware cursor.
+- The cursor is always a software sprite (`server/sprite.cpp`) that is hidden around overlapping screen draws. Driver hardware cursors never run in this tree (see Section 8.1).
 
 ### 5.4 Quick wins found by reading (none tested)
 
@@ -581,3 +581,113 @@ Sections 3.2 and 3.3 are updated for this branch. The Num Lock and Super key cha
 - `:655` defines `void AttributeSettings::ListSettings()`, which doesn't match the header (`attributesettings.h:76`) and returns a value from a `void`.
 
 CMake builds that file only with `SYLLABLE_ATTRIBUTE_SETTINGS`, which is off (`libsyllable/CMakeLists.txt:31-38`), so the normal build doesn't hit this yet. The input server needs `AttributeSettings`, so the option will have to go on, and the old Makefile always builds the file. Rename the first definition, and change the second to return `AttrBundle_s*`. The comment in `CMakeLists.txt` is out of date on this branch too: the `os/` includes are gone from that file, and the input server now uses the class.
+
+## 8. Cursors, and shake to enlarge
+
+Added 2026-11-13. This section was checked against GitHub `Rick-PyroOS/Syllable` `main` at 755304a (2026-11-12), not the Mac checkout, so line numbers can drift slightly from the b16c2936 numbers above. Everything here is by reading; nothing was tested. Extra shorthands: `video/` = `system/sys/appserver/appserver/drivers/video/`, `prefs/` = `system/apps/utils/Preferences/`.
+
+### 8.1 How cursors work today
+
+**One cursor, owned by the display driver base class.** `DisplayDriver` holds the cursor image, sprite, position and hot spot (`server/ddriver.h:128-131`) and has four cursor methods (`server/ddriver.h:98-101`):
+- `SetCursorBitmap()` (`server/ddriver.cpp:367-408`) hides all sprites, throws the old image away, builds a new `SrvBitmap`, creates a new `SrvSprite` and unhides.
+- `MouseOn()` / `MouseOff()` (`:417-445`) create or delete the sprite.
+- `SetMousePos()` (`:454-461`) moves the sprite.
+
+**Formats** (`include/gui/guidefines.h:82-92`):
+
+| Mode | Data | How the server stores it |
+|---|---|---|
+| `MPTR_MONO` | 1 byte per pixel, values 0-3 | Same as `MPTR_CMAP8` below. Every built-in non-arrow cursor uses this |
+| `MPTR_CMAP8` | 1 byte per pixel, values 0-3 | Mapped through `{255, 0, 0, 63}` into a `CS_CMAP8` bitmap (`server/ddriver.cpp:383-399`): 0 is transparent, 1 and 2 are black, 3 is white, anything else is transparent. So it's really a 2-bit cursor, not 8-bit, and the system palette is never used |
+| `MPTR_RGB32` | 4 bytes per pixel, BGRA | Copied as-is into a `CS_RGB32` bitmap (`:378-382`) |
+
+**Per-pixel alpha already works for `MPTR_RGB32`.** The sprite draws with `DM_BLEND` (`server/sprite.cpp:316-317`, `:394`), and `BltBitmap()` sends 32-bit sources to `blit_convert_alpha()` (`server/ddriver.cpp:1720-1726`, `:1254`). The default arrow just doesn't use it: `g_anMouseImg` is an 11×18 BGRA arrow with only alpha 0 or 255 (`server/desktop.cpp:58-95`). So "ARGB cursors" is mostly an art and API job, not a renderer job.
+
+**The software sprite.** `SrvSprite` (`server/sprite.h:29-67`) saves the pixels under itself, blends the image on top, and restores them on erase. All sprites live in one static list (`:56`), and `MoveBy()` moves all of them together (`server/sprite.cpp:476-612`), which is how drag-and-drop images follow the pointer. When the old and new rectangles overlap, it composes the move in a temporary bitmap and blits it once, so the arrow doesn't flicker on its own. Screen drawing that touches the cursor calls `SrvSprite::Hide(rect)` / `Unhide()` around itself (for example `server/render.cpp:206`, `:300`, `:594`; 43 call sites outside `sprite.cpp`), which is the classic software-cursor flicker when something redraws under a still pointer.
+
+**Hardware cursors are dead code.** Several drivers have hardware cursor code, but none of it can run:
+- The four `DisplayDriver` cursor methods are **not virtual** (`server/ddriver.h:98-101`; upstream Syllable is the same). The server always calls them through `g_pcDispDrv`, a `DisplayDriver*` (for example `server/input.cpp:233`, `server/sapplication.cpp:172-208`), so a driver's own versions are never called. `nvidia.h:55-58` declares them `virtual` in the subclass, which hides the base methods but doesn't override them.
+- `video/radeon/radeon_cursor.cpp` and `video/mach64/mach64_cursor.cpp` aren't in their `CMakeLists.txt` `SOURCES`.
+- NVidia defines `DISABLE_HW_CURSOR` (`video/nvidia/nvidia.cpp:23`), and its hardware path only takes `MPTR_MONO` up to `MAX_CURS` (`:514-548`).
+- VMware has `Fifo_DefineCursor()` (`video/vmware/vmware_cursor.cpp`) but sets `m_bUsingHwCursor = false` (`video/vmware/vmware.cpp:582`). The header already knows `SVGA_CMD_DEFINE_ALPHA_CURSOR` (`video/vmware/svga_reg.h:402`).
+- `bochs` and the built-in VESA driver have no cursor code.
+
+So every machine uses the software sprite today. Section 5.3 is corrected to match.
+
+**How the pointer moves.** An input driver queues `M_MOUSE_MOVED` with `delta_move`. `InputNode::EnqueueEvent()` applies speed and acceleration (`server/input.cpp:56-72`, `:166-183`), adds `_timestamp` (`:137`), clamps to the screen (`:186-193`) and counts pending moves. `input_thread` drops stale moves and calls `g_pcDispDrv->SetMousePos()` under `g_cLayerGate.Close()` (`:224-235`). When the queue is empty it sleeps 10 ms (`:254`).
+
+**How apps and the server change the cursor.** There are three paths, and none is per-view:
+1. **Apps:** `Application::PushCursor(mode, image, w, h, hotspot)` sends `WR_PUSH_CURSOR` to the app's server port, and `PopCursor()` sends `WR_POP_CURSOR` (`libsyllable/util/application.cpp:293-324`, `include/util/application.h:92-93`). The server keeps **one global stack** for all apps (`server/sapplication.h:91-101`). Push accepts up to 64×64 (`server/sapplication.cpp:1054`) and shows the new top (`:1042-1090`). Pop removes this app's topmost entry and shows whatever is now on top (`:1091-1120`). An app's entries are dropped when it exits (`:149-178`). There is no `View::SetCursor()`: views push on `MOUSE_ENTERED` and pop on `MOUSE_EXITED`, for example `TextView`'s I-beam (`libsyllable/gui/textview.cpp:2612-2628`) and `Splitter` (`libsyllable/gui/splitter.cpp:170-184`). A missed exit leaves the wrong cursor up until the app quits. Apps that do this themselves include aterm, Whisper, DiskManager, Sourcery and the SDL port.
+2. **Window borders:** `WndBorder` sets resize cursors with `SrvApplication::SetCursor()` (`server/wndborder.cpp:536-554`), which overrides the stack until `RestoreCursor()` (`server/sapplication.cpp:182-212`). Its 20×9, 9×20 and 16×16 `MPTR_MONO` images are at `server/wndborder.cpp:39-80`.
+3. **Default arrow:** `init_desktops()` sets `g_anMouseImg` and calls `MouseOn()` (`server/desktop.cpp:891-892`). `POINTER_WIDTH`/`HEIGHT` are defined twice, in `desktop.cpp:58-59` and `sapplication.cpp:47-48`.
+
+Sprites for apps (`Application::CreateSprite()`, `AR_CREATE_SPRITE`, `server/sapplication.cpp:1514-1585`) use the same `SrvSprite` class. They're used for drag images.
+
+**Settings and themes: none for the cursor.** `AppserverConfig` has only mouse speed, acceleration, swap buttons and double-click time (`server/config.h:55-67`, saved at `server/config.cpp:104-117,156-158`). `DR_GET_MOUSE_CFG` / `DR_SET_MOUSE_CFG` (`server/server.cpp:755-790`) expose them, and `prefs/Mouse/appwindow.cpp` is the UI. Cursor art is compiled into the server and into each app. There is no theme, size or colour setting.
+
+### 8.2 Bugs found while reading
+
+1. **Hardware cursor methods aren't virtual** (above). Harmless today, because the software sprite always works, but it's why no driver's hardware cursor has ever run in this tree.
+2. **`SrvSprite::MoveBy()` has an endless loop when sprites are hidden.** `for( uint i = s_cInstances.size() - 1; i >= 0; --i )` (`server/sprite.cpp:487`) never ends, because an unsigned `i` is always `>= 0`. After index 0 it wraps and reads far out of bounds. It is latent, because the callers hold `g_cLayerGate.Close()`, which waits for renders (and their `Hide()`) to finish. Change it to `int i`, as the other loops in the file are.
+3. **`MouseOff()` calls the base `MouseOn()`** in the (unbuilt) Radeon and Mach64 cursor code (`video/radeon/radeon_cursor.cpp:154`, `video/mach64/mach64_cursor.cpp:170`). Fix it if those files are revived.
+4. **`MPTR_CMAP8` doesn't do what its name says.** Values above 3 become transparent. Either document it as 2-bit or map through the real palette.
+
+### 8.3 What to do to upgrade them
+
+In order, each step usable on its own:
+
+1. **Fix the plumbing (1-2 days).** Make the four cursor methods `virtual` (`server/ddriver.h:98-101`). All drivers are built in-tree, so rebuild them together; the `__VW_reserved` slots (`:118-126`) won't help, because they come after the other virtuals. Fix the `sprite.cpp:487` loop. Move the arrow and the resize art into one `server/cursors.cpp` and remove the duplicate `POINTER_*` defines.
+2. **A real cursor object in the server (3-5 days).** Add a `ServerCursor` with: an RGB32 premultiplied-or-straight image (pick one and match `blit_convert_alpha()`), hot spot, nominal size, and optional frames with per-frame delays. `DisplayDriver` keeps the *source* cursor and draws a *rendered* copy, so later steps can scale or animate it without the cursor stack knowing. Convert `MPTR_MONO`/`CMAP8` to RGB32 when they arrive, so the drawing path has only one format.
+3. **Named system cursors (1 week).** Add `enum cursor_id { CURSOR_ARROW, CURSOR_IBEAM, CURSOR_RESIZE_EW, CURSOR_RESIZE_NS, CURSOR_RESIZE_NWSE, CURSOR_RESIZE_NESW, CURSOR_MOVE, CURSOR_HAND, CURSOR_WAIT, CURSOR_PROGRESS, CURSOR_CROSSHAIR, CURSOR_NOT_ALLOWED, ... }` and `Application::PushCursor( cursor_id )`, sent as `WR_PUSH_CURSOR` with an `"id"` field and no image. The server resolves the id from the active theme, so `TextView`, `Splitter`, `WndBorder` and apps stop shipping bitmaps. Keep the image form for custom cursors and raise the 64×64 limit (`server/sapplication.cpp:1054`) to 256.
+4. **Per-view cursors (1 week).** Add `View::SetCursor( cursor_id )` / `SetCursor( const Bitmap*, hotspot )`, stored on the server `Layer`. When the mouse moves, the server picks the cursor of the deepest layer under the pointer (the same walk that produces `MOUSE_ENTERED`/`EXITED`, `server/swindow.cpp:1217-1224`). This removes the push/pop leaks and the global cross-app stack. Keep `PushCursor()` as an override on top, for drags and busy states.
+5. **Themes (1 week plus art).** `/system/resources/cursors/<theme>/` with one PNG per cursor per size (for example 24, 32, 48, 64, 96) plus a small `cursors.json` giving the hot spot and frame delays (`os::JSON` from #47 can read it). Load at startup and on theme change, never inside the layer gate. Decode as Section 4.3 option 2 says: either convert PNG to raw at build time, or link libpng into the server. Don't use `os::Bitmap`. Keep the compiled-in arrow as the fallback. Add a "Cursor theme" and "Cursor size" setting to `AppserverConfig` and to `prefs/Mouse`, carried in `DR_GET/SET_MOUSE_CFG`. Rendering from SVG (the `svg-work` librsvg port) is a later option that gives any size from one source.
+6. **HiDPI (with the HiDPI audit's Phase 2-3).** The cursor stays in device pixels. Choose the theme size as `nominal size × scale` (24 × 2 = 48), and scale the hot spot with it. Until real art exists, `docs/hidpi-audit-2026-11-10.md` item 7 (double at upload time) is the stopgap. App-supplied image cursors need a scale field in `WR_PUSH_CURSOR`, or the server upscales them.
+7. **Animated cursors (2-3 days after step 2).** Frames plus delays in `ServerCursor`. Drive them from a cursor timer on `input_thread` (Section 8.4 uses the same tick). The obvious users are `CURSOR_WAIT` and `CURSOR_PROGRESS`. Optional later: show `CURSOR_PROGRESS` automatically over a window whose app hasn't answered for about 2 seconds.
+8. **Hardware cursors (per driver, later).** Add `virtual bool CanShowHWCursor( const ServerCursor&, int w, int h )`. Use them only where they handle ARGB: VMware's `SVGA_CMD_DEFINE_ALPHA_CURSOR` when `SVGA_CAP_ALPHA_CURSOR` is set (`video/vmware/svga_reg.h:154`), Radeon's ARGB cursor, and a future QXL driver's cursor ring (`docs/spice-qxl-driver-plan-2026-11-10.md`). Fall back to the sprite for anything larger than the hardware limit (usually 64×64), which matters for 8.4. QEMU's `bochs-display` has no hardware cursor, so the sprite stays the default on Rick's normal setup.
+
+### 8.4 Shake to enlarge (macOS "shake mouse pointer to locate")
+
+**Where it should live: in the appserver, not the input server.** Rick's guess is half right. The input server would see raw device deltas, but:
+- The appserver owns the sprite, so the enlarge must be drawn there whatever detects the shake. (On macOS it's done by WindowServer, which is the counterpart of our appserver, not by the HID layer.)
+- The detector wants **screen-space pointer motion after acceleration and clamping**, because that's what the user sees. That is computed in the appserver (`server/input.cpp:56-72`, `:173-193`). Raw counts from a 400 DPI and a 3200 DPI mouse would need different thresholds.
+- There is no input server on `main`. On `feat/input-server` it doesn't build yet (Section 3.3). Putting the detector in the appserver works today and keeps working after the bridge in Section 3.3 lands, because bridged events still go through `EnqueueEvent()`.
+
+If the input server later takes over acceleration, the detector can move there and send a one-field `M_INPUT_*` hint ("locate pointer, intensity x") to the appserver. The drawing stays in the appserver either way. Put the detector behind a small class so moving it later is a cut and paste.
+
+**Detection.** Add a `ShakeDetector` fed from `EnqueueEvent()`'s `M_MOUSE_MOVED` case, right after `_CalculateMouseMovement()` (`server/input.cpp:173`), with the accelerated delta and `_timestamp`:
+- Keep the last ~600 ms of `(time, dx, dy)` in a small ring buffer.
+- Count **reversals** on the dominant axis: the sign of `dx` (or `dy`) flips, and the stroke since the last flip is at least ~40 device px (scale with the HiDPI factor). Ignore strokes under that to reject jitter.
+- Shaking = at least 4 reversals within 600 ms, **and** path length / net displacement > 4, **and** average speed above about 1500 px/s. The ratio test stops ordinary back-and-forth selection drags from triggering.
+- Don't trigger while a button is held (`s_nMouseButtons`), so drags and text selection are safe. macOS does trigger during drags; make it a setting if Rick wants that.
+- Output: a target scale. Start at 1, step it up each extra reversal while shaking continues, up to a cap of about 4× (macOS grows with how long you keep shaking).
+
+The detector only does arithmetic, so it's safe on the input path. It must not draw.
+
+**Drawing the enlarge and the ease back.**
+1. Keep the source cursor unscaled in `DisplayDriver` (step 2 of 8.3), plus `m_fCursorScale`. Add `DisplayDriver::SetCursorScale( float )`, which builds a scaled `SrvBitmap` and replaces the sprite exactly like `SetCursorBitmap()` does (`server/ddriver.cpp:367-408`). The hot spot is scaled by the same factor, so the tip of the arrow stays where it is. App cursor changes during an enlarge are scaled too, because they pass through the same source to rendered step.
+2. **Scaling quality.** `BltBitmap()` already stretches alpha bitmaps (`blit_convert_stretch_alpha()`, `server/ddriver.cpp:1583`, reached at `:1722-1724`), but it's nearest-neighbour, so a 4× arrow would be blocky. Two options:
+   - Better and simple: pick the nearest larger size from the theme (8.3 step 5), up to 96 or 128 px, and only stretch the last bit. Ship one big arrow (128 px) in the default theme for this.
+   - Or write a small bilinear RGBA downscale and always shrink from a 128 px master. Downscaling a big master looks good at every step.
+   Cache the rendered size per step (for example every 0.25×) so the animation doesn't rescale every frame.
+3. **Animation tick.** Run it on `input_thread`. Its loop already wakes at least every 10 ms (`server/input.cpp:254`). Each pass, if the animation is active, call `CursorAnimator::Tick( now )`, which advances the current scale toward the target with easing and calls `SetCursorScale()` under `g_cLayerGate.Close()`, as `SetMousePos()` does (`:232-234`). Limit it to about 60 updates per second.
+   - Grow: ease-out over ~150 ms to the target.
+   - Hold: while the detector still says shaking, plus ~400 ms after it stops.
+   - Shrink: ease-in-out over ~400 ms back to 1×.
+   - A button press cancels it at once and snaps back to 1×.
+4. **Cost.** A 128×128 sprite is about 64 KB of save and restore per move. That's fine in software, and it only happens for a second or two. It does widen the `Hide()` area while enlarged, so more redraws flicker the cursor during that time. A hardware cursor driver must fall back to the sprite above its size limit (8.3 step 8).
+
+**Settings.** Add `cursor_shake_to_locate` (bool, default on) and `cursor_size` (float, default 1.0, the permanent accessibility size that macOS also has) to `AppserverConfig` (`server/config.h`, `server/config.cpp:104-158`). Carry them in `DR_GET_MOUSE_CFG` / `DR_SET_MOUSE_CFG` (`server/server.cpp:755-790`), and add a checkbox and slider in `prefs/Mouse/appwindow.cpp`. `cursor_size` multiplies with the shake scale and the HiDPI scale.
+
+**Work breakdown.**
+
+| # | Task | Where | Size |
+|---|---|---|---|
+| 1 | Separate the source cursor from the drawn one; add `SetCursorScale()` | `server/ddriver.h`, `server/ddriver.cpp:367-461` | 1 day |
+| 2 | Scaled cursor rendering: bilinear downscale from a big master, cached per step | new `server/cursorscale.cpp` | 1-2 days |
+| 3 | A 128 px default arrow (BGRA, real alpha) | `server/cursors.cpp` | art, half a day |
+| 4 | `ShakeDetector`, fed from the move path | new `server/shake.cpp`, hook at `server/input.cpp:173` | 1 day |
+| 5 | `CursorAnimator` with ease in and out, ticked from `input_thread` | `server/input.cpp:212-258` | 1 day |
+| 6 | Settings, protocol and Mouse preferences checkbox and slider | `server/config.*`, `server/server.cpp:755-790`, `prefs/Mouse/` | 1 day |
+| 7 | Tuning in QEMU and on real hardware (thresholds, cap, timings) | — | 1 day |
+
+About a week in total, and it doesn't need any of 8.3 except the source and drawn split in task 1. Doing 8.3 step 1 (fix `sprite.cpp:487`) first is worth it, because the enlarge path calls `Hide()` far more often.
