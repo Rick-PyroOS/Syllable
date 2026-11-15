@@ -4,7 +4,7 @@
 /* Application and window messages */
 enum
 {
-	M_APP_QUIT = 1000,
+	M_APP_QUIT = 60000,
 	M_KEY_RECEIVED,
 	M_CHANGED,
 	M_CYCLE,
@@ -26,7 +26,7 @@ enum
  */
 enum
 {
-	M_LOAD_PROVIDERS = 2000,
+	M_LOAD_PROVIDERS = 70000,
 	M_QUERY,
 	M_RESULTS,
 	M_LAUNCH,
