@@ -34,7 +34,6 @@ SRCS = rsvg-affine.c librsvg-features.c rsvg-bpath-util.c rsvg-css.c rsvg-defs.c
 
 HEADERS = rsvg.h rsvg-cairo.h librsvg-features.h librsvg-enum-types.h gdk-pixbuf.h
 
-# (not objs/: the source archive carries a 2008 build there)
 OBJDIR = build-syllable
 OBJS   = $(addprefix $(OBJDIR)/,$(SRCS:.c=.o))
 

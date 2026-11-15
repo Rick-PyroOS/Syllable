@@ -363,8 +363,7 @@ done where that differs from the plan.
 In rough order:
 
 1. **Land it.** Commit `feat/grub-upgrade` in both repos and open the pull
-   requests. Put the zip fix in `cmake/scripts/ensure-source.sh` (ports
-   delivered as `.zip`, such as librsvg) on its own `fix/` branch.
+   requests.
 2. **Test on the Mac and on hardware.** Run `sb image` and `sb boot-test`,
    `sb run` at 2 GiB and 4 GiB (risk table: the low-memory info block), a
    full `sb release` with the installer run end to end in QEMU, and at least
