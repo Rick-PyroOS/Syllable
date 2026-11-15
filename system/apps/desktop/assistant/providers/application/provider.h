@@ -29,7 +29,7 @@ public:
 	status_t RebuildCache();
 	status_t SaveSettings();
 	os::View *SettingsView();
-	std::vector<assistant::Action> GetActions();
+	// std::vector<assistant::Action> GetActions();
 	void WriteCache();
 public:
 	enum messages {
