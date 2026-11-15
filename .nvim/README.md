@@ -266,13 +266,19 @@ With several open, Raycast shows a dropdown and picks the one you used last.
   C/C++ style is `Syllable/.clang-format`, tuned to match the existing tree as closely as it can.
 - **clangd adds `#include`s on completion.** Items marked with a dot add one when accepted.
   If one lands in the wrong spot (include order here is fragile), move it or undo with `u`.
-  To turn it off, set `--header-insertion=never` in `lua/config/lsp.lua`.
+  `Space ti` turns it off. In the Syllable tree, code outside the kernel never gets a
+  `<kernel/...>` header: clangd sees the kernel's and userland's `dbprintf` as one function and
+  would add `kernel/kdebug.h`, so `lua/config/userland_includes.lua` changes it to the
+  `<atheos/...>` header with the same name, or leaves the include out when there isn't one.
+  The same goes for the quick fixes on an error and Optimize Includes.
 - **Tabs, width 4** by default; guess-indent switches per file when a file differs.
 - Files changed outside Neovim (Claude, git, rsync) reload automatically.
-- **Auto-save is on.** A file is written a second after you stop editing (after `Esc`, or a
-  normal-mode change), when you switch to another tab, and when iTerm loses focus. Never
-  while you're mid-typing, and never scratch buffers or read-only files. Auto-save doesn't
-  format; only your own saves do. `Space ta` toggles it for the session.
+- **Auto-save is on, debounced.** A file is written once you've stopped changing it for the
+  auto-save delay (500 ms), in insert mode too: each keystroke restarts the countdown, so
+  nothing is written mid-word, and it waits while the completion list is open. Files are also
+  written when you switch to another tab and when iTerm loses focus; never scratch buffers or
+  read-only files. Set the delay in Settings (`Cmd+,`) or with `:AutoSaveDelay 3000`; it's
+  remembered. Auto-save doesn't format; only your own saves do. `Space ta` toggles it for the session.
 - **`:q` quits everything**, not just the window you're in, after asking about unsaved
   files. With auto-save on there's rarely anything to ask about.
 

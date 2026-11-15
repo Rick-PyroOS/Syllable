@@ -1,0 +1,29 @@
+WHAT
+====================================================
+EFileBrowser is a replacement for Syllable's ordinary FileBrowser. It aims to make filehandling
+easier in Syllable.
+
+FEATURES
+====================================================
+* Fully configurable GUI, you decide what you want to see
+* Statusbar
+* Tab browsing
+* Emblems on files and folders
+* Sidepanel with configurations such as File info, Treeview etc.
+* Cut, copy and paste functions
+* Graphical addressbar
+
+TIPS AND TRICKS
+====================================================
+* You can drag and drop one or many folders on the tabheader. Every folder will be opened in its 
+  own tab. Files are ignored.
+* You can open a directory in its own tab by pressing middle mouse button or SHIFT+RETURN
+* You can drag files and folders to the addressbar to quickly moves them or copy in selected folder.
+* If you press SHIFT while clicking on Home or Desktop, a new browser tab will be created
+
+
+LICENSE & COPYRIGHT
+====================================================
+The EFileBrowser is copyright(c) 2008 Jonas Jarvoll.
+The complete application, incl. documents and sourcecodes are
+released under GPL

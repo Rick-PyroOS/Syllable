@@ -1,0 +1,9 @@
+# Replaces src/mesa/x86/Makefile and src/mesa/x86-64/Makefile (see
+# CMakeLists.txt).  They build gen_matypes and run it to write matypes.h, the
+# structure offsets for Mesa's x86 assembly.  This build has no assembly
+# (ASM_SOURCES is empty), and gen_matypes, made with the cross compiler, is a
+# Syllable program that the build machine can't run.
+
+default:
+
+clean:
