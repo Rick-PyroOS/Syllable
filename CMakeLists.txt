@@ -67,6 +67,11 @@ add_subdirectory(system/other/config/etc)
 add_subdirectory(system/other/config/default)
 add_subdirectory(system/image)                      # etc, home, config, boot scripts
 
+# The manual pages' index (/usr/index/manuals, and mandoc.db for apropos):
+# last, once every component's pages are installed (cmake/ports/60-man.cmake)
+install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/scripts/index-manuals.sh
+  \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX} ${SYLLABLE_HOST_MAKEWHATIS} COMMAND_ERROR_IS_FATAL ANY)")
+
 # The libraries, for programs built outside the tree (./sb compile)
 include(SyllableSDK)
 

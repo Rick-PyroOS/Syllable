@@ -2,6 +2,10 @@
 
 Nov 9, 2026 · @Rick
 
+## Update, Nov 15, 2026: `man` ships
+
+mandoc 1.14.6 is now on the image (`cmake/ports/60-man.cmake`): `man`, `apropos`, `whatis`, `makewhatis`, `mandoc`, `demandoc` and `soelim`, in `/usr/mandoc/1.14.6` and linked from `/usr/index/bin`. At install time, `cmake/scripts/index-manuals.sh` links every port's pages into `/usr/index/manuals/manN`, which is the `MANPATH` entry `/resources/index/manuals`. It then builds `mandoc.db` there, so `apropos` and `whatis` work too. That covers 1,932 pages, including coreutils' 95, which come from its tarball. tar 1.22 has no man page. The pager is `less`. The rest of this audit is as written on Nov 9.
+
 ## Summary
 
 Three of Rick's five are already on the image: **cat** (coreutils 6.4), **less** (429) and **nano** (2.0.3). **more** exists only as a bash alias for less, so scripts and non-interactive shells can't run it. **jq** isn't there and has no recipe anywhere in the tree.
@@ -54,7 +58,7 @@ Rick's five come first, then the rest by group. "Recipe" means an old Builder re
 | more | Alias only | Wrapper script, or a newer less | `alias more=less` in `/etc/profile` works only in interactive bash. |
 | nano | Ships | nano 2.0.3 | Old (2008), no syntax colouring. Not the default `EDITOR` (that's aedit). |
 | jq | Missing | No recipe | jq 1.7 is plain C with a bundled decNumber. Build with gcc 9.5 and `--without-oniguruma`. |
-| man | Missing | Builder `Man` (a small script), or mandoc | 1,169 man pages ship. `/usr/index/manuals` and `/system/index/manuals` are empty. |
+| man | Ships (Nov 15) | mandoc 1.14.6 | See the update at the top. `/usr/index/manuals` is filled at install time. |
 | vi / vim | Missing | Recipes vim-6.2 to 7.0 | vim also brings `xxd`. |
 | timeout, realpath, nproc, truncate, stdbuf | Missing | Recipes CoreUtilities-6.7 and 8.4 | All need coreutils 7 or 8. gnulib should cover the missing `*at()` calls, but that needs testing. |
 | bc, dc | Missing | No recipe | GNU bc 1.07 is plain C and can use the readline that ships. |
