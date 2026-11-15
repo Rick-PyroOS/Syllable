@@ -1,6 +1,10 @@
 # Files installed onto the boot volume as they are (see README.md)
 install(DIRECTORY ./ DESTINATION . USE_SOURCE_PERMISSIONS
   PATTERN CMakeLists.txt EXCLUDE PATTERN README.md EXCLUDE PATTERN registrar-types.json EXCLUDE)
+# Empty directories the home directories need (git keeps no empty
+# directories, so a fresh clone has none of them): the Trash folders
+install(DIRECTORY DESTINATION home/root/Trash)
+install(DIRECTORY DESTINATION home/.template/Trash)
 
 # The registrar's file-type database (~/Settings/registrar): the release's,
 # with handlers pointing at this build's applications.  Kept as JSON
