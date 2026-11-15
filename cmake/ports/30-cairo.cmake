@@ -139,19 +139,19 @@ syllable_port(libxml2_shared
   SHARED DEPENDS zlib
   LINKS @bin:/usr/index/bin ${_lib_links})
 
-# SVG rendering, for the SVG translator (system/sys/translators/svg).  The
-# archive is the 2008 Syllable port, kept only in Syllable-Ports, whose
-# archives/ sb mounts at /ports-archives (ExternalProject takes a local
-# archive only as the sole URL, so no GitHub fallback): librsvg 2.22's
-# configure requires GTK+'s gdk-pixbuf, which Syllable hasn't, so the port
-# (Builder/packages/librsvg-2.22.3) builds just the library with its own
-# Makefile and a small GdkPixbuf stand-in.  libxml2 is the shared 2.7.8 above
-# (the staging sysroot's is Webster's static 2.6.29).
+# SVG rendering, for the SVG translator (system/sys/translators/svg), from
+# GNOME's release tarball.  librsvg 2.22's configure requires GTK+'s
+# gdk-pixbuf, which Syllable hasn't, so the port (Builder/packages/
+# librsvg-2.22.3) builds just the library with its own Makefile and
+# config.h, a small GdkPixbuf stand-in, and a patch that includes it (and
+# <cairo/cairo.h>) and skips embedded raster images.  libxml2 is the shared
+# 2.7.8 above (the staging sysroot's is Webster's static 2.6.29).
 set(_xml2 ${CMAKE_BINARY_DIR}/ports/libxml2_shared/dest/usr/libxml2/2.7.8)
 syllable_port(librsvg
   PORT librsvg-2.22.3
-  URL /ports-archives/librsvg-2.22.3.zip
-  SHA256 b42efa86deb8ddaa6b8186c7ba0debca9edcd2dd63e87dd7bd57f3413c7afc51
+  URL https://download.gnome.org/sources/librsvg/2.22/librsvg-2.22.3.tar.gz
+      http://old-releases.ubuntu.com/ubuntu/pool/main/libr/librsvg/librsvg_2.22.3.orig.tar.gz
+  SHA256 5a354363470fcabc61deb688a6c6f4d864ff75bd06d70ef9373e17ef956791a8
   PREFIX /usr/librsvg/2.22.3
   COMPILER 9.5.0
   STYLE plain

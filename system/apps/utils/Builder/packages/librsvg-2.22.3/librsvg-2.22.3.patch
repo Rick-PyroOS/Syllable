@@ -1,0 +1,109 @@
+diff -ruN a/rsvg-cairo-clip.h b/rsvg-cairo-clip.h
+--- a/rsvg-cairo-clip.h
++++ b/rsvg-cairo-clip.h
+@@ -29,7 +29,7 @@
+ 
+ #include "rsvg-mask.h"
+ #include "rsvg-cairo-render.h"
+-#include <cairo.h>
++#include <cairo/cairo.h>
+ 
+ G_BEGIN_DECLS 
+ 
+diff -ruN a/rsvg-cairo-render.h b/rsvg-cairo-render.h
+--- a/rsvg-cairo-render.h
++++ b/rsvg-cairo-render.h
+@@ -28,7 +28,7 @@
+ #define RSVG_CAIRO_RENDER_H
+ 
+ #include "rsvg-private.h"
+-#include <cairo.h>
++#include <cairo/cairo.h>
+ 
+ G_BEGIN_DECLS typedef struct _RsvgCairoRender RsvgCairoRender;
+ 
+diff -ruN a/rsvg-cairo.h b/rsvg-cairo.h
+--- a/rsvg-cairo.h
++++ b/rsvg-cairo.h
+@@ -25,7 +25,7 @@
+ #ifndef RSVG_CAIRO_H
+ #define RSVG_CAIRO_H
+ 
+-#include <cairo.h>
++#include <cairo/cairo.h>
+ 
+ G_BEGIN_DECLS 
+ 
+diff -ruN a/rsvg-image.c b/rsvg-image.c
+--- a/rsvg-image.c
++++ b/rsvg-image.c
+@@ -380,50 +380,11 @@
+ GdkPixbuf *
+ rsvg_pixbuf_new_from_href (const char *href, const char *base_uri, GError ** error)
+ {
+-    GByteArray *arr;
+-
+-    arr = _rsvg_acquire_xlink_href_resource (href, base_uri, error);
+-    if (arr) {
+-        GdkPixbufLoader *loader;
+-        GdkPixbuf *pixbuf = NULL;
+-        int res;
+-
+-        loader = gdk_pixbuf_loader_new ();
+-
+-        res = gdk_pixbuf_loader_write (loader, arr->data, arr->len, error);
+-        g_byte_array_free (arr, TRUE);
+-
+-        if (!res) {
+-            gdk_pixbuf_loader_close (loader, NULL);
+-            g_object_unref (loader);
+-            return NULL;
+-        }
+-
+-        if (!gdk_pixbuf_loader_close (loader, error)) {
+-            g_object_unref (loader);
+-            return NULL;
+-        }
+-
+-        pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+-
+-        if (!pixbuf) {
+-            g_object_unref (loader);
+-            g_set_error (error,
+-                         GDK_PIXBUF_ERROR,
+-                         GDK_PIXBUF_ERROR_FAILED,
+-                         _
+-                         ("Failed to load image '%s': reason not known, probably a corrupt image file"),
+-                         href);
+-            return NULL;
+-        }
+-
+-        g_object_ref (pixbuf);
+-
+-        g_object_unref (loader);
+-
+-        return pixbuf;
+-    }
+-
++    /* Syllable: there is no GdkPixbufLoader (gdk-pixbuf.c is only the pixel
++       buffer), so embedded raster images (<image>) are not loaded */
++    (void) href;
++    (void) base_uri;
++    (void) error;
+     return NULL;
+ }
+ 
+diff -ruN a/rsvg.h b/rsvg.h
+--- a/rsvg.h
++++ b/rsvg.h
+@@ -25,7 +25,9 @@
+ #ifndef RSVG_H
+ #define RSVG_H
+ 
+-#include <gdk-pixbuf/gdk-pixbuf.h>
++#include <glib.h>
++#include <glib-object.h>
++#include "gdk-pixbuf.h"
+ 
+ G_BEGIN_DECLS
+ 
