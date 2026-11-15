@@ -5,7 +5,10 @@
 -- Toggles, clickable or by key as in CLion: Aa Match Case (Alt+C), W Words
 -- (Alt+W), .* Regex (Alt+X). Cmd+R (or Ctrl+R in the bar) adds the Replace row:
 -- Enter there replaces the current match and moves on, Replace All does the file.
--- With it off, / is plain Vim search and Cmd+F opens Search Everywhere.
+-- With it off, Cmd+F opens Search Everywhere, and in Normal mode the Vim
+-- search keys (/ ? n N * # g* g#) do nothing, so a stray key doesn't jump the
+-- cursor to some match. They still work in Visual mode and after an operator
+-- (d/foo), and :s and :g are untouched.
 
 local M = {}
 local ns = vim.api.nvim_create_namespace("rick_findbar")
@@ -264,16 +267,32 @@ function M.setup()
     end
   end, ns)
 
-  -- Plain / and ? when the bar is off (counts and operators like d/ keep working).
+  -- With the bar off, Normal mode's search keys do nothing (said once a session).
+  local told = false
+  local function off_in_normal(key)
+    if M.enabled() or vim.fn.mode(1) ~= "n" then return key end
+    if not told then
+      told = true
+      vim.schedule(function() vim.notify("Find in Normal mode is off: Cmd+F searches, Space t/ turns on the find bar") end)
+    end
+    return "<Ignore>"
+  end
+  -- / and ?: the bar when it's on; plain Vim search in Visual mode and after an
+  -- operator (counts and d/ keep working).
   local function search_key(key)
     return function()
-      if not M.enabled() or vim.fn.mode(1):match("^no") then return key end
+      if not M.enabled() then return off_in_normal(key) end
+      if vim.fn.mode(1):match("^no") then return key end
       vim.schedule(function() M.open(false) end)
       return "<Ignore>"
     end
   end
   vim.keymap.set({ "n", "x", "o" }, "/", search_key("/"), { expr = true, desc = "Find (find bar when on)" })
   vim.keymap.set({ "n", "x", "o" }, "?", search_key("?"), { expr = true, desc = "Find backwards (find bar when on)" })
+  for _, key in ipairs({ "n", "N", "*", "#", "g*", "g#" }) do
+    vim.keymap.set("n", key, function() return off_in_normal(key) end,
+      { expr = true, desc = "Search key (off in Normal mode while the find bar is off)" })
+  end
   vim.keymap.set({ "n", "x" }, "<D-f>", function()
     if M.enabled() then M.open(false) else require("config.search_everywhere").open("All") end
   end, { desc = "Find (find bar, or Search Everywhere when it's off)" })
