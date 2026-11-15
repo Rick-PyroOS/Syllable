@@ -11,6 +11,7 @@ OpenGL for Syllable: Mesa 6.5.2's software renderer, a GLUT, and Mesa's demos.
 | Headers (`GL/*.h`, `gui/GLView.h`) | `/system/development/headers` | |
 | The Mesa demos (gears, morph3d, reflect, isosurf, ... 50 of them) | `/applications/MesaDemos/bin`, textures in `/applications/MesaDemos/images` | MesaDemos 6.5.2 `progs/demos`, unchanged |
 | GLTest | `/applications/MesaDemos/GLTest` | the Mesa 6.0.1 port's example (Builder's `mesa-6.0.1`), unchanged |
+| GLTeapot | `/applications/MesaDemos/GLTeapot` | Haiku's GLTeapot on `os::GLView` (`glteapot/`, see its README) |
 
 The three Mesa archives are downloaded during the build (SourceForge, SHA-256
 checked), the way the ports are.
@@ -26,7 +27,7 @@ cd ~/Code/Rick-PyroOS/Syllable-Build-System
 ./sb execute gears
 ```
 
-On Syllable, from the Dock's menu: Other > Mesa, with GLTest and the demos in
+On Syllable, from the Dock's menu: Other > Mesa, with GLTeapot, GLTest and the demos in
 folders (Showcase, Shaders, Textures, Tests and Benchmarks; `os::Category`
 attributes like `Other/Mesa/Showcase`, which need the Dock's nested
 categories).  From a terminal: `/applications/MesaDemos/bin/gears`. Each demo

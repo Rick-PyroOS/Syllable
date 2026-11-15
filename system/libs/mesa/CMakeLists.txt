@@ -8,8 +8,9 @@
 #                  os::Bitmap (glview/)
 #   libglut.so.3   GLUT 3.7 on os::GLView (glut/, with GLUT's own fonts and
 #                  shapes from the MesaGLUT sources)
-#   applications/MesaDemos   Mesa's demos (progs/demos), and GLTest, the
-#                  example of the Mesa 6.0.1 Syllable port
+#   applications/MesaDemos   Mesa's demos (progs/demos), GLTest, the
+#                  example of the Mesa 6.0.1 Syllable port, and GLTeapot,
+#                  Haiku's (glteapot/)
 #
 # The three Mesa archives are downloaded at build time, like the ports'.
 # In the tree or with `sb compile system/libs/mesa`.
@@ -212,3 +213,13 @@ syllable_program(gltest OUTPUT_NAME GLTest SOURCES ${_gltest}/GLTest.cpp demos/d
 add_dependencies(gltest mesa_gl)
 install(FILES ${_gltest}/texture.raw DESTINATION applications/MesaDemos/GLTest)
 syllable_attribute(applications/MesaDemos/GLTest/GLTest os::Category Other/Mesa)
+
+# GLTeapot: Haiku's GLTeapot on os::GLView (glteapot/README.md)
+syllable_program(glteapot OUTPUT_NAME GLTeapot
+  SOURCES glteapot/TeapotApp.cpp glteapot/TeapotWindow.cpp glteapot/ObjectView.cpp
+          glteapot/GLObject.cpp glteapot/FPS.cpp glteapot/error.cpp
+  INCLUDES ${_mesa_includes}
+  LIBS glview mesa_GLU mesa_GL libsyllable m
+  STRIP INSTALL applications/MesaDemos/GLTeapot)
+add_dependencies(glteapot mesa_gl)
+syllable_attribute(applications/MesaDemos/GLTeapot/GLTeapot os::Category Other/Mesa)
