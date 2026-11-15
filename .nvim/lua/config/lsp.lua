@@ -30,6 +30,8 @@ vim.lsp.config("clangd", {
   on_init = function(client, result)
     if clangd_on_init then clangd_on_init(client, result) end
     require("config.doxygen").attach(client)
+    -- Userland files in the Syllable tree get <atheos/...> instead of <kernel/...> includes.
+    require("config.userland_includes").attach(client)
     local major = tonumber(((result.serverInfo or {}).version or ""):match("(%d+)%.%d+"))
     local dotclangd = vim.fs.joinpath(client.root_dir or "", ".clangd")
     if major and major < 22 and not vim.g.rick_clangd_old_warned
