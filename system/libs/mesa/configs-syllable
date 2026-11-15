@@ -1,0 +1,37 @@
+# Configuration for Syllable (Pyro): Mesa's software renderer (swrast) with
+# the OSMesa interface, as libGL, and the SGI GLU as libGLU.  No windowing
+# system code: the Syllable side (os::GLView and GLUT) is in the Syllable
+# tree and draws OSMesa's buffer into an os::Bitmap.
+#
+# CC and CXX are given on make's command line (the cross compilers).
+
+include $(TOP)/configs/default
+
+CONFIG_NAME = syllable
+
+CC = i586-pc-syllable-gcc
+CXX = i586-pc-syllable-g++
+
+OPT_FLAGS = -O2
+DEFINES = -D_POSIX_SOURCE -D_POSIX_C_SOURCE=199309L -D_SVID_SOURCE -D_BSD_SOURCE
+CFLAGS = $(OPT_FLAGS) -fPIC -ffast-math -fno-strict-aliasing $(DEFINES)
+CXXFLAGS = $(OPT_FLAGS) -fPIC -ffast-math -fno-strict-aliasing $(DEFINES)
+
+# No makedepend in the build image; every build starts from a clean tree
+MKDEP = true
+
+SRC_DIRS = mesa glu
+GLU_DIRS = sgi
+DRIVER_DIRS = osmesa
+PROGRAM_DIRS =
+
+# The OSMesa library is libGL: core, swrast and the OSMesa entry points
+OSMESA_LIB = GL
+OSMESA_LIB_NAME = libGL.so
+# Not built: src/mesa/Makefile's stand-alone libGL (with the X11 driver).  Its
+# rule's target must not be OSMESA_LIB_NAME too, or make merges the two
+# rules' prerequisites and builds the X11 driver for the OSMesa libGL.
+GL_LIB_NAME = libGL-stand-alone-unused.so
+OSMESA_LIB_DEPS = -lm
+GLU_LIB_DEPS = -L$(TOP)/$(LIB_DIR) -lGL -lm
+APP_LIB_DEPS = -L$(TOP)/$(LIB_DIR) -lGLU -lGL -lm
