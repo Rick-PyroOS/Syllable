@@ -1,0 +1,85 @@
+# Syllable: cmake/ports/60-man.cmake cross-builds mandoc with this file.
+#
+# mandoc's configure compiles a test program for each check and runs it.
+# Cross-compiled for Syllable, none of them can run on the build host, so
+# every answer is given here, for Syllable's glibc 2.7.  SYLLABLE_STAGING
+# (the staging sysroot, with zlib) comes from the build's environment.
+
+OSNAME="Syllable"
+OSENUM=MANDOC_OS_OTHER
+
+PREFIX="/usr/mandoc/1.14.6"
+MANDIR="${PREFIX}/share/man"
+# /etc/profile's MANPATH; these are for a shell that doesn't set it.
+# /resources is /usr: /usr/index/manuals is filled at install time with
+# every port's pages (cmake/scripts/index-manuals.sh)
+MANPATH_DEFAULT="/resources/index/manuals:/system/index/manuals"
+MANPATH_BASE="/resources/index/manuals:/system/index/manuals"
+# makewhatis may read pages that the index's links point to, in the ports'
+# own folders (/usr is /boot/usr)
+READ_ALLOWED_PATH="/usr:/system/resources:/boot/usr:/boot/system/resources"
+
+# With neither MANPAGER nor PAGER set, mandoc pages with BINM_PAGER.  Its
+# configure would pick more when the build host has no less, and Syllable's
+# more is only an alias in /etc/profile.  less 429 takes -T (tag files).
+BINM_PAGER=less
+HAVE_LESS_T=1
+
+# man, apropos, whatis and makewhatis are mandoc under other names:
+# relative symbolic links rather than hard links
+LN="ln -sf"
+
+CC=i586-pc-syllable-gcc
+AR=i586-pc-syllable-ar
+CFLAGS="-O2 -std=gnu99 -I${SYLLABLE_STAGING}/include"
+LDFLAGS="-L${SYLLABLE_STAGING}/lib"
+HAVE_WFLAG=1
+HAVE_STATIC=0
+
+# getline, getsubopt, strptime, strcasestr, strndup, vasprintf: GNU
+# extensions in glibc 2.7
+NEED_GNU_SOURCE=1
+
+HAVE_ATTRIBUTE=1
+HAVE_CMSG=1
+HAVE_DIRENT_NAMLEN=0
+HAVE_EFTYPE=0
+# be32toh and htobe32 came in glibc 2.9: ntohl and htonl instead
+HAVE_ENDIAN=0
+HAVE_SYS_ENDIAN=0
+HAVE_NTOHL=1
+HAVE_ERR=1
+# glibc's fts is not large-file safe; mandoc's own (compat_fts.c)
+HAVE_FTS=0
+HAVE_GETLINE=1
+HAVE_GETSUBOPT=1
+HAVE_ISBLANK=1
+HAVE_MKDTEMP=1
+# mkstemps came in glibc 2.11
+HAVE_MKSTEMPS=0
+HAVE_NANOSLEEP=1
+# left out: Syllable's kernel may not know the flag
+HAVE_O_DIRECTORY=0
+HAVE_OHASH=0
+HAVE_PATH_MAX=1
+HAVE_PLEDGE=0
+HAVE_PROGNAME=0
+# reallocarray came in glibc 2.26
+HAVE_REALLOCARRAY=0
+HAVE_RECALLOCARRAY=0
+HAVE_RECVMSG=1
+HAVE_REWB_BSD=0
+HAVE_REWB_SYSV=1
+HAVE_SANDBOX_INIT=0
+HAVE_STRCASESTR=1
+HAVE_STRINGLIST=0
+HAVE_STRLCAT=0
+HAVE_STRLCPY=0
+HAVE_STRNDUP=1
+HAVE_STRPTIME=1
+HAVE_STRSEP=1
+HAVE_STRTONUM=0
+HAVE_VASPRINTF=1
+# ASCII output only: the image has no UTF-8 locale, and /etc/profile sets
+# LESSCHARSET=latin1
+HAVE_WCHAR=0
