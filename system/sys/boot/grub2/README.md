@@ -11,7 +11,7 @@ GRUB 2.12, platform i386-pc (BIOS), with the patches here.
 | `early.cfg` | Built into core.img: finds the volume with `/boot/grub/grub.cfg`, so one core.img works on any disk or partition. No comments in it: core.img runs it before the normal parser is loaded, and the rescue parser reports `#` as an unknown command |
 | `grub.cfg` | The menu, installed as `/boot/grub/grub.cfg`. Entries `pyro`, `pyro-serial` (kernel log on COM1) and `pyro-pci`. It ends by reading `/boot/grub/custom.cfg` if there is one, for local settings such as `set default=pyro-serial` or `set pyro_root=...` |
 | `theme/theme.txt`, `theme/*.png` | The graphical menu: background, a dark menu panel, an ember-red bar on the selected entry |
-| `pyro-icon.png` | The Pyro flame icon the background is made from |
+| `pyro-icon.svg`, `pyro-icon.png` | The Pyro flame icon (SVG source, and a 1024x1024 PNG of it) that the background is made from. The dock's menu icon, `system/apps/desktop/dock/Syllable.png`, is the same icon at 24x24 |
 | `pyro-boot.png`, `theme/menu_*.png`, `theme/select_*.png` | Made by `make-background.py pyro-icon.png .` (1024x768 background and the 9-slice panel and bar) |
 | `../splash/` | The kernel's boot splash (`splash.img`, installed as `/boot/grub/splash.img` and loaded as a boot module) |
 | `fonts/*.pf2` | DejaVu Sans and Sans Mono (Latin-1 and box drawing), made with `grub-mkfont` |
