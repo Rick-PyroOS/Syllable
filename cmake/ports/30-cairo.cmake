@@ -99,6 +99,7 @@ syllable_port(glib
             --disable-rebuilds
   CACHE ${CMAKE_CURRENT_LIST_DIR}/glib.cache
   SHARED SYSROOT DEPENDS gettext
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libgobject-2.0.so ${SYLLABLE_STAGING}/lib/libglib-2.0.so
   LINKS @bin:/usr/index/bin ${_lib_links})
 
 # The image surface with FreeType/fontconfig fonts, and PNG, PostScript, PDF
@@ -113,6 +114,7 @@ syllable_port(cairo
             --disable-beos --disable-win32 --enable-ft --enable-png --enable-ps --enable-pdf
             --enable-svg --disable-gtk-doc
   SHARED SYSROOT DEPENDS libpng_shared fontconfig
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libcairo.so
   LINKS ${_lib_links})
 
 # pangocairo and pangoft2, with the shaping modules built in (no module
@@ -158,9 +160,12 @@ syllable_port(librsvg
   MAKE_ARGS CFLAGS=-O2 PCPREFIX=/usr/librsvg/2.22.3
             XML_CFLAGS=-I${_xml2}/include/libxml2 "XML_LIBS=-L${_xml2}/lib -lxml2"
   SHARED SYSROOT DEPENDS pango libxml2_shared
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/librsvg-2.so
   LINKS ${_lib_links})
 
-# To link against (the SVG translator): librsvg and what its headers use
+# To link against (the SVG translator): librsvg and what its headers use.
+# Each library here is a BYPRODUCTS of its port above, so that Ninja knows
+# which port makes it in a clean build tree.
 add_library(syllable_librsvg INTERFACE)
 target_include_directories(syllable_librsvg SYSTEM INTERFACE
   ${SYLLABLE_STAGING}/include/librsvg-2 ${SYLLABLE_STAGING}/include/glib-2.0
