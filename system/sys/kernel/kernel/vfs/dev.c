@@ -35,6 +35,7 @@
 
 #include <vfs/vfs.h>
 #include <inc/global.h>
+#include <inc/bootsplash.h>
 
 typedef struct FileNode FileNode_s;
 typedef struct SuperInfo SuperInfo_s;
@@ -488,6 +489,7 @@ static int load_device( Device_s *psDevice )
 		psDevice->d_nMTime = -1;
 	}
 
+	bootsplash_driver_step();
 	nError = pInitFunc( psDevice->d_nDeviceID );
 
 	if ( nError < 0 )

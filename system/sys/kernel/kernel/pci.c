@@ -31,7 +31,6 @@
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -53,7 +52,6 @@ status_t sys_raw_read_pci_config( int nBusNum, int nDevFnc, int nOffset, int nSi
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -74,7 +72,6 @@ status_t sys_raw_write_pci_config( int nBusNum, int nDevFnc, int nOffset, int nS
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -95,7 +92,6 @@ status_t sys_get_pci_info( PCI_Info_s * psInfo, int nIndex )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

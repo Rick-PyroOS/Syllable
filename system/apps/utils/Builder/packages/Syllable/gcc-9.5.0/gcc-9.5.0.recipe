@@ -1,0 +1,80 @@
+authors
+	Kurt Skauen
+	Kaj de Vos
+	Arno Klenke
+	Kristian Van Der Vliet
+	Jake Hamby
+	Rick Caudill
+maintainers			Rick Caudill
+status				developing
+warnings
+	GCC has a circular dependency on GLibC.
+	First hop of the GCC 4.1.2 -> 9.5.0 -> 15 upgrade path; see gcc-upgrade.md.
+	Only the cross build (Syllable-Build-System/toolchain) has been tested so far.
+	std::thread and std::mutex are not available yet: gthr-syllable.h has no C++11 thread support.
+notes
+	The patch carries the regenerated gcc, libgcc and libstdc++-v3 configure scripts, so no AutoConf run is needed.
+	The ABI choices keep binaries compatible with the GCC 4.1.2 built system:
+	SJLJ exceptions, the old (gcc4-compatible) std::string, .ctors instead of .init_array
+	(the kernel loader only runs DT_INIT) and the native "syllable" thread model.
+
+inherits			gnu
+
+licenses			GPL LGPL GFDL
+home				gcc.gnu.org
+packages			gcc/gcc-9.5.0/gcc-9.5.0
+
+needs
+	BinaryUtilities >= 2.35
+	glibc >= 2.7
+build-needs
+	Syllable >= 0.6.6
+;	GCC 9.5 only needs an ISO C++98 host compiler, which 4.1.2 provides:
+	GNU-CompilerCollection >= 4.1.2
+	gmp >= 4.3.2
+	mpfr >= 3.1.0
+	mpc >= 1.0.1
+;	Optional, for Graphite loop optimisations:
+;	isl >= 0.15
+	gawk
+	M4
+	Make >= 3.80
+
+configure-options
+	--enable-languages=c,c++
+	--with-arch=i586
+	--enable-shared
+	--enable-threads=syllable
+	--enable-sjlj-exceptions
+	--with-default-libstdcxx-abi=gcc4-compatible
+	--disable-initfini-array
+	--disable-tls
+	--enable-clocale=generic
+	--with-system-zlib
+	--disable-libstdcxx-pch
+	--disable-bootstrap
+	--disable-multilib
+	--disable-nls
+	--disable-lto
+;	Keep the first build small; these can be enabled one by one later:
+	--disable-libssp
+	--disable-libquadmath
+	--disable-libgomp
+	--disable-libatomic
+	--disable-libitm
+	--disable-libsanitizer
+	--disable-libvtv
+	--disable-libcc1
+
+make-env
+	BOOT_CFLAGS		'-O'
+
+; Needs itself during installation:
+install-env
+	PATH			"$PATH:$STAGE/gcc/programs:$STAGE/bootstrap/gcc/programs:$IMAGE/resources/gcc/programs:/resources/gcc/programs"
+
+links
+	gcc				programs/cc
+	libgcc.a		framework/libraries/gcc/i586-pc-syllable/9.5.0/libgcc_static.a
+;	For WebKit:
+	programs/gcc	/usr/bin/

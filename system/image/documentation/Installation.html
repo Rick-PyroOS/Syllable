@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Syllable Desktop Installation</title>
+	<meta name="author" content="Syllable Project"/>
+	<meta name="description" content="Syllable Desktop installation instructions."/>
+	<meta name="keywords" content="Syllable Desktop, Syllable, desktop, operating system, installation, installation instructions"/>
+	<meta name="generator" content="SpiderSpeak 0.11.11"/>
+	<link href="/documentation/screen.css" rel="stylesheet" type="text/css" media="screen"/>
+</head>
+<body>
+	<div>
+		<br />
+		<br />
+		<table>
+		<tbody>
+			<tr>
+				<td>
+					<a href="http://syllable.org/"><img src="/documentation/Syllable-logo.png" style="border: 0px solid;" alt="[Syllable operating system family]"/></a>
+				</td>
+				<td style="width: 100%; padding-top: 35px">
+					<div style="text-align: center"><h1>Syllable Desktop Installation</h1></div>
+				</td>
+			</tr>
+		</tbody>
+		</table>
+		<h2>Contents</h2> 1.&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#requirements">Will Syllable Run on My Computer?</a><br />
+
+2.&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#installation">Installing Syllable</a><br />
+
+3.&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#bootloader">Configuring the Bootloader</a><br />
+
+3.1 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#bootloader-installation">Installing the Bootloader</a><br />
+
+3.2 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#grub">Notes on GrUB</a><br />
+
+4.&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#first-start">First Boot</a><br />
+
+4.1 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#what-next">What Can I Do Now?</a><br />
+
+4.2 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a href="#troubleshooting">Solving Problems</a><br />
+<br />
+	<table>
+		<tr>
+			<td style="width: 20%; padding: 20px 15px 20px"><div style="text-align: center"></div></td>
+			<td style="padding-bottom: 20px"><a name="requirements"/>
+<h2>1. Will Syllable Run on My Computer?</h2> Syllable is designed to run on modern Intel compatible PC's. At a minimum, your machine must have at least a Pentium compatible processor and 32&nbsp;MB of memory, but a faster processor and 128&nbsp;MB of memory or more will allow Syllable to do more and run faster. Specifically, you need some more than 32&nbsp;MB to use the graphical web browser.<br />
+<br />
+Most common home computer motherboards, video cards and networks cards are supported. Many common sound cards, printers and scanners also work, and some USB devices are also supported. If your particular hardware is not fully supported, it does not mean that your hardware will not work. You can still try to install Syllable; the worst thing that will happen is that it simply will not run. In many cases, it is possible to disable the problematic piece of hardware or operate it in a safe mode.<br />
+<br />
+<a name="installation"/>
+<h2>2. Installing Syllable</h2> Syllable is normally installed from a bootable CD, which is a simple and fairly painless way to install Syllable. You can download a disc image and burn a CD yourself.<br />
+<br />
+The downloadable Syllable CD image is distributed as a <strong>7-Zip</strong>ed <strong>ISO image</strong>. Before you can burn this image to a CD you must first un-7zip it. On Syllable, 7-Zip is included. On Linux or other Unix-like systems such as MacOS X you should make sure that the <a href="http://p7zip.sourceforge.net/">portable version of 7-Zip</a> is installed. Then type this in the terminal program on your system:<br />
+
+	<pre>
+7za x SyllableDesktop-0.6.7.i586.iso.7z
+</pre>
+<br />
+
+On Windows you must use <a href="http://www.7-zip.org/">7-Zip</a> to decompress the 7zip file.<br />
+<br />
+Once you have decompressed the ISO disc image, you must burn it to a CD using your preferred burning software, for example <strong>cdrecord</strong> on Syllable and Linux or Nero on Windows. There are no special requirements for burning the Syllable CD image; it is a standard ISO9660 disc image which any disc burning software will be able to burn.<br />
+<br />
+Once you have burnt Syllable to CD you may boot your computer with it. The CD will start the installation program automatically. Simply follow the instructions to install Syllable to your hard drive.<br />
+<br />
+Once Syllable has been installed to your hard drive you must configure the <strong>GrUB bootloader</strong>. The installation program can do this almost automatically for you, but the following section has extra information.<br />
+<br />
+<a name="bootloader"/>
+<h2>3. Configuring the Bootloader</h2> The next step is to configure and install the bootloader.<br />
+<br />
+First you must tell GrUB where to find the <strong>kernel</strong> and the required disk and file system <strong>drivers</strong> to load before booting Syllable. This information is found in <code>/inst/boot/grub/menu.lst</code> during installation, or just <code>/boot/grub/menu.lst</code> when running the installed system later. If you have other OS's installed on the machine you must either configure GrUB as a boot manager or install another boot manager that can &#8220;chainload&#8221; GrUB from the <strong>AFS partition</strong>.<br />
+<br />
+The <code>menu.lst</code> file should look something roughly like this to boot Syllable from the installation described above:<br />
+
+	<pre>
+title&nbsp; Syllable
+root&nbsp;  (hd0,1)
+kernel /system/kernel.so root=/dev/disk/ata/hda/1
+module /system/config/kernel.cfg
+module /system/drivers/dev/bus/acpi
+module /system/drivers/dev/bus/pci
+module /system/drivers/dev/bus/ata
+module /system/drivers/dev/hcd/ata_pci
+module /system/drivers/fs/afs
+</pre>
+ This will tell GrUB to boot the second partition on the first drive through the <code>root (hd0,1)</code> command and where to find the kernel, the boot <strong>block-device</strong> driver and the boot <strong>file-system</strong> driver on that partition. The <code>root=/dev/disk/ata/hda/1</code> string after the kernel path is a <strong>parameter</strong> that is passed to the kernel and tells what partition to mount as <code>/boot/</code> before continuing to boot.<br />
+<br />
+The kernel can also take a number of other parameters that are given in the same manner after the <code>root</code> parameter. The start menu on the CD offers these parameters as alternative start options. The installation program will copy the selected ones into the installed system, so this is an easy way to install Syllable in a special mode.<br />
+<br />
+If you install Syllable on the second partition on the first drive, the default configuration file is OK. Otherwise you may need to edit the <code>root (<em>disk</em>,<em>partition</em>)</code> line to fit your setup. If you want to boot other OS's with GrUB you must add them to the configuration file as well. For example to boot BeOS or Windows, or most other OS's that have a boot block, you can use the <code>chainloader</code> command like this:<br />
+
+	<pre>
+title BeOS
+chainloader (hd0,3)+1
+</pre>
+ This will add a menu entry titled BeOS that will boot the OS found on the fourth partition on the first disk.<br />
+<br />
+You can also set a timeout in seconds for when to boot the first OS in the list (or the default as set by the <code>default</code> command) with the <code>timeout</code> command:<br />
+
+	<pre>
+timeout 5
+</pre>
+<br />
+
+<a name="bootloader-installation"/>
+<h3>3.1 Installing the Bootloader</h3> The easiest way to install the GrUB bootloader is to let the installation program do it automatically. The following describes how to install the bootloader manually, in case you have special needs. Note that it is not necessary to reinstall the bootloader when you just change the configuration file later.<br />
+<br />
+When done editing the configuration file you must reboot the computer by pressing the <code>Control</code>, <code>Alt</code>, and <code>Delete</code> keys simultaneously. (<strong>Do not hit the reset or power button. This will cause cached data that has not yet been written to the disk to be lost and the installation to be corrupted!</strong>) Boot from the CD again to install the bootloader. This time you should abort GrUB before it boots Syllable by hitting <code>Escape</code> and then hitting <code>C</code> to enter the GrUB shell, from which you can finish the installation.<br />
+<br />
+Now you must decide whether you want to install GrUB in the <em>Master Boot Record</em> (<strong>MBR</strong>) of the first drive and use it as a boot manager (or if Syllable is the only OS on the machine) or if you want to install it on the AFS partition only and use another boot manager to select what OS to boot.<br />
+<br />
+In either case you must tell GrUB where to find the configuration file and the second-stage loader by setting a <code>root</code> partition:<br />
+
+	<pre>
+root (hd0,1)
+</pre>
+ If you did not install Syllable on the second partition on the first disk you must change the parameters accordingly.<br />
+<br />
+Then you must install the bootloader with the <code>setup</code> command.<br />
+<br />
+To install on the MBR of the first drive run:<br />
+
+	<pre>
+setup (hd0)
+</pre>
+<br />
+
+To install it on the AFS partition only, run:<br />
+
+	<pre>
+setup (hd0,1)
+</pre>
+ (Again change the parameters according to your setup.)<br />
+<br />
+Now it should be possible to boot Syllable off the native partition.<br />
+<br />
+<a name="grub"/>
+<h3>3.2 Notes on GrUB</h3> GrUB understands Syllable's AFS filesystem and can boot any kernel located on an AFS partition by changing the <code>kernel</code> line in the configuration file or by manually loading the kernel and required modules from the GrUB shell. There is no need to run any tools to update block lists or anything like that after installing new kernels.<br />
+<br />
+Read the <a href="http://www.gnu.org/software/grub/grub-legacy.html">GrUB documentation</a> and use the <code>help</code> command in the GrUB shell for more information on the bootloader.<br />
+<br />
+<a name="first-start"/>
+<h2>4. First Boot</h2> The first time you boot Syllable it will probe your computer to find drivers for your hardware. If a driver is found which supports some piece of hardware the driver will be loaded automatically.<br />
+<br />
+When all needed drivers are available Syllable will start the graphical user interface. You will see a single window in the centre of the screen with a list of user accounts, a password input field and a <strong>Log-in</strong> button.<br />
+<br />
+Before you will be able to do anything you will have to log in using a user name and a password. The base installation comes with one predefined user, &#8220;root&#8221; (privileged) with the password <code>root</code>. This is the super user and has unrestricted access to the system.<br />
+<br />
+If something went wrong or Syllable failed to boot, please read section 4.2 of this document (<a href="#troubleshooting">Solving Problems</a>).<br />
+<br />
+<a name="what-next"/>
+<h3>4.1 What Can I Do Now?</h3> You should read the Welcome text, which can be found in the following locations:<br />
+<br />
+&nbsp; &nbsp; - <a href="http://web.syllable.org/Desktop/Welcome.html">On-line</a>.<br />
+
+&nbsp; &nbsp; - In Syllable in <a href="file:///documentation/Welcome.html">file:///documentation/Welcome.html</a>, also linked from the desktop.<br />
+<br />
+The Welcome document contains information on Syllable websites, mailing lists, software and hardware and will help you to get started with Syllable.<br />
+<br />
+<a name="troubleshooting"/>
+<h3>4.2 Solving Problems</h3> If Syllable has failed to install or you cannot boot Syllable, there are various places you can try for help and solutions to common problems. Please read the Welcome file; see the previous section of this document (<a href="#what-next">What Can I Do Now?</a>) for more information.<br />
+<br />
+If there is a problem, the first thing you should do is try to narrow it down. What has gone wrong? Did the CD fail to boot? Was Syllable unable to find your hard drive? Did the graphical user interface fail to start? Collect any error messages that you see; these will be useful in helping to solve your problem. Make a note of your hardware (processor and motherboard type, total amount of memory, type of video card).<br />
+<br />
+You should then check the <a href="http://web.syllable.org/documentation/FAQ.html">Frequently Asked Questions</a> (<strong>FAQ</strong>). These provide answers to very common questions concerning Syllable.<br />
+<br />
+If you are sure it is a problem with Syllable check <a href="http://forum.syllable.org/">the forums</a>. Someone may already have had the same problem as you and received a solution!<br />
+<br />
+Finally, if none of those help, ask on the <a href="http://lists.sourceforge.net/lists/listinfo/syllable-developer">Syllable Developer mailing list</a>. You must first subscribe to this list.</td>
+		</tr>
+	</table>
+
+		<br />
+	</div>
+	<div style="text-align: center">	<hr />
+<br />
+
+Copyright &copy; 2002 - 2012 Syllable Project<br />
+
+All Rights Reserved</div>
+</body>
+</html>

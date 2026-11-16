@@ -1,0 +1,3 @@
+# System icons
+install(DIRECTORY ./ DESTINATION system/icons USE_SOURCE_PERMISSIONS
+  PATTERN Makefile EXCLUDE PATTERN CMakeLists.txt EXCLUDE)

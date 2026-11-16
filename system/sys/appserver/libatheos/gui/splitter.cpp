@@ -296,7 +296,6 @@ Splitter::Splitter(const Rect &cFrame, const std::string &cTitle,
 * \par Notes:
 * You should call this method when you change the subviews frame.
 * \par Warning:
-* \param  
 * \return
 * \sa
 * \bug
@@ -510,7 +509,6 @@ void Splitter::SetSplitLimits(float fMinSize1=0, float fMinSize2=0)
 * want to place icons on the separator.
 * \par Notes:
 * \par Warning:
-* \param
 * \return
 * \sa
 * \bug
@@ -527,7 +525,6 @@ View* Splitter::SeparatorView()
 * Return the separator position 
 * \par Notes:
 * \par Warning:
-* \param
 * \return the top(left) view height(width)
 * \sa
 * \bug
@@ -547,7 +544,6 @@ float Splitter::GetSplitPosition()
 * \par Description:
 * \par Notes:
 * \par Warning:
-* \param
 * \return
 * \sa
 * \bug
@@ -565,7 +561,6 @@ float Splitter::GetSeparatorWidth()
 * The layout is automatically refreshed.
 * \par Notes:
 * \par Warning:
-* \param
 * \return
 * \sa
 * \bug

@@ -39,7 +39,6 @@ static status_t find_rom( void );
  * \par Description: Used PCI info struct to determine the device type
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Dee Sharpe (demetrioussharpe@netscape.net)
@@ -110,7 +109,6 @@ int get_pci_device_type( PCI_Info_s* psInfo )
  * \par Description: Used PCI info struct to access an address stored in a base address register
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Dee Sharpe (demetrioussharpe@netscape.net)

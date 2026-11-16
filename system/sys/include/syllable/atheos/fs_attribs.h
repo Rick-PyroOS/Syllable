@@ -20,8 +20,13 @@
 #ifndef __F_FS_ATTRIBS_H__
 #define __F_FS_ATTRIBS_H__
 
+/* Userland only (added for libsyllable): the kernel gets its types from
+ * kernel/types.h, and glibc's <sys/types.h> conflicts with them (nlink_t,
+ * sigset_t).  Released Syllable's header had neither include. */
+#ifndef __KERNEL__
 #include <atheos/types.h>
 #include <sys/types.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

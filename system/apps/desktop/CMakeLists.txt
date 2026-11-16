@@ -1,0 +1,6 @@
+add_subdirectory(desktop)
+add_subdirectory(dock)
+add_subdirectory(dock_plugins)
+add_subdirectory(file_browser)
+add_subdirectory(file_browser2)
+add_subdirectory(assistant)

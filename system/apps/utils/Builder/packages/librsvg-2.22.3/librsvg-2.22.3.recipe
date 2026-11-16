@@ -1,0 +1,25 @@
+authors				Rick Caudill
+status				testing
+
+headline			SVG rendering library
+description
+	librsvg renders Scalable Vector Graphics (SVG) with cairo, and Pango for text. On Syllable it is built without GTK+: a small GdkPixbuf stand-in (gdk-pixbuf.c) provides the pixel buffers librsvg uses, and embedded raster images (<image>) are not loaded. Used by the SVG translator (system/sys/translators/svg).
+licenses			LGPL-2
+
+home				librsvg.sourceforge.net
+locations			https://download.gnome.org/sources/librsvg/2.22/
+
+needs
+	GLib >= 2.12
+	Cairo >= 1.2
+	Pango >= 1.10
+	LibraryXML2 >= 2.4.7
+	FontConfigure
+
+; No configure (it requires gdk-pixbuf-2.0): patches/Makefile and
+; patches/config.h build the library.
+configure-cmd		true
+install-prefix-var	prefix
+
+documentation
+	README COPYING COPYING.LIB NEWS ChangeLog AUTHORS

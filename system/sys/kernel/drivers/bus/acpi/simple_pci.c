@@ -47,7 +47,6 @@ SpinLock_s g_sPCILock = INIT_SPIN_LOCK( "simple_pci_lock" );
  * \par Description: Checks wether a PCI bus is present and selects the access ethod
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

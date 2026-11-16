@@ -53,7 +53,6 @@ SpinLock_s g_sPCILock = INIT_SPIN_LOCK( "pci_lock" );
  * \par Description: Checks wether a PCI bus is present and selects the access ethod
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -579,7 +578,6 @@ uint8 get_pci_capability( int nBusNum, int nDevNum, int nFncNum, uint8 nCapID )
  * \par Description: Scans one bus for PCI devices.
  * \par Note: It is used recursive when PCI bridges are detected.
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Arno Klenke (arno_klenke@yahoo.de)
@@ -705,7 +703,6 @@ void pci_scan_bus( int nBusNum, int nBridgeFrom, int nBusDev )
  * \par Description: Called to scan for pci devices.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Arno Klenke (arno_klenke@yahoo.de)
@@ -834,7 +831,6 @@ void *pci_bus_get_hooks( int nVersion )
  * \par Description: Initialize the pci busmanager.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

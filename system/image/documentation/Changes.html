@@ -1,0 +1,515 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Syllable Desktop Change Log</title>
+	<meta name="author" content="Kaj de Vos"/>
+	<meta name="description" content="Syllable Desktop change log."/>
+	<meta name="keywords" content="Syllable Desktop, Syllable, desktop, operating system, changes, change log"/>
+	<meta name="generator" content="SpiderSpeak 0.11.11"/>
+	<link href="/documentation/screen.css" rel="stylesheet" type="text/css" media="screen"/>
+</head>
+<body>
+	<div>
+		<br />
+		<br />
+		<table>
+		<tbody>
+			<tr>
+				<td>
+					<a href="http://syllable.org/"><img src="/documentation/Syllable-logo.png" style="border: 0px solid;" alt="[Syllable operating system family]"/></a>
+				</td>
+				<td style="width: 100%; padding-top: 35px">
+					<div style="text-align: center"><h1>Syllable Desktop Change Log</h1></div>
+				</td>
+			</tr>
+		</tbody>
+		</table>
+		<h2>History</h2> <a href="#Desktop-0.6.7">Syllable Desktop 0.6.7</a><br />
+
+&nbsp; &nbsp; <a href="#documentation-0.6.7">Documentation</a><br />
+
+&nbsp; &nbsp; <a href="#installation-0.6.7">Installation</a><br />
+
+&nbsp; &nbsp; <a href="#security-0.6.7">Security</a><br />
+
+&nbsp; &nbsp; <a href="#desktop-0.6.7">Desktop Environment</a><br />
+
+&nbsp; &nbsp; <a href="#command-line-0.6.7">Command Line Environment</a><br />
+
+&nbsp; &nbsp; <a href="#applications-0.6.7">Graphical Applications</a><br />
+
+&nbsp; &nbsp; <a href="#packages-0.6.7">Resource Packages</a><br />
+
+&nbsp; &nbsp; <a href="#multimedia-0.6.7">Multimedia</a><br />
+
+&nbsp; &nbsp; <a href="#server-0.6.7">Server Functionality</a><br />
+
+&nbsp; &nbsp; <a href="#LibSyllable-0.6.7">LibSyllable</a><br />
+
+&nbsp; &nbsp; <a href="#kernel-0.6.7">Kernel</a><br />
+
+&nbsp; &nbsp; <a href="#drivers-0.6.7">Drivers</a><br />
+
+&nbsp; &nbsp; <a href="#structure-0.6.7">System Structure</a><br />
+
+&nbsp; &nbsp; <a href="#programming-0.6.7">Programming</a><br />
+<br />
+	<table>
+		<tr>
+			<td style="width: 20%; padding: 20px 15px 20px"><div style="text-align: center"></div></td>
+			<td style="padding-bottom: 20px"><a name="Desktop-0.6.7"/>
+<h2>Syllable Desktop 0.6.7</h2> Kaj de Vos, 10 April 2012<br />
+<br />
+	<br />
+This release is dedicated to the memory of Jack Tramiel, <a href="http://www.forbes.com/sites/davidthier/2012/04/09/computer-legend-and-gaming-pioneer-jack-tramiel-dies-at-age-83/">who passed away</a> when I was making the finishing touches to this document. He was dealt hard blows in life and always recovered. I will never forget how he saved Atari from bankruptcy and orchestrated their comeback.<br />
+<br />
+	<br />
+We are happy and proud to present this new Syllable version. We thank all of the volunteers who contributed to this release for their generous efforts. Most of the work that went into this version was done by Kristian Van Der Vliet, Anthony Morphett and Kaj de Vos. Other contributors are mentioned with their contributions.<br />
+<br />
+The highlights of this release include:<br />
+<br />
+- <a href="#documentation-0.6.7">Improved documentation</a>.<br />
+<br />
+- <a href="#installation-0.6.7">Improved installation</a>, with support for specific configurations such as the <strong>Asus EeePC</strong>.<br />
+<br />
+- The system is much more usable with a keyboard. <a href="#installation-0.6.7">Installation</a> and <a href="#desktop-0.6.7">log-in</a> can now be completed without a mouse.<br />
+<br />
+- <a href="#desktop-0.6.7">Auto-login</a>: you can set a user account to log in automatically without entering a password.<br />
+<br />
+- <strong>POSIX</strong> interfaces for <strong>memory mapped</strong> and <strong>async I/O</strong> implemented <a href="#kernel-0.6.7">in the kernel</a>.<br />
+<br />
+- <a href="#drivers-0.6.7">Improved support</a> for <strong>Intel eepro100</strong> network driver and <strong>Intellipoint PS/2</strong> mice.<br />
+<br />
+- Improved native <a href="#applications-0.6.7">applications</a>. The <strong>web browser</strong> was fixed to remember cookies again. An <strong>FTP client</strong> was added.<br />
+<br />
+- <a href="#multimedia-0.6.7">Improved support</a> for <strong>SDL</strong> programs. Almost hundred SDL programs that &#8220;Bogomips&#8221; ported can now be used without extending the system:<br />
+<br />
+&nbsp; &nbsp; <a href="http://sites.google.com/site/syllablesoftware/">sites.google.com/site/syllablesoftware/</a><br />
+<br />
+- <a href="#multimedia-0.6.7">Upgraded multimedia</a> support. <strong>Flash</strong> videos can now be played.<br />
+<br />
+- <a href="#multimedia-0.6.7">First 3D support</a> implemented, through porting of <strong>Mesa3D</strong> and <strong>PicoGL</strong>.<br />
+<br />
+- <strong>QEmu</strong> now included for <a href="#packages-0.6.7">running Virtual Machines</a>, with improved performance due to memory mapped and async I/O.<br />
+<br />
+- <strong>SaMBa</strong> now included for <a href="#packages-0.6.7">Windows compatible networking</a>.<br />
+<br />
+- The server part of <strong>OpenSSH</strong> now works for <a href="#server-0.6.7">remote access</a> to Syllable.<br />
+<br />
+- <strong>SQLite</strong> now included and <strong>Fossil</strong> <a href="#packages-0.6.7">version control system</a> ported.<br />
+<br />
+- <a href="#structure-0.6.7">System restructuring</a> to make it more user friendly.<br />
+<br />
+- <strong>REBOL&nbsp;3</strong> and <strong>Boron</strong> now included <a href="#programming-0.6.7">for programming</a>.<br />
+<br />
+This release has been a long time in the making. Of course it is good to have regular releases, as Syllable had in the past, but we are a volunteer organisation, so we need to make do with limited means. A lot of work is needed to make a release, and we need to fit that into our lifes. Along the way, we lost our release engineer and build infrastructure. This is an intermediate release in the process of replacing them.<br />
+<br />
+To make it easier for us to make this release, its scope is limited. It is not based on the latest source code in CVS, but on the previous development build, which had been tested for a long time, with many fixes and additions made to it. Building from the latest source would have meant a series of extra issues to fix and test. Due to this decision, no separate <strong>source</strong> package is available for this release. It can be constructed from <strong>Syllable CVS</strong>, but we currently don't have the resources to do it. The next release will have a separate source package again. At the time of writing, there is no package to <strong>upgrade</strong> from Syllable&nbsp;0.6.6. The <strong>live CD</strong> and <strong>API</strong> documentation have not been updated, but will probably be released later, as time permits. Sadly, Lulu.com has stopped producing CD's, so there is no <strong>Premium CD</strong> anymore, either. We are looking into replacing it.<br />
+<br />
+Syllable&nbsp;0.6.6 was a good release, so there wasn't an urgent need to replace it. We are making this release now to prepare for several future developments. The system is in a transition state in several ways. Syllable&nbsp;0.6.6 was a stable base to work on, so we need to move to a new stable state, with as little disruption as possible. In the past, new Syllable releases suffered from too many regressions. We want to minimise those. We made a new development release two months before this release and tested it quite heavily. No problems were reported and we fixed all the regressions compared to Syllable&nbsp;0.6.6 that we could find.<br />
+<br />
+The structure of the system and software packages are being reorganised, to make them easier to understand. During this migration, both the old and new package structures need to be supported. Resource packages built according to the new structure on Syllable&nbsp;0.6.7 will not be compatible with older releases. Further, the system now supports the POSIX <code>mmap</code> interface for memory mapped I/O, which is used by a number of third-party packages, including <strong>GCC</strong>. To port newer versions of GCC, we need to move to this new Syllable release, and to complete these various migrations, software packages need to be rebuilt on this new Syllable on a new <strong>toolchain</strong>. This release constitutes the migration path between these configurations, including several one-off measures that will only be needed during the migration.<br />
+<br />
+We also need this release to prepare for the upcoming high-level <a href="http://www.red-lang.org/">Red programming language</a>. Its memory allocator uses <code>mmap</code> on POSIX systems. In the past year we made <strong>Red/System</strong> fully support Syllable, and now Syllable should be prepared to support <strong>Red</strong>.<br />
+<br />
+<a name="documentation-0.6.7"/>
+<h3>Documentation</h3> The base documentation for the system was overhauled, updated and cleaned up. Several documents were converted from plain text to <strong>HTML</strong> format, including these release notes and the installation manual. This fixes <strong>Unicode</strong> encoding issues when displaying the <strong>Russian</strong> and <strong>German</strong> versions, particularly from our web sites. A new style was applied to them that is easier to read, and being HTML, they now have clickable tables of contents and other links. These release notes are now included in the system.<br />
+<br />
+Some documents are still in transition to this new format, particularly the translated versions.<br />
+<br />
+<a name="installation-0.6.7"/>
+<h3>Installation</h3> Anthony has <a href="http://forum.syllable.org/viewtopic.php?t=1346">implemented keyboard navigation</a> in <strong>Disk Manager</strong>. This means you will be able to install Syllable without using a mouse, in case the installation CD has problems with it. To do this, Anthony had to make <a href="http://forum.syllable.org/viewtopic.php?t=1393">fixes to keyboard handling</a> in <strong>LibSyllable View</strong>s. This will also improve keyboard use in other applications.<br />
+<br />
+	<br />
+The start-up menu was further extended to help with specific installation environments and incompatible hardware.<br />
+<br />
+The options for IDE and USB CD players were merged, so that the troubleshooting options can now also be tried with a <strong>USB CD</strong> player. A specific installation option was added for <strong>ASUS EeePC</strong> netbooks. The EeePC requires compensation for its shifting of drive positions, which is now performed by the installer. This was tested for us by Hans Rood on the Summer SylCon. There are now more safe mode options for troubleshooting, such as an option to fully remove the USB&nbsp;2 driver, which is buggy on some systems. The original <strong>Acer Aspire One</strong> netbook was tested to work for us by Ruud Kuin, when disabling <strong>ACPI</strong>.<br />
+<br />
+Added extra boot menu option to remove the buggy <strong>EHCI USB&nbsp;2</strong> driver. The installer also removes it for EeePC.<br />
+<br />
+Added extra boot menu option and boot parameter for <strong>SATA</strong> configurations that shift drive numbers.<br />
+
+Extended installer to compensate for drive number swapping and shifting on EeePC and some SATA configurations.<br />
+<br />
+Experimental installation options were added for installing from and to <strong>USB memory</strong> sticks. These don't work yet, because Syllable doesn't start from USB devices other than CD players yet, but <a href="http://forum.syllable.org/viewtopic.php?t=1503">this is being worked on</a>. Apart from Syllable's own <strong>AFS</strong> format, there's an option for starting from USB memory formatted with Linux's <strong>Ext2FS</strong> file system. Installing to USB is still unreliable on Syllable, so the Ext2FS option allows to experiment with creating a USB installation medium from Linux.<br />
+<br />
+Work on the boot menu:<br />
+
+&nbsp; &nbsp; - Added option without <strong>AGP</strong>.<br />
+
+&nbsp; &nbsp; - Added USB drivers to most options, so they can be used with both ATAPI and USB CD drives.<br />
+
+&nbsp; &nbsp; &nbsp; Left a failsafe option without early loading of USB drivers.<br />
+
+&nbsp; &nbsp; - Split off <strong>Virtual Machine</strong> options and <strong>failsafe</strong> options into separate submenus.<br />
+
+&nbsp; &nbsp; - Added <code>eeepc=true</code> kernel parameter to EeePC option, so the installer can act on it.<br />
+
+&nbsp; &nbsp; - Added experimental option to boot from Ext2FS formatted USB media.<br />
+
+&nbsp; &nbsp; - Clarified descriptions of several options.<br />
+<br />
+<a name="security-0.6.7"/>
+<h3>Security</h3> The super-user group was renamed from the traditional Unix name &#8220;root&#8221; to &#8220;system&#8221;. In this release, the super-user account is still named &#8220;root&#8221; but in a future release this will also be renamed to &#8220;system&#8221;. This is more meaningful to common people and also increases security somewhat by protecting against attacks by the user name &#8220;root&#8221; instead of user ID&nbsp;0.<br />
+<br />
+A default user account named &#8220;administrator&#8221; was created to signal to the user that this is the account for doing system administration. This way, the roles of the super-user account for running system processes and for logging in to do administration tasks are clearly separated. The default password of the administrator account is <code>root</code>. Of course, this is a known password and you should change it after installation of the system. Best practice is still to create an extra user account for normal operation, to separate access privileges in the system.<br />
+<br />
+To match the administrator user account, there is a new group named &#8220;administrators&#8221;.<br />
+<br />
+<a name="desktop-0.6.7"/>
+<h3>Desktop Environment</h3> The system is now preconfigured with multiple <strong>screen resolutions</strong>, which can be switched at a key press by going to different virtual desktops. The default resolution on the first desktop is more usable than before.<br />
+<br />
+The <strong>Blue</strong> window decorator, by John Aspras and Arno Klenke, is now set as default. Its larger window border and buttons work better on the higher resolution displays that are now common, especially when the physical screen is smaller, such as on mobile devices.<br />
+<br />
+Definitions for many common <strong>file types</strong> were added, so you can click such files to open them in their associated application.<br />
+<br />
+Made the log-in app fully <strong>keyboard</strong> navigable.<br />
+<br />
+	<br />
+Anthony has <a href="http://forum.syllable.org/viewtopic.php?t=777">implemented auto-login</a>. You can now go into the <strong>Users &#x26; Groups</strong> preferences and set a user account to log in automatically, without going through the password dialog.<br />
+<br />
+Implemented auto-login in the login app and Users &#x26; Groups preferences.<br />
+
+Added GUI for auto-login. UI improvements for auto-login preferences.<br />
+
+Cosmetic fixes for <code>dlogin</code>.<br />
+<br />
+New settings location for login app settings and auto-login configuration. Made login app save more settings including per-user keymaps.<br />
+<br />
+	<br />
+Added filter to hide system users and groups in Users &#x26; Groups preferences.<br />
+
+Added <strong>Show system users/groups</strong> checkboxes to Users &#x26; Groups preferences.<br />
+<br />
+<a name="command-line-0.6.7"/>
+<h3>Command Line Environment</h3> The quality of terminal emulation in the <strong>Terminal</strong> application has suffered from regressions over the years.<br />
+<br />
+Changed terminal type to <code>xterm-old</code>, which works somewhat less badly. Tested by Rui Caridade.<br />
+<br />
+<a name="applications-0.6.7"/>
+<h3>Graphical Applications</h3> Applications were moved to more functional names. While this is a tad boring, it reduces confusion for new users trying to learn the system and the function of applications. Only the launch names were changed, not the display names of applications once they are started.<br />
+<br />
+The <strong>Webster</strong> web browser that was new in Syllable&nbsp;0.6.6 fails to remember cookies, because it tries to store them in the location for the old ABrowse browser that it succeeded. This release has a newer version that fixes this, which was already on the Syllable&nbsp;0.6.6 live CD. You need it for example to make web sites remember your log-in status.<br />
+<br />
+<a href="http://forum.syllable.org/pmwiki/pmwiki.php?n=Projects.FTPClient">File Transferrer</a> was added, our <strong>FTP client</strong> application. Anthony has made a number of fixes to the functionality and the appearance, and has integrated work from contributors. This is originally our <a href="http://forum.syllable.org/pmwiki/">community project</a>. The application is not done yet, but it is becoming usable for your downloading pleasure, and your uploads if you are so inclined.<br />
+<br />
+Several applications from the sIDE development collection that are useful outside of programming were added to the base system. <strong>Code Editor</strong> (Sourcery) as an advanced text editor, <strong>Translation Editor</strong> for editing program translations and <strong>Event Viewer</strong> for showing available system events.<br />
+<br />
+Several classic Syllable demos were added: <strong>Double Buffering</strong> (moving objects without flickering), <strong>Eyes</strong> (eyes following the mouse cursor) and <strong>Stars</strong> (scrolling star field).<br />
+<br />
+The new <strong>PicoGL</strong> package includes several classic <strong>3D</strong> animation demos: <strong>Cube</strong> (spinning solid cube with texture), <strong>Gears</strong> (spinning gears), <strong>Mech</strong> (walking mechanical robot), <strong>Spin</strong> (spinning wire-frame box) and <strong>Texture</strong> (spinning textures).<br />
+<br />
+Made the disk partitioner fully keyboard navigable.<br />
+<br />
+Patches for <strong>Settings Editor</strong> from John Aspras.<br />
+<br />
+<a name="packages-0.6.7"/>
+<h3>Resource Packages</h3> Most packages in the system were upgraded, including key components such as <strong>Packager</strong>, <strong>FFMPEG</strong>, <strong>FreeType</strong>, <strong>BASh</strong> and <strong>NCurses</strong>. Other important packages such as <strong>OpenSSH</strong> and <strong>Transmission</strong> were also updated.<br />
+<br />
+<strong>OpenSSL</strong>, <strong>ReadLine</strong> and <strong>LibJPEG</strong> are now shared libraries included in separate packages, instead of statically compiled into the programs that use them.<br />
+<br />
+The collection of well-known root certificates from <em>Certification Authorities</em> was upgraded from the <strong>Debian CA Certificates</strong> collection to the <strong>LFS Mozilla CA Bundle</strong> collection. CA-Certificates has too much Debian specific machinery to get the certificates in the needed form.<br />
+<br />
+<strong>XZ-Utils</strong> was ported to Syllable, providing the same <strong>LZMA</strong> compression as in 7-Zip, but in a different format that is becoming popular, and is better integrated with POSIX systems. <strong>TAr</strong> was upgraded and this version has support for XZ-Utils. Compression of the development files pack was changed from 7-Zip to XZ format.<br />
+<br />
+<strong>QEmu</strong> was added, so you can run other operating systems or test versions of Syllable as <em>Virtual Machines</em> out of the box.<br />
+<br />
+<strong>SaMBa</strong> was added, so you can connect to Windows machines over the network, or to other machines running a Windows network. You can use the <code>smbclient</code> program from the command line to access files on other machines, or you can activate the SaMBa server to make files of your choice available to the network.<br />
+<br />
+<strong>Fossil</strong> and the latest version of <strong>SQLite</strong> were ported to Syllable. Recent SQLite versions work again thanks to file locking fixes in the Syllable kernel. Some stability problems were observed in the Fossil port, so it is still experimental.<br />
+<br />
+<a name="multimedia-0.6.7"/>
+<h3>Multimedia</h3> The <strong>FFMPEG</strong> codecs collection was updated to version 0.5.0. The Syllable media framework needed to be adapted to match. As a result, the <strong>Media Player</strong> can now play <strong>Flash</strong> videos.<br />
+<br />
+	<br />
+&#8220;Bogomips&#8221; found that the <strong>SDL</strong> subsystem didn't support <strong>PNG</strong> images yet. We tracked the problem to the <strong>SDL-Image</strong> component and found <strong>TIFF</strong> image support missing, as well. Oddly, even though JPEG (and GIF) images already worked, the fix required making <strong>LibJPEG</strong> a shared library. Fixed versions of SDL-Image and LibJPEG are included.<br />
+<br />
+SDL-Image configure didn't detect LibPNG and LibTIFF, so it didn't have support for PNG and TIFF images. The configuration has been extended to fix this. The only way I got the new combination to work was by making the LibJPEG library dynamic. There are some combinations left that could be tested, for example in case the problem is with LibTIFF, that is now being used and uses LibJPEG itself. However, this debugging takes a lot of time, and I have always thought that forcing the popular image libraries in the system to be static libraries may be a bridge too far. LibJPEG is used in several places in the base system, so making it dynamic is the most straigthforward solution, and also makes the system more efficient.<br />
+<br />
+	<br />
+Kaj ported the latest version of <strong>Mesa3D</strong>. Kaj and &#8220;Bogomips&#8221; ported <strong>PicoGL</strong>. This means the first <strong>3D</strong> functionality is now available in Syllable. Previous attempts at porting Mesa3D long ago were never completed. It has a new graphics architecture now, so a Syllable driver for these old versions does not work anymore. Therefore, Mesa3D currently only provides <strong>off-screen rendering</strong>. However, PicoGL is built on <strong>SDL</strong>, so programs written for PicoGL can render directly to the screen. Several demos are included.<br />
+<br />
+<a name="server-0.6.7"/>
+<h3>Server Functionality</h3> Configurations, including initialisation scripts, were added for the <strong>OpenSSH</strong> remote access server, the <strong>SaMBa</strong> Windows-compatible file server and the <strong>Fossil</strong> version-control file server. To activate one of the servers, edit its start-up script in <code>/resources/index/tasks/start/</code> and uncomment the line that activates the server, according to the instructions there. After that, the server will be started on each system start-up.<br />
+<br />
+	<br />
+After many years of trying by several people, Kaj collected their hints and got the server part of <strong>OpenSSH</strong> to work. The integration into Syllable Desktop is based on earlier integration into Syllable Server of the system configuration needed for the OpenSSH server. Kristian implemented the <code>socketpair</code> function in Syllable&nbsp;0.6.6 to support OpenSSH, although this currently still needs to be disabled. Michael Pavone and Adam Kirchhoff supplied and tested several other options that need to be disabled to get the server running and stable.<br />
+<br />
+Unique encryption keys for OpenSSH that identify your system were already generated at the first start-up of your Syllable installation.<br />
+<br />
+<a name="LibSyllable-0.6.7"/>
+<h3>LibSyllable</h3> <code>IconView</code> key handling bugfix.<br />
+<br />
+Keyboard navigation improvements for compound views such as <code>os::Spinner</code> and <code>DropdownMenu</code>.<br />
+<br />
+<a name="kernel-0.6.7"/>
+<h3>Kernel</h3> POSIX interfaces for memory mapped and asynchronous input/output were implemented. Bugs in <strong>file locking</strong> and <strong>random number generation</strong> were fixed.<br />
+<br />
+Fixed <code>/dev/random</code>. It was throwing away 24 bits of each call to <code>rand()</code> (<code>rand() % 256</code>) which seriously compromised the result to the caller.<br />
+<br />
+<code>flock.c/lock_inode_record()</code>: Do not return <code>EWOULDBLOCK</code> if the caller is replacing a lock it already owns, which is obviously a non-blocking call.<br />
+<br />
+	<br />
+Kristian has implemented <strong>asynchronous input/output</strong>. This has been tested with QEmu, which shows increased performance both due to this and the also new implementation of memory-mapped files.<br />
+<br />
+Async I/O is implemented as a native <strong>POSIX</strong> interface. The available functions are <code>aio_read()</code> and <code>aio_write()</code>. In addition, the asynchronous case for <code>msync()</code> in memory-mapped files is now supported. In Syllable&nbsp;0.6.6, async I/O was simulated in the GNU C library and executed synchronously. This was enough to make QEmu work, but now async I/O is actually implemented through a <strong>syscall</strong> kernel interface.<br />
+<br />
+Originally, Syllable relied solely on pervasive multithreading for its exceptional responsiveness. Several years ago, a new scheduler was introduced that is more suitable to desktop use than the original round-robin scheduler. Async I/O further enhances responsiveness in ported applications that use it.<br />
+<br />
+Implemented async I/O support:<br />
+
+&nbsp; &nbsp; - <code>aio_read()</code> &#x26; <code>aio_write()</code> are supported via a generic interface (<code>sys_aio_request()</code>).<br />
+
+&nbsp; &nbsp; - <code>msync()</code> <code>MS_ASYNC</code> is now supported via the async I/O backend.<br />
+<br />
+	<br />
+Kristian has implemented the <strong>POSIX</strong> interface for <strong>memory-mapped input/output</strong>. Ever more third-party <a href="http://forum.syllable.org/viewtopic.php?t=1372">software requires this</a> functionality. Both the interfaces for memory-backed <strong>files</strong> and <strong>anonymous</strong> memory maps are supported. Syllable has always used memory-mapped files for its in-kernel ELF loader, so the POSIX interface is implemented on top of this. Several components in the system make use of <code>mmap</code> now.<br />
+<br />
+The <code>mmap()</code>, <code>munmap()</code>, <code>mprotect()</code> and <code>msync()</code> functions are implemented. In the process, Kristian fixed some bugs in the underlying memory management implementation in the kernel. One of the next planned implementations of standard interfaces is async I/O, among other things for completing the <code>mmap</code> support. Further, it was determined that the time is nearing that the syscall interface needs to change from <code>int 0x80</code> to <code>SYSENTER/SYSCALL</code>. <code>mmap()</code> is the kernel's first syscall with six arguments, requiring extensions to the syscall table and <code>strace()</code>. The newer <code>SYSENTER</code> interface is needed to fully support this and 64-bits arguments, also for a future 64-bits port of Syllable.<br />
+<br />
+There is a tendency in much open source software in recent years to require advanced features of the host platform, that are only available on the major systems; sometimes only on Linux. This is problematic for alternative operating systems and undermines the portability of open source and the diversity and choice of platforms. Through the addition of the <code>mmap</code> interface, we hope to gain access to such software as <strong>GCC</strong> beyond the 4.1 versions, Gnash, Cherokee and maybe PostgreSQL. Software that will perform better includes <strong>FreeType</strong>, <strong>SDL</strong> and <strong>DOSBox</strong>.<br />
+<br />
+Implemented <code>mmap()</code>, <code>mprotect()</code>, <code>msync()</code> &#x26; <code>munmap()</code>:<br />
+
+&nbsp; &nbsp; - Both anonymous and file-backed maps are supported by <code>mmap()</code>.<br />
+
+&nbsp; &nbsp; - <code>MAP_PRIVATE</code> is unsupported.<br />
+
+&nbsp; &nbsp; - <code>mmap()</code> on anything other than &#8220;normal&#8221; files are not yet supported.<br />
+
+&nbsp; &nbsp; - <code>MS_ASYNC</code> (async <code>msync()</code>) is not yet supported and the sync is performed synchronously.<br />
+<br />
+<code>areas.c/modify_area_pages()</code>: Modify all PTEs for a given area with new PTE flags derived from the area protection flags.<br />
+<br />
+<code>pagefault.c/load_area_page()</code>: Fixed to check the area protection flags for the faulting page before it either creates a COW page or loading a new page from disc: attempts to write an area which has been created without the <code>AREA_WRITE</code> flag will now generate a <code>SIGSEGV</code>; attempts to read or write a page which has neither <code>AREA_READ</code> &#x26; <code>AREA_WRITE</code> flags will also generate a <code>SIGSEGV</code>.<br />
+<br />
+<a name="drivers-0.6.7"/>
+<h3>Drivers</h3> Fixed support for <strong>Intellipoint mice</strong> by completing the switching to <strong>IMPS2</strong> protocol. Patch by Evgeniy Philippov for Defender <strong>PS/2</strong> mouse. This was probably a regression because IMPS2 support was added long ago.<br />
+<br />
+Added another OEM <strong>PCI ID</strong> to the <code>eepro100</code> network driver. From Andy Shissler.<br />
+
+Added an extra PCI ID to the <code>eepro100</code> network driver for <strong>HP</strong> laptops. Patch from Carlos Pizarro.<br />
+<br />
+Added chip-specific controller drivers for the <strong>AGP</strong> bus driver, for <strong>Nvidia</strong>, <strong>Ali</strong> and <strong>Sis</strong> chips, from Dee Sharpe. The <strong>Via</strong> driver is waiting for a fix to memory management in the AGP bus manager.<br />
+<br />
+	<br />
+Implemented <code>O_DIRECT</code> support in <strong>AFS</strong>:<br />
+
+&nbsp; &nbsp; - Added <code>maybe_cached_read()</code> and <code>maybe_cached_write()</code> to the block cache.<br />
+
+&nbsp; &nbsp; - Added the <code>MNTF_DIRECT</code> flag, which tells the filesystem to open the device (or file) with the <code>O_DIRECT</code> flag.<br />
+<br />
+Removed the old <code>MNTF_SLOW_DEVICE</code> flag.<br />
+<br />
+<a name="structure-0.6.7"/>
+<h3>System Structure</h3> Syllable is an operating system with a high degree of compatibility with the <strong>POSIX</strong> standards and de facto conventions in <strong>Unix</strong> systems and <strong>Linux</strong> distributions. This is a double edged sword. It makes it much easier to get existing third-party software to run on Syllable, but it also burdens us with ancient methods from the beginning of computing that have partly lost their meaning. One example is the layout and naming of files in the system and in additional software packages. We have always tried to strike a balance between following conventions and inventing more modern and user friendly methods. With a decade of experience, we have gathered the confidence to make a number of extra steps towards more user friendly structures, with as little disruption to compatibility as possible.<br />
+<br />
+Instead of trying to shield people from the workings of their system, we want them to be able to go into the directories of the system or a separate package just with a <strong>filer</strong>, and be able to make some sense out of the files there and find what they are looking for. To that end, we are introducing a series of new measures to rename and move subdirectories that often form the starting point for searches for information.<br />
+<br />
+The system tools <strong>Packager</strong> and <strong>Builder</strong> were further developed to support these restructurings, among other things to improve the use of symlinking for package registration. Packager is included in the system, but Builder needs to be installed as part of the <strong>Developer's Delight</strong> package, if you want to compile software yourself. When Builder is installed on Syllable&nbsp;0.6.6, an older version is used that is still compatible with the older system structures. The <code>Syllable</code> branch in <code>Builder/packages/</code> is also still largely compatible with Syllable&nbsp;0.6.6, so that some packages can still be built on older systems. After the release of Syllable&nbsp;0.6.7, Builder and its recipe tree will be updated to the latest versions, using the new structures.<br />
+<br />
+Graphical programs that, besides the desktop menu, also need to be available from the command line are now kept in the search path locations and symlinked from <code>/Applications/</code>. Previously, this was usually done the other way around, but that meant that the program in <code>/Applications/</code> couldn't be moved.<br />
+<br />
+Packages are in the process of moving to clearer names for their main package directory. Instead of the traditional, short, lowercase names that are confusing to common people, common typographical standards are now being used. Resource packages have project names, which are <strong>proper names</strong>, so they are capitalised. <strong>Generic terms</strong> remain lowercased. When names consist of multiple words, <strong>CamelCase</strong> is used to avoid spaces. When uppercase abbreviations would lead to words of only capitals being concatenated, <strong>hyphens</strong> are used for more clarity. <strong>Abbreviations</strong> are expanded when they don't take too much space; roughly <strong>twenty</strong> characters maximum. Exceptions can be made to keep names recognisable to people who already know the short names, and to keep them roughly in the same place in alphabetical order. Around half the resource packages in the system are currently renamed.<br />
+<br />
+	<br />
+The internal structure of resource packages is in the process of being heavily reorganised, doing away with the traditional Unix naming that is confusing and has lost its meaning over time. The structure of the symlink pools has changed accordingly. Subdirectories are being moved and renamed thus:<br />
+
+	<pre>
+etc&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  -&gt; settings
+bin&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  -&gt; programs
+sbin&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; -&gt; system-programs
+libexec&nbsp; &nbsp; &nbsp; &nbsp;  -&gt; framework/executables
+lib&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  -&gt; framework/libraries
+include&nbsp; &nbsp; &nbsp; &nbsp;  -&gt; framework/headers
+share/aclocal&nbsp;  -&gt; framework/AutoConfigure
+share/pkgconfig -&gt; framework/PackageConfigure
+lib/pkgconfig&nbsp;  -&gt; framework/PackageConfigure
+share&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  -&gt; data
+share/doc&nbsp; &nbsp; &nbsp;  -&gt; documentation
+man&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;  -&gt; manuals
+share/man&nbsp; &nbsp; &nbsp;  -&gt; manuals
+info&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; -&gt; manuals/info
+share/info&nbsp; &nbsp; &nbsp; -&gt; manuals/info
+</pre>
+ Subdirectories that are not immediately meaningful to common users are tucked away in the <code>framework</code> subdirectory, a name which should at least signal to users that it should not be tampered with without appropriate knowledge. The documentation directories are split between an unmanaged and a managed (structured <code>manuals</code>) part, to make a distinction in how they should be used and the degree to which a user could tamper with them.<br />
+<br />
+Since there is no standard for the location of <strong>REBOL</strong> and <strong>Boron</strong> libraries, they can go into <code>framework/REBOL</code>.<br />
+<br />
+The Syllable-specific initialisation scripts were consolidated into one subdirectory. This leaves room for adding the common Unix script classes for <code>stop</code>, <code>reload</code>, <code>restart</code> and <code>status</code> commands:<br />
+
+	<pre>
+early-init&nbsp; &nbsp; &nbsp; -&gt; tasks/setup
+init&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; -&gt; tasks/start
+</pre>
+<br />
+
+An extra subdirectory <code>applications</code> was introduced for resource packages that contain graphical programs that should appear in an applications menu. This was prompted by the port of the VICE emulator. This and other packages need to be in <code>/resources/</code>, but want to make entry points in the Syllable menu like <code>/Applications/</code> do.<br />
+
+Support in the menu needs to be implemented separately.<br />
+<br />
+A few packages need extra, internal compatibility symlinks because they don't fully support this reorganisation. On the other hand, such links can also be used to solve interdependencies between packages.<br />
+<br />
+The symlink pool <code>/resources/index/</code> and <strong>Packager</strong> have compatibility facilities to support most older binary packages.<br />
+<br />
+	<br />
+Moved <code>bin/</code> to <code>programs/</code>.<br />
+
+Most common people would probably associate &#8220;bin&#8221; with a dustbin, and wonder why every package has its own trashcan. We'd have to explain that it means &#8220;binaries&#8221;, then explain what binaries are and what a binary number system is, and then explain that <code>bin/</code> directories don't just contain binaries, and that binaries can also be found elsewhere... <code>bin/</code> has only been a fitting name for a short period in the earliest Unix history, before the advent of scripts. Since the invention of libraries, there are also binary files elsewhere.<br />
+<br />
+Moved <code>sbin/</code> to <code>system-programs/</code>.<br />
+
+The &#8220;root&#8221; super user in Syllable Server has already been renamed to &#8220;system&#8221;. This is also planned for Desktop. <code>system-programs/</code> will then be a matching name for programs that need to be executed by the super user.<br />
+<br />
+Moved <code>share/</code> to <code>data/</code>.<br />
+
+<code>share/</code> originally meant files that can be shared over a network between multiple machines, because they're data instead of architecture dependent binaries. This name is not very meaningful on Syllable, because disk space is not an issue anymore for these files and we build self-contained systems that can be operated off-line from a network. <code>share/</code> directories are symlinked to make them available as an aggregate within the system, but most resource subdirectories are shared that way.<br />
+<br />
+<code>init/</code> and <code>early-init/</code> were already consolidated into <code>tasks/</code>. The remaining subdirectories are not meaningful to common users, because they contain support files for <code>programs/</code> and <code>applications/</code>, so I folded them into a new subdirectory <code>framework/</code> to signify their function and move them out of sight.<br />
+<br />
+Moved <code>lib/</code> to <code>framework/libraries/</code>.<br />
+
+Libel? Liberation? Makes it clear what we're talking about. It's still not the same as a public library, but at least it's clear that it belongs to the framework of a resource package, and libraries is the term used everywhere in system and programming documentation, so it would be confusing for techies to change it more than this.<br />
+<br />
+Moved <code>libexec/</code> to <code>framework/executables/</code>.<br />
+
+<code>libexec/</code> clearly has a confused personality, so this makes that explicit. It can contain both support programs that don't need to be in the search path and libraries, which are both executables, so it clearly belongs to the framework.<br />
+<br />
+Moved <code>include/</code> to <code>framework/headers/</code>.<br />
+
+Include which in what? We're talking about compiled language programming headers for the libraries, and that's still a very technical term, so we tuck it away in <code>framework/</code>.<br />
+<br />
+Moved <code>share/aclocal/</code> to <code>framework/AutoConfigure/</code>.<br />
+
+This contains <strong>M4</strong> macros for the <strong>GNU AutoTools</strong>, <strong>AutoConfigure</strong> and <strong>AutoMake</strong>, that many packages use for source code configuration. Very technical and applies to the libraries, so it's part of the framework. Besides, M4 macros are scripts, so it's not even proper <code>data/</code>. Not even techies can know what <code>aclocal/</code> means until they find the explanation. Having a directory named local inside the directory <code>share/</code> is also pretty disingenious. This is not a universally used configuration system, so we name it after the clearest component, that also has a relation to the original name.<br />
+<br />
+Consolidated <code>lib/pkgconfig/</code> and <code>share/pkgconfig/</code> into <code>framework/PackageConfigure/</code>.<br />
+
+This is for another software configuration system named <strong>pkg-config</strong>, and contains data files describing properties of the package. Again, this is mostly meant for other packages to use the libraries in this resource package, so it's part of the framework. We use the clear CamelCase version of the name of the configuration system. Packages in the wild are confused about whether this is data or belongs with the libraries. Consolidating those two locations into one simplifies our search path for <strong>PackageConfigure</strong> files.<br />
+<br />
+Moved <code>lib/REBOL/</code> to <code>framework/REBOL/</code>.<br />
+
+Programming languages tend to have their own hierarchy under <code>lib/</code> for their support files.<br />
+
+There is no standard place for <strong>REBOL</strong> and <strong>Boron</strong> libraries, so we are free to change this.<br />
+
+Having it immediately under <code>framework/</code> instead of under <code>framework/libraries/</code> shortens paths.<br />
+<br />
+Moved <code>etc/</code> to <code>settings/</code>.<br />
+
+<code>etc/</code> must be the dumbest computer term ever introduced. It seems the designers were completely out of inspiration. I imagine it was scribbled on a napkin over lunch at the end of the other brilliant ideas for the Unix filesystem layout, and later implemented without further thought. While it's understandable that these people didn't count on common people needing to understand their system in the early 1970's, the naming is even of exceptionally poor quality in a technical context. What's really stupefying, though, is that these design choices have been defended as high culture by Unix types ever since.<br />
+
+Note that eventually, we shouldn't have changing data in program directories, so in most cases we direct this settings directory to the global and unfortunately standard <code>/etc/</code>.<br />
+<br />
+Unlike earlier restructurings, the locations of these directories are critical to the operation of the software packages. Many components have accompanying search paths, that I have adapted in different places in the system. However, packages don't always use these and may try to find components in fixed locations or relative to themselves. Many packages configured with the <strong>GNU AutoTools</strong> support build options to change these locations. As much as possible, <strong>Builder</strong> now uses those options to perform these moves, so the packages are aware of them. However, many package configurations are partly broken, especially regarding this because few systems are interested in changing these locations. Such packages may need to be repaired by adding compatibility symlinks from the traditional subdirectories to the new ones.<br />
+<br />
+This can actually be turned into an advantage. Quite a few resource packages act as platforms for other packages. Those other packages contain extensions in the same location as in the platform package. In other systems, these files would end up in the very same directories. In Syllable, the platform packages can't find those modules because packages are built into their own, separate directories. However, they are registered in our symlink pools to create the same view as in other systems. By using the traditional subdirectories in platform packages to symlink into the symlink pools, they can be pointed to the extensions in other packages.<br />
+<br />
+Moved <code>^/lib/</code> to <code>^/libraries/</code>.<br />
+
+This is the subdirectory relative to a program executable, that can contain private dynamic libaries for the program. Changed it to match the other renaming.<br />
+<br />
+Some of these changes still have the old counterparts in the system, so that most old resource packages and applications will still work on systems with the new structure, until they are obsolete.<br />
+<br />
+	<br />
+Reorganised the init scripts.<br />
+<br />
+We've been porting more Unix server packages over time. They may need setup and teardown procedures that are usually categorised in five types: <code>start</code>, <code>stop</code>, <code>reload</code>, <code>restart</code> and <code>status</code>. We have <code>init/</code> and <code>early-init/</code> subdirectories within ported packages. <code>init/</code> corresponds to the start script in Unix systems, which is actually a better name, because common users have no idea what &#8220;init&#8221; means. There's no real equivalent to <code>early-init/</code>, and we use that mainly to set variables in users' shell environments. Eventually, we would have to support the other script types, as well. Having them each in a different subdirectory within a package would be a mess.<br />
+<br />
+Created a new (optional) subdirectory <code>tasks/</code> within resource packages. <strong>Builder</strong> and <strong>Packager</strong> work together to symlink the content into <code>/resources/index/</code> and other symlink pools.<br />
+
+Moved the <code>init/</code> subdirectory to <code>tasks/start/</code>.<br />
+
+Moved <code>early-init/</code>, having no naming identification with <code>init/</code> anymore, to <code>tasks/setup/</code>.<br />
+
+This name also better reflects the fact that setup scripts are called at every shell start, not just at system start-up or user log-in.<br />
+
+Future scripts can be added under <code>tasks/</code> as <code>tasks/stop/</code>, <code>tasks/reload/</code>, <code>tasks/restart/</code> and <code>tasks/status/</code>.<br />
+<br />
+	<br />
+Reorganised, unified and integrated the documentation in ported packages.<br />
+<br />
+Third-party packages have at least six locations for documentation. We collect loose documentation files in a <code>documentation/</code> subdirectory. Many packages also have freeform documentation in a <code>share/doc/</code> subdirectory. Traditionally, &#8220;man&#8221; pages are in <code>man/</code> but <strong>GNU</strong> has been moving them to <code>share/man/</code> lately. They prefer &#8220;info&#8221; files, anyway, and have first defined those in <code>info/</code> but are now moving them to <code>share/info/</code>.<br />
+<br />
+This is a mess for users. We want them to be able to go into a package directory just with a filer, and find documentation they are looking for. We were already moving <code>share/man/</code> and <code>share/info/</code> back to man/ and <code>info/</code> because the <code>share/</code> subdirectory is not very meaningful in Syllable. We build a self-contained system that typically doesn't share system files over networks, and we symlink several subdirectories to make them globally available within the system, not just the <code>share/</code> hierarchy.<br />
+<br />
+Any files in <code>share/doc/</code> are now merged into <code>documentation/</code>. The <strong>man</strong> and <strong>info</strong> pages should not go in there, because they're structured databases that are meant to be read in their respective viewers. <code>man/</code> and <code>share/man/</code> are now moved to <code>manuals/</code>, a much clearer name. Because they have a structured content, it's possible to also move <code>info/</code> and <code>share/info/</code> to <code>manuals/info/</code>. The latter was pioneered by <strong>GoboLinux</strong>. <strong>Builder</strong> and <strong>Packager</strong> work together to accomplish this. As much as possible, Builder uses packages' <code>configure</code> options so they are aware of the moves.<br />
+
+Remaining files are moved afterwards.<br />
+<br />
+	<br />
+The <strong>GCC</strong> libraries and headers installed in the system now have priority over a separately installed full GCC package. This protects system integrity while allowing to install versions of GCC older than the system libraries. This is a cleaner way than manipulating the GCC package, which was done before.<br />
+<br />
+There are several legitimate reasons for installing a GCC package that is not in sync with the system libraries. The GCC package may be newer than the system release. It may be older, or an old GCC may be required to compile some program. If the versions diverge too much, this can disrupt the working of the system.<br />
+
+Originally, I removed the shared libraries from the GCC packages, but that may not be enough. Then I removed the complete <code>lib/</code> subdirectory, but GCC does not appreciate that in all cases. Currently, the GCC packages have their <code>include/</code> and <code>lib/</code> subdirectories linked to the versions in the system. However, that may not work when the GCC version is too different from the system. Also, it makes the complete <code>/system/index/include/</code> and <code>/system/index/lib/</code> structures appear in <code>/resources/index/</code>, where they may conflict with other versions of the same packages.<br />
+<br />
+What's really needed is to give the system libraries priority over GCC, while letting GCC keep its own versions for when it needs those internally. I chose to do that through the system paths. Other options are installing GCC in a separate package pool, or making an exception for it when symlinking in Packager.<br />
+<br />
+Note that other packages in <code>/resources/</code> still have priority over <code>/system/resources/</code>, so apart from GCC, it's still possible to overrule system components.<br />
+<br />
+	<br />
+The symlink pools were moved from <code>/system/indexes/</code> and <code>/resources/indexes/</code> to <code>/system/index/</code> and <code>/resources/index/</code> to shorten paths throughout the system. The old locations are still available as compatibility symlinks to the new locations, to support packages that were built before Syllable&nbsp;0.6.7.<br />
+<br />
+	<br />
+<code>/usr/</code> is now a symbolic link to <code>/resources/</code> instead of the other way around. In the next step of this migration, they will be separated into two directories.<br />
+<br />
+	<br />
+Implemented, in <strong>Packager</strong>, extra symlinking in the symlink pools to point to the main version of installed resource packages. This allows to point to packages in versioned pools without mentioning the version. The package symlink points to the main/currently selected version.<br />
+<br />
+The links are made in the symlink pools, not in the installed packages. This allows to have multiple symlink pools making different selections of the same packages, for example for different user accounts or software build environments.<br />
+<br />
+	<br />
+Symlinks that are made from the system into resource packages (usually for compatibility reasons) can be completed by <strong>Builder</strong>. So far, Builder added the complete path of the specific resource package, including the version for packages in the system area. This is not robust against upgrades of a versioned package or a change of the package name, because these symlinks are not included in single binary packages.<br />
+<br />
+Now, Builder completes incomplete paths in a recipe based on the symlink pool of the package. Thus, the symlink does not contain the package name and version anymore and remains valid when those change.<br />
+<br />
+<a name="programming-0.6.7"/>
+<h3>Programming</h3> The situation of the <strong>REBOL</strong> family of programming languages is currently in a transition phase. We try to select only one of each class of software sub-systems in Syllable, but we make an exception for REBOL because of its innovative qualities. As we predicted many years ago, there are now several open source alternatives, but they haven't yet reached the level where they can fully replace REBOL. In particular, we need REBOL because our in-house content management system still runs on it. We won't make the Syllable base platform dependent on closed source components, so we used <strong>ORCA</strong> to implement some system tools. <strong>Boron</strong> is now available as its successor, but we expect that both REBOL and Boron will eventually be replaced by the new <strong>Red</strong> language.<br />
+<br />
+	<br />
+<strong>Boron</strong>, the successor to the ORCA programming language, was added. Syllable's system tools (such as <strong>Packager</strong>) haven't been migrated yet, so ORCA is still included as well.<br />
+<br />
+Here is a <a href="http://tryrebol.esperconsultancy.nl/Boron">Boron presentation</a> we did for Software Freedom Day. We also made a web site where you can <a href="http://tryrebol.esperconsultancy.nl/">try out and compare REBOL and Boron on-line</a>.<br />
+<br />
+	<br />
+<strong>REBOL&nbsp;3</strong> was added, and a <strong>cURL</strong> binding for it, written by us.<br />
+<br />
+REBOL&nbsp;3 has been split into a core interpreter library and an open source host environment for integration with as many systems as possible. Kaj has got this version to work on Syllable Desktop. This is the first time that a version of REBOL can run there (besides emulating a complete operating system), so this is a major step towards our REBOL <strong>cross-platform</strong> strategy.<br />
+<br />
+Interestingly, this R3 version is not fully native to Syllable yet and is not fully ported. The open host environment has been compiled on Syllable, but is using the binary Linux version of the core interpreter library. Normally, this is impossible, but it works in this case through a trick. Both <strong>Linux</strong> and <strong>Syllable</strong> use the <strong>GNU GLibC</strong> C library, but the porting layer and the internal library versions are different. Providing symlinks from the Linux library versions to the Syllable versions makes this work. This is exceptional and is a testament both to Syllable's compatibility with Linux and to the excellent isolation the host environment achieves between REBOL&nbsp;3 and the host platform.<br />
+<br />
+These compatibility symlinks could potentially be used to run other <strong>binary Linux libraries</strong>.<br />
+<br />
+The current version of REBOL&nbsp;3 for Syllable interfaces with the system at the <strong>POSIX</strong> level. Beyond that, you can write your own bindings with system and user libraries. Bindings are written as REBOL&nbsp;3 extensions. We have created a binding with the popular <a href="http://curl.haxx.se/libcurl/">cURL library</a>, which is included in Syllable as its networking library.<br />
+<br />
+Just like the core REBOL&nbsp;3 interpreter library, Syllable Desktop can run the Linux binary of the binding unchanged, so that the same binary can be shared between Syllable Desktop and Syllable Server. This is possible because the interfaces between REBOL&nbsp;3 and its extensions are designed for maximal portability, to avoid dependency hell. Documentation for the cURL binding is <a href="http://rebol.esperconsultancy.nl/">available here</a>.<br />
+<br />
+	<br />
+A massive overhaul of the Syllable system <strong>headers</strong> for <strong>C</strong> and <strong>C++</strong> development. The intention is to stop kernel only types and structures &#8220;leaking&#8221; into user-space, where they can cause problems.<br />
+
+The changes should not impact user-space code except in cases where the code is not explicitly including headers it should be and relying on the side-effect of other system headers including them (e.g. using <code>snooze()</code> without including <code>syllable/time.h</code>) or using headers which they should not or do not use (e.g. <code>kernel/udelay.h</code>).<br />
+<br />
+Another important change has been to deprecate the <code>atheos/kernel.h</code> header, which was pretty much used as a dumping ground for &#8220;everything else&#8221;. The contents of this header has been split into separate headers, and a new header has been provided for compatibility. <code>atheos/kernel.h</code> should not be used <strong><em>at all</em></strong> for kernel or driver code.<br />
+<br />
+The changes have added a new <code>kernel</code> directory, which contains headers which are used by the kernel and device drivers, and the <code>syllable</code> symlink: this is currently a symbolic link to the <code>atheos</code> directory but the intention is to remove the <code>atheos</code> directory totally at some point in the future.<br />
+<br />
+From this point forward new code should include headers from the <code>syllable</code> directory rather than <code>atheos</code>. Old code will be changed over time.<br />
+<br />
+There is still work to be done to clean up the headers to ensure the licence and copyright information are correct for all headers, move anything which is in the wrong place (a lot of stuff in the <code>kernel/</code> headers is internal to the kernel so should be moved to the kernels own <code>inc/</code> directory, for example).<br />
+
+These changes can and will be made gradually over time.</td>
+		</tr>
+	</table>
+
+		<br />
+	</div>
+	<div style="text-align: center">	<hr />
+<br />
+
+Copyright &copy; 2002 - 2012 Syllable Project<br />
+
+All Rights Reserved</div>
+</body>
+</html>

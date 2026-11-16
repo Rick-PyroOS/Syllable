@@ -316,7 +316,6 @@ status_t Directory::SetPath( const Path& cPath, int nOpenMode )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \par Error codes:
  * \sa

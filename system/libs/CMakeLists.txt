@@ -1,0 +1,6 @@
+add_subdirectory(libpthread)
+add_subdirectory(libdl)
+add_subdirectory(codeview)
+add_subdirectory(libkcrypto)
+add_subdirectory(mesa)
+add_subdirectory(guitest)     # Google Test for GUI code (libguitest)

@@ -15,8 +15,8 @@
 #include <kernel/bcache.h>
 #include "kernel_cpp.h"
 
-#include <atheos/string.h>
-#include <atheos/time.h>
+#include <kernel/string.h>
+#include <kernel/time.h>
 
 class InodeAllocator {
 	public:

@@ -1,0 +1,6 @@
+# PNG translator (libsyllable add-on)
+add_library(pngtrans MODULE pngtrans.cpp)
+set_target_properties(pngtrans PROPERTIES PREFIX "")
+syllable_userland_headers(pngtrans)
+target_link_libraries(pngtrans PRIVATE libsyllable syllable::png)
+install(TARGETS pngtrans DESTINATION system/extensions/translators)

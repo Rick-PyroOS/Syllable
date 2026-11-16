@@ -1,0 +1,6 @@
+add_subdirectory(KeyboardEventViewer)
+add_subdirectory(LayoutEditor)
+add_subdirectory(LogMonitor)
+add_subdirectory(SettingsEditor)
+add_subdirectory(sIDE)
+add_subdirectory(Sourcery)

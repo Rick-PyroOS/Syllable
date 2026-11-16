@@ -41,6 +41,7 @@
 #include <inc/image.h>
 #include <inc/mman.h>
 #include <inc/ksyms.h>
+#include <inc/bootsplash.h>
 
 static sem_id g_hImageList;
 static ImageContext_s *g_psKernelCtx;
@@ -2442,6 +2443,36 @@ static void do_get_image_info( image_info * psInfo, ElfImageInst_s *psInst )
 }
 
 /*****************************************************************************
+ * NAME: get_process_image_info
+ * DESC: Like get_image_info(), for another process's image: the nIndex'th
+ *       slot of its image context.  For ptrace's PTRACE_GETIMAGES, so a
+ *       debugger can find where each library of the program it traces is
+ *       loaded.
+ * NOTE: Returns -ENOENT for an empty slot and -EINVAL past the last one.
+ *       Takes the context's lock: call with interrupts enabled.
+ * SEE ALSO: get_image_info(), ptrace.c
+ ****************************************************************************/
+
+int get_process_image_info( Process_s *psProc, int nIndex, image_info * psInfo )
+{
+	ImageContext_s *psCtx = psProc->pr_psImageContext;
+	int nError = 0;
+
+	if ( nIndex < 0 || nIndex >= MAX_IMAGE_COUNT )
+		return ( -EINVAL );
+	if ( psCtx == NULL )
+		return ( -ENOENT );
+
+	LOCK( psCtx->ic_hLock );
+	if ( psCtx->ic_psInstances[nIndex] == NULL )
+		nError = -ENOENT;
+	else
+		do_get_image_info( psInfo, psCtx->ic_psInstances[nIndex] );
+	UNLOCK( psCtx->ic_hLock );
+	return ( nError );
+}
+
+/*****************************************************************************
  * NAME:
  * DESC:
  * NOTE:
@@ -2584,6 +2615,8 @@ static void init_boot_modules( void )
 		const char *pzPath;
 		int nError;
 		int j;
+
+		bootsplash_progress( 5 + 15 * ( i + 1 ) / g_sSysBase.ex_nBootModuleCount );
 
 		pzPath = strstr( psModule->bm_pzModuleArgs, "/drivers/" );
 		if ( pzPath == NULL )

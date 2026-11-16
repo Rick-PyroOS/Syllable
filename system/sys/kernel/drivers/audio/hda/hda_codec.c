@@ -26,6 +26,8 @@
 //#include <kernel/string.h>
 //#include <kernel/stdlib.h>
 #include <kernel/device.h>
+#include <kernel/kdebug.h>
+#include <kernel/time.h>
 #include <kernel/pci.h>
 #include <kernel/irq.h>
 #include <kernel/semaphore.h>

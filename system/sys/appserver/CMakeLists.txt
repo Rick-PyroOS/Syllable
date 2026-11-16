@@ -1,0 +1,6 @@
+add_subdirectory(libsyllable)
+#add_subdirectory(libutil)
+#add_subdirectory(libstorage)
+#add_subdirectory(libos)
+add_subdirectory(appserver)
+add_subdirectory(registrar)

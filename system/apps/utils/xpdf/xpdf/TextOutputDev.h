@@ -26,6 +26,17 @@ class GfxFont;
 class GfxState;
 class UnicodeMap;
 
+// referenced before their definitions (GCC 4 no longer takes the friend
+// declarations as forward declarations)
+class TextWord;
+class TextPool;
+class TextLine;
+class TextLineFrag;
+class TextBlock;
+class TextFlow;
+class TextWordList;
+class TextPage;
+
 //------------------------------------------------------------------------
 
 typedef void (*TextOutputFunc)(void *stream, char *text, int len);

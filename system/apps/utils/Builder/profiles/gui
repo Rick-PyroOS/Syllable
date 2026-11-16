@@ -146,7 +146,6 @@ modules
 	apps/utils/Launch
 	apps/utils/memmon
 	apps/utils/nfs
-	apps/utils/shelltools
 	apps/utils/slbmgr
 	apps/develop/SettingsEditor
 	apps/collab/Contact

@@ -75,7 +75,42 @@ typedef struct
     /* Memory Mapping buffer */
     uint32 mbh_nMemoryMapLength;
     uint32 mbh_nMemoryMapAddr;
-} MultiBootHeader_s;
+
+    /* The rest is only valid with the matching flag (MB_INFO_*).  GRUB
+       legacy's info block ends with the VBE fields. */
+    uint32 mbh_nDrives_length;
+    uint32 mbh_nDrivesAddr;
+    uint32 mbh_nConfigTable;
+    uint32 mbh_nBootLoaderName;
+    uint32 mbh_nApmTable;
+
+    uint32 mbh_nVbeControlInfo;
+    uint32 mbh_nVbeModeInfo;
+    uint16 mbh_nVbeMode;
+    uint16 mbh_nVbeInterfaceSeg;
+    uint16 mbh_nVbeInterfaceOff;
+    uint16 mbh_nVbeInterfaceLen;
+
+    /* The video mode the kernel starts in (MB_INFO_FRAMEBUFFER) */
+    uint64 mbh_nFramebufferAddr;
+    uint32 mbh_nFramebufferPitch;
+    uint32 mbh_nFramebufferWidth;
+    uint32 mbh_nFramebufferHeight;
+    uint8  mbh_nFramebufferBpp;
+    uint8  mbh_nFramebufferType;	/* MB_FRAMEBUFFER_TYPE_* */
+    uint16 mbh_nFramebufferPad;	/* GRUB aligns what follows (a union with a uint32) */
+    /* for MB_FRAMEBUFFER_TYPE_RGB: bit position and size of each colour */
+    uint8  mbh_nRedPos;
+    uint8  mbh_nRedSize;
+    uint8  mbh_nGreenPos;
+    uint8  mbh_nGreenSize;
+    uint8  mbh_nBluePos;
+    uint8  mbh_nBlueSize;
+} __attribute__ ((packed)) MultiBootHeader_s;
+
+#define MB_FRAMEBUFFER_TYPE_INDEXED  0
+#define MB_FRAMEBUFFER_TYPE_RGB      1
+#define MB_FRAMEBUFFER_TYPE_EGA_TEXT 2
 
 /*
  *  Flags to be set in the 'flags' parameter above
@@ -92,6 +127,12 @@ typedef struct
 #define MB_INFO_AOUT_SYMS       0x10 /* is there a symbol table loaded? */
 #define MB_INFO_ELF_SHDR        0x20 /* is there an ELF section header table? */
 #define MB_INFO_MEM_MAP         0x40 /* is there a full memory map? */
+#define MB_INFO_DRIVE_INFO      0x80
+#define MB_INFO_CONFIG_TABLE    0x100
+#define MB_INFO_BOOT_LOADER_NAME 0x200
+#define MB_INFO_APM_TABLE       0x400
+#define MB_INFO_VBE_INFO        0x800
+#define MB_INFO_FRAMEBUFFER     0x1000 /* is there a framebuffer (graphics mode)? */
 
 /*
  *  The following value must be present in the EAX register.

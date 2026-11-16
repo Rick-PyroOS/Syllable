@@ -1,0 +1,17 @@
+authors				Kaj de Vos
+status				testing
+
+headline			SQL database engine library
+description
+	SQLite is a small C library that implements a self-contained, embeddable, zero-configuration SQL database engine.
+licenses			PD
+
+home				sqlite.org
+locations			http://sqlite.org
+
+; The CMake build (cmake/Ports.cmake) builds this port with patches/Makefile:
+; the amalgamation (sqlite3.c, shell.c) of the autoconf tarball, without its
+; configure script.
+make-file			Makefile
+
+documentation		README.txt

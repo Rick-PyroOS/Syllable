@@ -528,31 +528,33 @@ sysdep_dir=$srcdir/sysdeps
 AC_MSG_CHECKING(sysdep dirs)
 dnl We need to use [ and ] for other purposes for a while now.
 changequote(,)dnl
-# Make sco3.2v4 become sco3.2.4 and sunos4.1.1_U1 become sunos4.1.1.U1.
-os="`echo $os | sed 's/\([0-9A-Z]\)[v_]\([0-9A-Z]\)/\1.\2/g'`"
+if test x"$libc_config_ok" != xyes; then
+  # Make sco3.2v4 become sco3.2.4 and sunos4.1.1_U1 become sunos4.1.1.U1.
+  os="`echo $os | sed 's/\([0-9A-Z]\)[v_]\([0-9A-Z]\)/\1.\2/g'`"
 
-case "$os" in
-gnu*)
-  base_os=mach/hurd ;;
-netbsd* | 386bsd* | freebsd* | bsdi*)
-  base_os=unix/bsd/bsd4.4 ;;
-osf* | sunos* | ultrix* | newsos* | dynix* | *bsd*)
-  base_os=unix/bsd ;;
-sysv* | isc* | esix* | sco* | minix* | irix4* | linux*)
-  base_os=unix/sysv ;;
-irix6*)
-  base_os=unix/sysv/irix6/$os ;;
-solaris[2-9]*)
-  base_os=unix/sysv/sysv4 ;;
-hpux*)
-  base_os=unix/sysv/hpux/$os ;;
-aix4.3*)
-  base_os=unix/sysv/aix/aix4.3 ;;
-none)
-  base_os=standalone ;;
-*)
-  base_os='' ;;
-esac
+  case "$os" in
+  gnu*)
+    base_os=mach/hurd ;;
+  netbsd* | 386bsd* | freebsd* | bsdi*)
+    base_os=unix/bsd/bsd4.4 ;;
+  osf* | sunos* | ultrix* | newsos* | dynix* | *bsd*)
+    base_os=unix/bsd ;;
+  sysv* | isc* | esix* | sco* | minix* | irix4* | linux*)
+    base_os=unix/sysv ;;
+  irix6*)
+    base_os=unix/sysv/irix6/$os ;;
+  solaris[2-9]*)
+    base_os=unix/sysv/sysv4 ;;
+  hpux*)
+    base_os=unix/sysv/hpux/$os ;;
+  aix4.3*)
+    base_os=unix/sysv/aix/aix4.3 ;;
+  none)
+    base_os=standalone ;;
+  *)
+    base_os='' ;;
+  esac
+fi
 
 # For sunos4.1.1, try sunos4.1.1, then sunos4.1, then sunos4, then sunos.
 tail=$os
@@ -864,7 +866,7 @@ AC_CHECK_PROG_VER(CC, ${ac_tool_prefix}gcc ${ac_tool_prefix}cc, -v,
   critic_missing="$critic_missing gcc")
 AC_CHECK_PROG_VER(MAKE, gnumake gmake make, --version,
   [GNU Make [^0-9]*\([0-9][0-9.]*\)],
-  [4.1 | 3.79* | 3.[89]*], critic_missing="$critic_missing make")
+  [4.* | 3.79* | 3.[89]*], critic_missing="$critic_missing make")
 
 AC_CHECK_PROG_VER(MSGFMT, gnumsgfmt gmsgfmt msgfmt, --version,
   [GNU gettext.* \([0-9]*\.[0-9.]*\)],

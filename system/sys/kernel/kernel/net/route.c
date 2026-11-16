@@ -827,7 +827,6 @@ int del_route( ipaddr_p anIpAddr, ipaddr_p anNetMask, ipaddr_p anGwAddr )
  * Assumes the route has been acquired previously.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -885,7 +884,6 @@ static void make_if_rtentry( struct rtabentry *psDst, NetInterface_s *psSrc )
  * Creates a POSIX route table structure from the internal route list.
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

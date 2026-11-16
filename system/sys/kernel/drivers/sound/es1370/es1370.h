@@ -14,6 +14,7 @@
 #include <kernel/isa_io.h>
 #include <kernel/dma.h>
 #include <kernel/udelay.h>
+#include <kernel/time.h>
 #include <kernel/spinlock.h>
 #include <kernel/linux_compat.h>
 #include <kernel/signal.h>

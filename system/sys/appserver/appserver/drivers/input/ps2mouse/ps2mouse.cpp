@@ -68,6 +68,87 @@ using namespace os;
 static int g_nSerialDevice = -1;
 static int g_nProtocol = PS2_PROTOCOL;
 
+/*
+ * VMware's absolute pointer ("vmmouse"), which QEMU's pc machine also has
+ * (vmport).  It is driven through the VMware backdoor I/O port, and the
+ * hypervisor still raises a PS/2 interrupt (an empty packet) for each event,
+ * so it rides on this driver: once it is on, each PS/2 packet only tells us
+ * to read the pointer's absolute position from the backdoor.  The protocol
+ * is the one in Linux's drivers/input/mouse/vmmouse.c.  When there is no
+ * hypervisor, or it refuses, the mouse stays plain PS/2.
+ */
+#define VMMOUSE_MAGIC			0x564D5868
+#define VMMOUSE_PORT			0x5658
+
+#define VMMOUSE_CMD_GETVERSION		10
+#define VMMOUSE_CMD_ABSPOINTER_DATA	39
+#define VMMOUSE_CMD_ABSPOINTER_STATUS	40
+#define VMMOUSE_CMD_ABSPOINTER_COMMAND	41
+
+#define VMMOUSE_ENABLE			0x45414552
+#define VMMOUSE_DISABLE			0x000000f5
+#define VMMOUSE_REQUEST_ABSOLUTE	0x53424152
+#define VMMOUSE_VERSION_ID		0x3442554a
+#define VMMOUSE_ERROR			0xffff0000
+#define VMMOUSE_RELATIVE_PACKET		0x00010000
+
+#define VMMOUSE_LEFT_BUTTON		0x20
+#define VMMOUSE_RIGHT_BUTTON		0x10
+#define VMMOUSE_MIDDLE_BUTTON		0x08
+
+static bool g_bVMMouse = false;
+
+/* One backdoor call: EAX magic, EBX argument, ECX command, EDX port; the
+ * reply comes back in all four.  EBX is swapped through ESI by hand, as it
+ * may be the PIC register. */
+static void vmmouse_cmd( uint32 nCmd, uint32 nArg, uint32 *pnA, uint32 *pnB, uint32 *pnC, uint32 *pnD )
+{
+	uint32 nA = VMMOUSE_MAGIC, nB = nArg, nC = nCmd, nD = VMMOUSE_PORT;
+
+	__asm__ __volatile__( "xchgl %%ebx, %%esi\n\t"
+			      "inl %%dx, %%eax\n\t"
+			      "xchgl %%ebx, %%esi"
+			      : "+a"( nA ), "+S"( nB ), "+c"( nC ), "+d"( nD ) : : "memory" );
+	if( pnA ) *pnA = nA;
+	if( pnB ) *pnB = nB;
+	if( pnC ) *pnC = nC;
+	if( pnD ) *pnD = nD;
+}
+
+/* Is there a VMware-compatible hypervisor?  On real hardware the port
+ * reads as junk and EBX keeps the argument, so the magic can't match. */
+static bool vmmouse_present()
+{
+	uint32 nVersion, nMagic;
+
+	vmmouse_cmd( VMMOUSE_CMD_GETVERSION, 0, &nVersion, &nMagic, NULL, NULL );
+	return ( nMagic == VMMOUSE_MAGIC && nVersion != 0xffffffff );
+}
+
+/* Switch the hypervisor's pointer to absolute mode; false if it refuses */
+static bool vmmouse_enable()
+{
+	uint32 nStatus, nVersion;
+
+	vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_COMMAND, VMMOUSE_ENABLE, NULL, NULL, NULL, NULL );
+	vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_STATUS, 0, &nStatus, NULL, NULL, NULL );
+	if( ( nStatus & VMMOUSE_ERROR ) == VMMOUSE_ERROR || ( nStatus & 0x0000ffff ) == 0 )
+		return ( false );
+	vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_DATA, 1, &nVersion, NULL, NULL, NULL );
+	if( nVersion != VMMOUSE_VERSION_ID )
+	{
+		vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_COMMAND, VMMOUSE_DISABLE, NULL, NULL, NULL, NULL );
+		return ( false );
+	}
+	vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_COMMAND, VMMOUSE_REQUEST_ABSOLUTE, NULL, NULL, NULL, NULL );
+	return ( true );
+}
+
+static void vmmouse_disable()
+{
+	vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_COMMAND, VMMOUSE_DISABLE, NULL, NULL, NULL, NULL );
+}
+
 class PS2MouseDriver:public InputNode
 {
       public:
@@ -86,7 +167,9 @@ class PS2MouseDriver:public InputNode
 
 	// (xxl) Added vertical and horizontal scroll parameters
 	// Currently only the vertical scroll is implemented
-	void DispatchEvent( int nDeltaX, int nDeltaY, uint32 nButtons, int nVScroll, int nHScroll );
+	// bAbsolute: nDeltaX and nDeltaY are an absolute position, 0-65535
+	void DispatchEvent( int nDeltaX, int nDeltaY, uint32 nButtons, int nVScroll, int nHScroll, bool bAbsolute = false );
+	void ReadVMMouse();
 	void SwitchToProtocol( int nProto );
 
 	thread_id m_hThread;
@@ -136,11 +219,22 @@ PS2MouseDriver::~PS2MouseDriver()
 // SEE ALSO:
 //----------------------------------------------------------------------------
 
-void PS2MouseDriver::DispatchEvent( int nDeltaX, int nDeltaY, uint32 nButtons, int nVScroll, int nHScroll )
+void PS2MouseDriver::DispatchEvent( int nDeltaX, int nDeltaY, uint32 nButtons, int nVScroll, int nHScroll, bool bAbsolute )
 {
 	Point cDeltaMove( nDeltaX, nDeltaY );
 	static uint32 nLastButtons = 0;
+	static Point cLastAbsPos( -1, -1 );
 	uint32 nButtonFlg;
+
+	/* An absolute position moves the pointer before any button changes, so
+	 * a click lands where it was made */
+	if( bAbsolute && cDeltaMove != cLastAbsPos ) {
+		Message *pcEvent = new Message( M_MOUSE_MOVED );
+
+		cLastAbsPos = cDeltaMove;
+		pcEvent->AddPoint( "abs_pos", cDeltaMove );
+		EnqueueEvent( pcEvent );
+	}
 
 	nButtonFlg = nButtons ^ nLastButtons;
 	nLastButtons = nButtons;
@@ -180,7 +274,7 @@ void PS2MouseDriver::DispatchEvent( int nDeltaX, int nDeltaY, uint32 nButtons, i
 			EnqueueEvent( pcEvent );
 		}
 	}
-	if( nDeltaX != 0 || nDeltaY != 0 ) {
+	if( !bAbsolute && ( nDeltaX != 0 || nDeltaY != 0 ) ) {
 		Message *pcEvent = new Message( M_MOUSE_MOVED );
 
 		pcEvent->AddPoint( "delta_move", cDeltaMove );
@@ -201,6 +295,51 @@ void PS2MouseDriver::DispatchEvent( int nDeltaX, int nDeltaY, uint32 nButtons, i
 		// the most common).
 		pcEvent->AddPoint( "delta_move", cScroll );
 		EnqueueEvent( pcEvent );
+	}
+}
+
+//----------------------------------------------------------------------------
+// NAME:
+// DESC: Read every event queued in the vmmouse and dispatch it
+// NOTE:
+// SEE ALSO:
+//----------------------------------------------------------------------------
+
+void PS2MouseDriver::ReadVMMouse()
+{
+	/* Bounded, as Linux does, so a confused hypervisor can't hold us here */
+	for( int nPackets = 0; nPackets < 32; nPackets++ ) {
+		uint32 nStatus, nX, nY, nZ;
+
+		vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_STATUS, 0, &nStatus, NULL, NULL, NULL );
+		if( ( nStatus & VMMOUSE_ERROR ) == VMMOUSE_ERROR ) {
+			dbprintf( "ps2mouse: vmmouse error, enabling it again\n" );
+			if( !vmmouse_enable() ) {
+				dbprintf( "ps2mouse: vmmouse lost, back to the plain PS/2 mouse\n" );
+				g_bVMMouse = false;
+			}
+			return;
+		}
+		uint32 nQueued = nStatus & 0x0000ffff;
+		if( nQueued < 4 )
+			return;
+
+		vmmouse_cmd( VMMOUSE_CMD_ABSPOINTER_DATA, 4, &nStatus, &nX, &nY, &nZ );
+
+		uint32 nButtons = 0;
+		if( nStatus & VMMOUSE_LEFT_BUTTON )
+			nButtons |= 0x01;
+		if( nStatus & VMMOUSE_RIGHT_BUTTON )
+			nButtons |= 0x02;
+		if( nStatus & VMMOUSE_MIDDLE_BUTTON )
+			nButtons |= 0x04;
+		/* The wheel has the PS/2 packet's sign: a signed byte */
+		int nVScroll = ( int8 )( nZ & 0xff );
+
+		if( nStatus & VMMOUSE_RELATIVE_PACKET )
+			DispatchEvent( ( int32 )nX, ( int32 )nY, nButtons, nVScroll, 0 );
+		else
+			DispatchEvent( nX & 0xffff, nY & 0xffff, nButtons, nVScroll, 0, true );
 	}
 }
 
@@ -249,7 +388,11 @@ void PS2MouseDriver::EventLoop()
 		// please note that this driver is (yet) incompatible with the
 		// regular ps2 mice - I plan to add some sort of autodection ASAP
 		// and make it work with both ps2 and imps2 (IntelliMouse)
-		if( nIndex >= m_nProtoByteCount ) {
+		if( nIndex >= m_nProtoByteCount && g_bVMMouse ) {
+			/* The packet only signals that the vmmouse has events */
+			ReadVMMouse();
+			nIndex = 0;
+		} else if( nIndex >= m_nProtoByteCount ) {
 			int x = anBuf[1];
 			int y = anBuf[2];
 			int nVScroll = 0;
@@ -460,6 +603,17 @@ extern "C" bool init_input_node()
 		dbprintf( "PS2 mouse: enabling failed !\n" );
 		return ( false );
 	}
+
+	/* Under VMware or QEMU: the absolute pointer, so the pointer follows the
+	 * host's (over VNC too) */
+	if( vmmouse_present() ) {
+		if( vmmouse_enable() ) {
+			g_bVMMouse = true;
+			dbprintf( "ps2mouse: VMware vmmouse absolute pointer enabled\n" );
+		} else {
+			dbprintf( "ps2mouse: VMware vmmouse found but could not be enabled, using plain PS/2\n" );
+		}
+	}
 	return ( true );
 }
 
@@ -472,6 +626,10 @@ extern "C" bool init_input_node()
 
 extern "C" int uninit_input_node()
 {
+	if( g_bVMMouse ) {
+		vmmouse_disable();
+		g_bVMMouse = false;
+	}
 	if( g_nSerialDevice >= 0 ) {
 		close( g_nSerialDevice );
 	}

@@ -1,0 +1,8 @@
+# configure answers for gdbserver (CONFIG_SITE, so they reach gnulib's own
+# configure too).  Syllable's getcwd works; cross-compiling, gnulib guesses
+# not and substitutes its own, which walks ".." comparing inodes and fails on
+# AFS: gdbserver then exits at startup ("Could not find current working
+# directory").
+gl_cv_func_getcwd_null=yes
+gl_cv_func_getcwd_path_max=yes
+gl_cv_func_getcwd_abort_bug=no

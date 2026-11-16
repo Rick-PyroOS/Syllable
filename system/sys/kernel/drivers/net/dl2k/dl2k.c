@@ -16,6 +16,7 @@
 #include <kernel/string.h>
 #include <kernel/stdlib.h>
 #include <kernel/kdebug.h>
+#include <kernel/time.h>
 #include <kernel/types.h>
 #include <kernel/device.h>
 #include <kernel/pci.h>

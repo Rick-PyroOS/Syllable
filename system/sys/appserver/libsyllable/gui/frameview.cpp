@@ -28,7 +28,6 @@ using namespace os;
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

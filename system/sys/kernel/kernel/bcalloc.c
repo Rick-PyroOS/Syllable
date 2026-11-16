@@ -55,7 +55,6 @@ static CacheHeap_s g_asCacheHeaps[MAX_CACHE_BLK_SIZE_ORDERS];
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -154,7 +153,6 @@ static int expand_heap( CacheHeap_s *psHeap )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -289,7 +287,6 @@ again:
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

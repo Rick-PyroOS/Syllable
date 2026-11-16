@@ -62,9 +62,14 @@ multiboot:
 	pushl	%ebx
 	call	_C_SYM( init_kernel_mb )
 
-#	MultiBoot header
+/* MultiBoot header.  Flags: modules page aligned (0), memory info (1),
+   video mode (2): GRUB 2 starts the kernel in a 1024x768x32 graphics mode
+   when it can, or another graphics mode ("auto"), and bootsplash.c draws
+   in it.  GRUB legacy ignores bit 2 and starts the kernel in text mode. */
 .align 4
-.long 0x1BADB002, 0x0003, -(0x1BADB002+0x0003)
+.long 0x1BADB002, 0x0007, -(0x1BADB002+0x0007)
+.long 0, 0, 0, 0, 0		/* header, load, bss, entry addresses: unused (ELF) */
+.long 0, 1024, 768, 32		/* mode type (0: linear graphics), width, height, depth */
 
 _C_SYM( v86Stack_seg ):
 .long	0

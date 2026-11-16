@@ -1,0 +1,76 @@
+# neovim-clion: Ghostty settings for Neovim with CLion keys.
+#
+# Ghostty speaks the kitty keyboard protocol, so a Cmd key it doesn't use itself
+# reaches Neovim as <D-...> with no escape codes to set up (the iTerm2 profile
+# had to send each one by hand). All this file does is hand Neovim the Cmd keys
+# that Ghostty would otherwise keep. It also gives real images in the editor
+# (snacks.nvim's viewer, kitty graphics) instead of the chafa preview.
+#
+# install.sh adds this line to ~/.config/ghostty/config:
+#   config-file = ~/.config/nvim/extras/ghostty/config
+# Reload with Cmd+Shift+, (or restart Ghostty).
+#
+# Kept for Ghostty everywhere: Cmd+C / Cmd+V copy and paste, Cmd+T new tab,
+# Cmd+N new window, Cmd+Q quit, Cmd+= / Cmd+- font size, Cmd+K clear.
+# Given to Neovim instead, so Ghostty loses: Cmd+W close, Cmd+D split,
+# Cmd+[ / Cmd+] switch split, Cmd+Shift+[ / ] switch tab (use Ctrl+Tab),
+# Cmd+1 first tab, Cmd+A select all, Cmd+F / Cmd+G search, Cmd+Z undo,
+# Cmd+, settings (use the Ghostty menu), Cmd+Shift+P command palette.
+
+# Alt keys (Alt+Enter, Alt+F7, Alt+C in the find bar) reach Neovim as Alt.
+macos-option-as-alt = true
+
+# Navigation
+keybind = cmd+o=unbind
+keybind = cmd+shift+o=unbind
+keybind = cmd+alt+o=unbind
+keybind = cmd+e=unbind
+keybind = cmd+shift+e=unbind
+keybind = cmd+b=unbind
+keybind = cmd+alt+b=unbind
+keybind = cmd+l=unbind
+keybind = cmd+[=unbind
+keybind = cmd+]=unbind
+keybind = cmd+shift+[=unbind
+keybind = cmd+shift+]=unbind
+keybind = cmd+ctrl+up=unbind
+keybind = cmd+f12=unbind
+keybind = cmd+alt+f7=unbind
+keybind = cmd+f3=unbind
+keybind = cmd+1=unbind
+
+# Search and the command palette
+keybind = cmd+f=unbind
+keybind = cmd+shift+f=unbind
+keybind = cmd+g=unbind
+keybind = cmd+shift+g=unbind
+keybind = cmd+r=unbind
+keybind = cmd+shift+r=unbind
+keybind = cmd+shift+a=unbind
+keybind = cmd+shift+p=unbind
+keybind = cmd+p=unbind
+
+# Editing
+keybind = cmd+s=unbind
+keybind = cmd+z=unbind
+keybind = cmd+shift+z=unbind
+keybind = cmd+a=unbind
+keybind = cmd+d=unbind
+keybind = cmd+w=unbind
+keybind = cmd+j=unbind
+keybind = cmd+/=unbind
+keybind = cmd+shift+/=unbind
+keybind = cmd+backspace=unbind
+keybind = cmd+shift+up=unbind
+keybind = cmd+shift+down=unbind
+keybind = cmd+alt+l=unbind
+keybind = cmd+alt+t=unbind
+keybind = cmd+,=unbind
+keybind = cmd+0=unbind
+keybind = cmd+4=unbind
+keybind = cmd+6=unbind
+keybind = cmd+shift+i=unbind
+# Ghostty binds Cmd+digit by physical key too (digit_N); unbind both forms.
+keybind = cmd+digit_1=unbind
+keybind = cmd+digit_4=unbind
+keybind = cmd+digit_6=unbind

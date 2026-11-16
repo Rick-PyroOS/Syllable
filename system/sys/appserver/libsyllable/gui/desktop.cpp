@@ -183,7 +183,6 @@ bool Desktop::Activate() const
 /** Minimizes all windows on the desktop(besides the dock and the desktop)
  * \par Description:
  * 
- * \param
  * \return Number of windows minimized
  * \author	Rick Caudill (rick@syllable.org)
  *****************************************************************************/

@@ -1,0 +1,18 @@
+authors				Dave Gamble and cJSON contributors
+status				testing
+
+headline			Ultralightweight JSON parser in ANSI C
+description
+	cJSON is a small JSON parser and printer in one C file (C89), with cJSON_Utils for JSON Pointer, JSON Patch and JSON Merge Patch.  Usable from C and from C++ programs (libsyllable's GCC 4.1.2) alike, since it shares only the C ABI.
+licenses			MIT
+
+home				github.com/DaveGamble/cJSON
+locations			https://github.com/DaveGamble/cJSON/archive/refs/tags/
+
+; The CMake build (cmake/Ports.cmake) builds this port with patches/Makefile,
+; which replaces the tarball's: that one builds with -Werror and warning flags
+; GCC 4.1.2 doesn't know (-Wstrict-overflow) and -fstack-protector (no libssp
+; on Syllable), and installs no static libraries.
+make-file			Makefile
+
+documentation		README.md LICENSE CHANGELOG.md

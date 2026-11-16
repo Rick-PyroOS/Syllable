@@ -668,7 +668,6 @@ void Window::ResizeTo( float w, float h )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \par Error codes:
  * \since 0.3.7
@@ -685,7 +684,6 @@ void Window::SetShapeRegion( const Region& cReg )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \par Error codes:
  * \since 0.3.7

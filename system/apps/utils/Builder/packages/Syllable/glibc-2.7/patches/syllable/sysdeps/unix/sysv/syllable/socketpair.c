@@ -31,8 +31,14 @@ int socketpair( int af, int type, int protocol, int fd[2] )
 	struct sockaddr_in sin[2];
 	int len;
 
+	/* Syllable has no AF_UNIX sockets: an AF_UNIX (AF_LOCAL) pair is a
+	   TCP connection over the loopback interface, as every pair here is.
+	   (OpenSSH's sshd hands each connection to sshd-session over one.) */
+	if( af == AF_UNIX )
+		af = AF_INET;
+
 	/* The following is only valid if type == SOCK_STREAM */
-	if( type != SOCK_STREAM ) {
+	if( af != AF_INET || type != SOCK_STREAM ) {
 		__set_errno( EAFNOSUPPORT );
 		return -1;
 	}
@@ -47,7 +53,7 @@ int socketpair( int af, int type, int protocol, int fd[2] )
 
 	sin[0].sin_family = af;
 	sin[0].sin_port = 0;	/* Use any port number */
-	sin[0].sin_addr.s_addr = INADDR_ANY;
+	sin[0].sin_addr.s_addr = htonl( INADDR_LOOPBACK );	/* not reachable from outside */
 
 	if( bind( listen_socket, (struct sockaddr *)&sin[0], sizeof( sin[0] ) ) < 0 ) {
 		close( listen_socket );
@@ -76,7 +82,7 @@ int socketpair( int af, int type, int protocol, int fd[2] )
 
 	/* Put the client socket in non-blocking connecting mode */
 	fcntl( fd[1], F_SETFL, fcntl( fd[1], F_GETFL, 0 ) | O_NDELAY );
-	if( connect( fd[1], (struct sockaddr *)&sin[0], sizeof( sin[0] ) ) < 0 ) {
+	if( connect( fd[1], (struct sockaddr *)&sin[0], sizeof( sin[0] ) ) < 0 && errno != EINPROGRESS ) {
 		close( fd[1] );
 		close( listen_socket );
 		return -1;
@@ -87,6 +93,18 @@ int socketpair( int af, int type, int protocol, int fd[2] )
 	if( ( fd[0] = accept( listen_socket, (struct sockaddr *)&sin[1], &len ) ) < 0 ) {
 		close( fd[1] );
 		close( listen_socket );
+		return -1;
+	}
+
+	/* The connection accepted must be our own client's, not another local
+	   program's that found the port first */
+	len = sizeof( sin[0] );
+	if( getsockname( fd[1], (struct sockaddr *)&sin[0], &len ) < 0 ||
+	    sin[0].sin_port != sin[1].sin_port || sin[0].sin_addr.s_addr != sin[1].sin_addr.s_addr ) {
+		close( fd[0] );
+		close( fd[1] );
+		close( listen_socket );
+		__set_errno( ECONNREFUSED );
 		return -1;
 	}
 

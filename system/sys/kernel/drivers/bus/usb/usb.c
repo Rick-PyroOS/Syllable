@@ -227,7 +227,6 @@ void usb_deregister_driver( USB_driver_s* psDriver )
 
 /** 
  * \par Description: Allocates one USB bus.
- * \param
  * \return
  * \sa
  * \author	Arno Klenke (arno_klenke@yahoo.de)
@@ -1831,7 +1830,6 @@ USB_bus_s sBus = {
 
 /** 
  * \par Description: Returns hooks of the usb busmanager
- * \param
  * \return
  * \sa
  * \author	Arno Klenke (arno_klenke@yahoo.de)
@@ -1847,7 +1845,6 @@ void* usb_bus_get_hooks( int nVersion )
 
 /** 
  * \par Description: Initializes the USB busmanager.
- * \param
  * \return
  * \sa
  * \author	Arno Klenke (arno_klenke@yahoo.de)

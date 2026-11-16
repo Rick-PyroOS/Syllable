@@ -1,0 +1,32 @@
+# Shared clangd flags for userland (libs, apps, appserver). Read only by
+# tools/gen_compile_commands.py, which writes compile_commands.json; re-run it
+# after editing. Relative paths are relative to the Syllable repo root.
+# tools/sync_sysroot.py rewrites the -isystem .sysroot lines; leave those to it.
+
+# Closest clang target to Syllable's i586 ELF ABI (the box is i586-pc-syllable),
+# minus the Linux macros Syllable's gcc doesn't define.
+--target=i586-pc-linux-gnu
+-march=i586
+-U__linux__
+-U__linux
+-Ulinux
+-U__gnu_linux__
+
+# What the box's gcc 4.1.2 predefines (full list: .sysroot/gcc-macros.txt).
+-fgnuc-version=4.1.2
+-D__SYLLABLE__
+-D__ATHEOS__
+-D_X86_
+-D_GNU_SOURCE
+-D_REENTRANT
+
+# Header lookup order: 1. Syllable's own headers, 2. repo libraries
+# (<codeview/codeview.h>), 3. the box's glibc 2.7 / libstdc++ copy in .sysroot.
+-Isystem/sys/include/syllable
+-Isystem/libs
+-nostdlibinc
+-isystem.sysroot/usr/gcc/include/c++/4.1.2
+-isystem.sysroot/usr/gcc/include/c++/4.1.2/i586-pc-syllable
+-isystem.sysroot/usr/gcc/include/c++/4.1.2/backward
+-isystem.sysroot/usr/gcc/include
+-isystem.sysroot/usr/include

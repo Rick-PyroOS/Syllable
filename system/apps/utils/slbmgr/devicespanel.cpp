@@ -25,15 +25,13 @@
 #include <termios.h>
 #include <assert.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #include <gui/button.h>
 #include <gui/treeview.h>
 #include <gui/stringview.h>
 #include <gui/desktop.h>
 
-#include <atheos/device.h>
-#include <atheos/types.h>
-#include <atheos/kernel.h>
 
 #include <signal.h>
 
@@ -41,9 +39,8 @@
 #include <util/message.h>
 
 #include <macros.h>
-
+#include <fcntl.h>
 #include "devicespanel.h"
-
 #include "resources/SysInfo.h"
 
 using namespace os;
@@ -52,6 +49,34 @@ enum
 {
 	ID_REFRESH
 };
+
+enum device_type {
+	DEVICE_UNKNOWN,
+	DEVICE_SYSTEM,
+	DEVICE_CONTROLLER,
+	DEVICE_VIDEO,
+	DEVICE_AUDIO,
+	DEVICE_NET,
+	DEVICE_PORT,
+	DEVICE_INPUT,
+	DEVICE_DRIVE,
+	DEVICE_PROCESSOR,
+	DEVICE_STORAGE,
+	DEVICE_DOCK,
+	DEVICE_CRYPTO,
+	DEVICE_DASP
+};
+
+
+typedef struct
+{
+	int              di_nHandle;	
+	char             di_zOriginalName[255];
+	char             di_zName[255];
+	char             di_zBus[255];
+	enum device_type di_eType;
+} DeviceInfo_s;
+
 
 //----------------------------------------------------------------------------
 
@@ -122,7 +147,6 @@ void DevicesPanel::RefreshDevicesList()
 		
 	std::vector<DeviceInfo_s> asDevices;
 	DeviceInfo_s sDevice;
-	/* Read entries */
 	while( ioctl( nFd, 0, &sDevice ) == 0 )
 	{
 		asDevices.push_back( sDevice );
@@ -132,7 +156,6 @@ void DevicesPanel::RefreshDevicesList()
 	m_pcDevicesList->Clear();
 	
 	
-	/* Add computer node */
 	char zBuf[255];
 	gethostname( zBuf, 255 );
 	os::TreeViewStringNode* pcRootNode = new os::TreeViewStringNode();
@@ -142,7 +165,6 @@ void DevicesPanel::RefreshDevicesList()
 	pcRootNode->SetExpanded( true );
 	
 	
-	/* Build list */
 	for( uint i = 0; i < g_nGroupCount; i++ )
 	{
 		bool bGroupCreated = false;

@@ -125,7 +125,6 @@ int lfd_AssertValidBuffer( CacheBuffer_s* psBuffer )
  *
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt.skauen@c2i.net)

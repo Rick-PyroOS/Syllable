@@ -380,7 +380,9 @@ void MountDialogScanner::ScanPath( os::Path cPath, int nDepth, MemFile* pcSource
 				struct stat sStat;
 				if( lstat( cEntryPath.GetPath().c_str(), &sStat ) >= 0 && S_ISDIR( sStat.st_mode ) )
 				{
-					MemFile* pcSource = NULL;
+					/* The icon of the entries below: the disk's (made at depth 1),
+					   else this directory's */
+					MemFile* pcSubSource = pcSource;
 					
 					/* Add directory entry */
 					if( nDepth == 1 )
@@ -395,25 +397,25 @@ void MountDialogScanner::ScanPath( os::Path cPath, int nDepth, MemFile* pcSource
 						/* Create name and icon */
 						if( zEntry[0] == 'h' && zEntry[1] == 'd' ) {
 							zName = GS( ID_MSG_MOUNT_TYPE_HARDDISK, "Harddisk" ) + os::String( " (" ) + zEntry + os::String( ")" );
-							pcSource = new MemFile( g_aDiskImage, sizeof( g_aDiskImage ) );
+							pcSubSource = new MemFile( g_aDiskImage, sizeof( g_aDiskImage ) );
 						}
 						else if( zEntry[0] == 'c' && zEntry[1] == 'd' ) {
 							zName = GS( ID_MSG_MOUNT_TYPE_CD_DVD, "CD/DVD" ) + os::String( " (" ) + zEntry + os::String( ")" );
-							pcSource = new MemFile( g_aCDImage, sizeof( g_aCDImage ) );
+							pcSubSource = new MemFile( g_aCDImage, sizeof( g_aCDImage ) );
 						}
 						else if( zEntry[0] == 'f' && zEntry[1] == 'd' ) {
 							zName = GS( ID_MSG_MOUNT_TYPE_FLOPPY, "Floppy" ) + os::String( " (" ) + zEntry + os::String( ")" );
-							pcSource = new MemFile( g_aFloppyImage, sizeof( g_aFloppyImage ) );
+							pcSubSource = new MemFile( g_aFloppyImage, sizeof( g_aFloppyImage ) );
 						}
 						else {
 							zName = zEntry;
-							pcSource = new MemFile( g_aDiskImage, sizeof( g_aDiskImage ) );
+							pcSubSource = new MemFile( g_aDiskImage, sizeof( g_aDiskImage ) );
 						}
 						
 						/* Load icon */
 						os::BitmapImage* pcIcon = new os::BitmapImage();
 						
-						pcIcon->Load( pcSource );
+						pcIcon->Load( pcSubSource );
 						pcIcon->SetSize( os::Point( 24, 24 ) );
 												
 						/* Create directory node */
@@ -432,7 +434,7 @@ void MountDialogScanner::ScanPath( os::Path cPath, int nDepth, MemFile* pcSource
 					}
 			
 					/* Recursive scan */
-					ScanPath( cEntryPath, nDepth + 1, pcSource );
+					ScanPath( cEntryPath, nDepth + 1, pcSubSource );
 					
 					//if( nDepth == 1 )
 						//delete( pcSource );
@@ -452,7 +454,10 @@ void MountDialogScanner::ScanPath( os::Path cPath, int nDepth, MemFile* pcSource
 				
 			//printf( "%s\n", cEntryPath.GetPath().c_str() );
 				
-			/* Load icon */
+			/* Load icon.  A device that is a file right under its bus (e.g. a
+			   RAM disk) has no disk directory, so no icon yet. */
+			if( pcSource == NULL )
+				pcSource = new MemFile( g_aDiskImage, sizeof( g_aDiskImage ) );
 			os::BitmapImage* pcIcon = new os::BitmapImage();
 			pcSource->Seek( 0, SEEK_SET );
 			pcIcon->Load( pcSource );

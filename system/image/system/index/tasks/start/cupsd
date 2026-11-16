@@ -1,0 +1,7 @@
+# The CUPS scheduler (cmake/ports/40-cups.cmake), for Printers and PrintQueue.
+# It puts itself in the background.  start.sh sources this.
+if [ -x /usr/index/sbin/cupsd ]
+then
+	mkdir -p /var/run/cups /var/spool/cups/tmp /var/log/cups /var/cache/cups
+	/usr/index/sbin/cupsd > /var/log/cupsd-start.log 2>&1
+fi

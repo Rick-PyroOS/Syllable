@@ -5,7 +5,7 @@ OBJDIR = objs
 EXES = $(OBJDIR)/init $(OBJDIR)/ps $(OBJDIR)/ls_ports $(OBJDIR)/ls_sema	\
 	$(OBJDIR)/top $(OBJDIR)/nice $(OBJDIR)/semctl $(OBJDIR)/shutdown \
 	$(OBJDIR)/strace $(OBJDIR)/sysinfo $(OBJDIR)/unbuffer mkhome kill_all \
-	$(OBJDIR)/open $(OBJDIR)/cbcopy $(OBJDIR)/cbpaste
+	$(OBJDIR)/open $(OBJDIR)/cbcopy $(OBJDIR)/cbpaste $(OBJDIR)/alert
 
 init_OBJS		= init.o
 ps_OBJS			= ps.o
@@ -21,6 +21,7 @@ unbuffer_OBJS	= unbuffer.o
 open_OBJS		= open.o
 cbcopy_OBJS		= cbcopy.o
 cbpaste_OBJS	= cbpaste.o
+alert_OBJS      = alert.o
 
 
 init_OBJS		:= $(addprefix $(OBJDIR)/,$(init_OBJS))
@@ -38,6 +39,7 @@ unbuffer_OBJS	:= $(addprefix $(OBJDIR)/,$(unbuffer_OBJS))
 open_OBJS		:= $(addprefix $(OBJDIR)/,$(open_OBJS))
 cbcopy_OBJS		:= $(addprefix $(OBJDIR)/,$(cbcopy_OBJS))
 cbpaste_OBJS	:= $(addprefix $(OBJDIR)/,$(cbpaste_OBJS))
+alert_OBJS      := $(addprefix $(OBJDIR)/,$(alert_OBJS))
 
 include $(ATHEOS_SRC)/makefile.rules
 
@@ -74,6 +76,8 @@ $(OBJDIR)/cbcopy: $(cbcopy_OBJS)
 	$(CXX) $(cbcopy_OBJS) -lsyllable -o $@
 $(OBJDIR)/cbpaste: $(cbpaste_OBJS)
 	$(CXX) $(cbpaste_OBJS) -lsyllable -o $@
+$(OBJDIR)/alert: $(alert_OBJS)
+	$(CXX) $(alert_OBJS) -lsyllable -o $@
 deps:
 
 install:

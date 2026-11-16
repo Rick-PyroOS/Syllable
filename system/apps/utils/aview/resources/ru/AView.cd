@@ -46,4 +46,5 @@ MSG_MIMETYPE_IMAGE_XBM						Изображение в формате XBM
 MSG_MIMETYPE_IMAGE_XPM						Изображение в формате XPM
 MSG_MIMETYPE_IMAGE_TGA						Изображение в формате TGA
 MSG_MIMETYPE_IMAGE_PCX						Изображение в формате PCX
+MSG_MIMETYPE_IMAGE_SVG						Изображение в формате SVG
 

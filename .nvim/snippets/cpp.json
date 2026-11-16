@@ -1,0 +1,129 @@
+{
+  "template function": {
+    "prefix": "tfn",
+    "description": "template<typename T> function",
+    "body": [
+      "template<typename ${1:T}>",
+      "${2:void} ${3:Name}( ${4:const $1& cValue} )",
+      "{",
+      "\t$0",
+      "}"
+    ]
+  },
+  "class": {
+    "prefix": "cls",
+    "description": "class with constructor and destructor",
+    "body": [
+      "class ${1:Name}${2: : public ${3:os::Handler}}",
+      "{",
+      "public:",
+      "\t$1();",
+      "\t~$1();",
+      "",
+      "private:",
+      "\t$0",
+      "};"
+    ]
+  },
+  "os::Window subclass": {
+    "prefix": "oswin",
+    "description": "os::Window subclass",
+    "body": [
+      "class ${1:MainWindow} : public os::Window",
+      "{",
+      "public:",
+      "\t$1( const os::Rect& cFrame );",
+      "\t~$1();",
+      "",
+      "\tvirtual void HandleMessage( os::Message* pcMessage );",
+      "\tvirtual bool OkToQuit();",
+      "",
+      "private:",
+      "\t$0",
+      "};"
+    ]
+  },
+  "os::Application with main()": {
+    "prefix": "osapp",
+    "description": "os::Application subclass and main()",
+    "body": [
+      "class ${1:App} : public os::Application",
+      "{",
+      "public:",
+      "\t$1() : os::Application( \"application/x-vnd.${2:Rick}-$1\" )",
+      "\t{",
+      "\t\tm_pcWindow = new ${3:MainWindow}( os::Rect( 0, 0, ${4:400}, ${5:300} ) );",
+      "\t\tm_pcWindow->CenterInScreen();",
+      "\t\tm_pcWindow->Show();",
+      "\t\tm_pcWindow->MakeFocus();",
+      "\t}",
+      "",
+      "private:",
+      "\t$3* m_pcWindow;",
+      "};",
+      "",
+      "int main( int argc, char** argv )",
+      "{",
+      "\t$1* pcApp = new $1();",
+      "\tpcApp->Run();",
+      "\treturn 0;",
+      "}"
+    ]
+  },
+  "HandleMessage": {
+    "prefix": "handlemsg",
+    "description": "HandleMessage() with a switch on the code",
+    "body": [
+      "void ${1:MainWindow}::HandleMessage( os::Message* pcMessage )",
+      "{",
+      "\tswitch( pcMessage->GetCode() )",
+      "\t{",
+      "\t\tcase ${2:M_MESSAGE}:",
+      "\t\t\t$3",
+      "\t\t\tbreak;",
+      "\t\tdefault:",
+      "\t\t\t${4:os::Window}::HandleMessage( pcMessage );",
+      "\t\t\tbreak;",
+      "\t}",
+      "}$0"
+    ]
+  },
+  "message case": {
+    "prefix": "case",
+    "description": "case M_...: block",
+    "body": [
+      "case ${1:M_MESSAGE}:",
+      "{",
+      "\t$0",
+      "\tbreak;",
+      "}"
+    ]
+  },
+  "Locker": {
+    "prefix": "lock",
+    "description": "os::Locker for the rest of the scope",
+    "body": [
+      "os::Locker cLock( ${1:m_cLock} );"
+    ]
+  },
+  "range for": {
+    "prefix": "fore",
+    "description": "for each element",
+    "body": [
+      "for( ${1:auto}& ${2:cItem} : ${3:cList} )",
+      "{",
+      "\t$0",
+      "}"
+    ]
+  },
+  "iterator for": {
+    "prefix": "iter",
+    "description": "for over iterators",
+    "body": [
+      "for( ${1:std::vector<${2:int}>}::iterator ${3:i} = ${4:cList}.begin(); $3 != $4.end(); ++$3 )",
+      "{",
+      "\t$0",
+      "}"
+    ]
+  }
+}

@@ -472,7 +472,6 @@ void Font::GetStringLengths( const char** apzStringArray, const int* anLengthArr
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -487,7 +486,6 @@ status_t Font::GetConfigNames( std::vector<string>* pcTable )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -502,7 +500,6 @@ status_t Font::GetDefaultFont( const std::string& cName, font_properties* psProp
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -517,7 +514,6 @@ status_t Font::SetDefaultFont( const std::string& cName, const font_properties& 
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -532,7 +528,6 @@ status_t Font::AddDefaultFont( const std::string& cName, const font_properties& 
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -547,7 +542,6 @@ int Font::GetFamilyCount()
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -562,7 +556,6 @@ status_t Font::GetFamilyInfo( int nIndex, char* pzFamily )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)
@@ -577,7 +570,6 @@ int Font::GetStyleCount( const char* pzFamily )
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \sa
  * \author	Kurt Skauen (kurt@atheos.cx)

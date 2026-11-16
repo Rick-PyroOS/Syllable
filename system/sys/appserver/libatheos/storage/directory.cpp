@@ -227,7 +227,6 @@ void Directory::Unset()
  * \par Description:
  * \par Note:
  * \par Warning:
- * \param
  * \return
  * \par Error codes:
  * \sa

@@ -17,6 +17,7 @@
 #include <kernel/stdlib.h>
 #include <kernel/string.h>
 #include <kernel/device.h>
+#include <kernel/ioctl.h>
 
 
 static const int32 kDesiredAllocationGroups = 56;

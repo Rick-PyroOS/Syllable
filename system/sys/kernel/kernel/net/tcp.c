@@ -829,9 +829,15 @@ static ssize_t tcp_recvmsg( Socket_s *psSocket, struct msghdr *psMsg, int nFlags
 		atomic_and( &psTCPCtrl->tcb_flags, ~TCBF_PUSH );
 	}
 	// Open the receive window, if it's closed and we've made
-	// enough space to fit a segment.
+	// enough space to fit a segment.  Also tell the sender when the
+	// window has grown by two segments or half the buffer (BSD's
+	// window update rule): an almost full window is not "closed", and
+	// without this the sender waits for its persist timer (seconds)
+	// before every buffer's worth of data.
 
-	if ( ( atomic_read( &psTCPCtrl->tcb_flags ) & TCBF_RWIN_CLOSED ) && tcp_rwindow( psTCPCtrl, false ) > 0 )
+	if ( ( ( atomic_read( &psTCPCtrl->tcb_flags ) & TCBF_RWIN_CLOSED ) && tcp_rwindow( psTCPCtrl, false ) > 0 ) ||
+	     tcp_rwindow( psTCPCtrl, false ) - ( int )( psTCPCtrl->tcb_nAdvertizedRcvWin - psTCPCtrl->tcb_nRcvNext ) >=
+	     min( psTCPCtrl->tcb_rbsize / 2, 2 * psTCPCtrl->tcb_rmss ) )
 	{
 		atomic_or( &psTCPCtrl->tcb_flags, TCBF_NEEDOUT );
 		atomic_and( &psTCPCtrl->tcb_flags, ~TCBF_RWIN_CLOSED );

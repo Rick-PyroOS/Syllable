@@ -1,0 +1,61 @@
+Zip 3.0's AtheOS port (atheos/), which the release's Zip never built: a missing '#' and ')',
+setfiletype() also for the utilities, and the bin folder made before installing.
+--- a/atheos/Makefile
++++ b/atheos/Makefile
+@@ -126,6 +126,7 @@
+ 
+ # install
+ install:        $(ZIPS)
++	mkdir -p $(BINDIR)
+ 	$(INSTALL) -m755 $(ZIPS) $(BINDIR)
+ 	mkdir -p $(MANDIR)
+ 	$(INSTALL) -m644 man/zip.1 $(MANDIR)/zip.$(manext)
+--- a/atheos/atheos.c
++++ b/atheos/atheos.c
+@@ -274,7 +274,7 @@
+       t->atime = t->mtime = t->ctime = label_utim;
+     return label_time;
+   }
+-  if ((name = malloc(len + 1)) == NULL {
++  if ((name = malloc(len + 1)) == NULL) {
+     ZIPERR(ZE_MEM, "filetime");
+   }
+   strcpy(name, f);
+@@ -823,8 +823,16 @@
+     return add_At_ef(z); /* last function; we can use return value directly */
+ }
+ 
++#endif /* !UTIL */
++
+ /* ---------------------------------------------------------------------- */
+-/* Set a file's MIME type.                                                */
++/* Set a file's MIME type.  Also for the utilities (zipnote, zipsplit,
++   zipcloak), which call it too.                                          */
++#include <fcntl.h>
++#include <string.h>
++#include <unistd.h>
++#include <atheos/fs_attribs.h>
++
+ void setfiletype(const char *file, const char *type)
+ {
+     int fd;
+@@ -848,8 +856,6 @@
+         close( fd );
+     }
+ }
+-
+-#endif /* !UTIL */
+ 
+ /******************************/
+ /*  Function version_local()  */
+--- a/atheos/osdep.h
++++ b/atheos/osdep.h
+@@ -23,7 +23,7 @@
+ #define EB_AT_FL_BADBITS    0xfe    /* bits currently undefined           */
+ 
+ #ifndef ZP_NEED_MEMCOMPR
+-  define ZP_NEED_MEMCOMPR
++#  define ZP_NEED_MEMCOMPR
+ #endif
+ 
+ #define deletedir(d) rmdir(d);

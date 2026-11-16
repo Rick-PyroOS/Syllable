@@ -31,6 +31,7 @@
 #include <inc/smp.h>
 #include <inc/areas.h>
 #include <inc/ptrace.h>
+#include <inc/image.h>
 
 
 static ptrace_func_t ptrace_traceme;
@@ -169,6 +170,17 @@ static status_t access_vm( Thread_s *psThread, uintptr_t nAddr, uint32 *pnValue,
 	return nResult;
 }
 
+
+/* Hand over a thread's memory clone (access_vm) so the caller can delete it
+ * once it no longer holds the scheduler lock; untrace() then finds none. */
+static area_id take_vm_clone( Thread_s *psThread )
+{
+	area_id hArea = psThread->tr_hPTraceVMClone;
+
+	psThread->tr_hPTraceVMClone = 0;
+	psThread->tr_nPTraceVMCloneBase = 0;
+	return hArea;
+}
 
 static int ptrace_traceme( Thread_s *psCurrentThread, Thread_s *psTargetThread,
                            void *pAddr, void *pData )
@@ -428,15 +440,74 @@ static int ptrace_setfpxregs( Thread_s *psCurrentThread,
 }
 
 
+/*
+ * PTRACE_GETIMAGES: the images loaded in the target's process (path, text
+ * and data addresses), so a debugger can place each library's symbols.
+ * pAddr: how many image_info structs pData has room for.  Returns the count.
+ * Handled outside sys_ptrace's cli() / sched_lock(): reading the image
+ * context takes a semaphore.
+ */
+static int ptrace_getimages( thread_id hThread, void *pAddr, void *pData )
+{
+	Thread_s *psCurrentThread = CURRENT_THREAD;
+	Thread_s *psTargetThread;
+	Process_s *psProc = NULL;
+	image_info sInfo;
+	int nMax = (int) (uintptr_t) pAddr;
+	int nCpuFlags, nError = 0, nCount = 0, i;
+
+	if ( nMax < 0 )
+		return -EINVAL;
+	if ( nMax > 0 && verify_mem_area( pData, nMax * sizeof( image_info ), true ) < 0 )
+		return -EFAULT;
+
+	nCpuFlags = cli();
+	sched_lock();
+	psTargetThread = get_thread_by_handle( hThread );
+	if ( psTargetThread == NULL )
+		nError = -ESRCH;
+	else if ( !( atomic_read( &psTargetThread->tr_nPTraceFlags ) & PT_PTRACED ) ||
+	          psTargetThread->tr_hParent != psCurrentThread->tr_hThreadID )
+		nError = -EPERM;
+	else if ( psTargetThread->tr_nState != TS_STOPPED )
+		nError = -ESRCH;	/* a stopped thread's process can't go away under us */
+	else
+		psProc = psTargetThread->tr_psProcess;
+	sched_unlock();
+	put_cpu_flags( nCpuFlags );
+	if ( nError < 0 )
+		return nError;
+
+	for ( i = 0; i < MAX_IMAGE_COUNT && nCount < nMax; ++i )
+	{
+		nError = get_process_image_info( psProc, i, &sInfo );
+		if ( nError == -ENOENT )
+			continue;
+		if ( nError < 0 )
+			break;
+		nError = memcpy_to_user( (image_info *) pData + nCount, &sInfo, sizeof( sInfo ) );
+		if ( nError < 0 )
+			return nError;
+		nCount++;
+	}
+	return nCount;
+}
+
 int sys_ptrace( int nRequest, thread_id hThread, void *pAddr, void *pData )
 {
 	Thread_s *psTargetThread;
 	Thread_s *psCurrentThread = CURRENT_THREAD;
 	ptrace_func_ptr f = NULL;
 	int nCpuFlags, nResult = 0;
+	area_id hVMClone = 0;
 
+#ifdef PTRACE_DEBUG	/* a debugger makes thousands of calls: only when asked for */
 	printk( "sys_ptrace: request = %d, tid = %d, addr = %p, data = %p\n",
 	        nRequest, hThread, pAddr, pData );
+#endif
+
+	if ( nRequest == PTRACE_GETIMAGES )
+		return ptrace_getimages( hThread, pAddr, pData );
 
 	if ( ( nRequest >= 0 ) && ( nRequest <= MAX_REQUEST ) )
 		f = g_pPTraceFunc[nRequest];
@@ -485,21 +556,50 @@ int sys_ptrace( int nRequest, thread_id hThread, void *pAddr, void *pData )
 
 	if ( nRequest == PTRACE_KILL )
 	{
+		hVMClone = take_vm_clone( psTargetThread );
 		nResult = f( psCurrentThread, psTargetThread, pAddr, pData );
 		goto out;
 	}
 
 	/* all other functions require the target thread to be stopped */
-	if ( psTargetThread->tr_nState == TS_STOPPED )
-		nResult = f( psCurrentThread, psTargetThread, pAddr, pData );
-	else
+	if ( psTargetThread->tr_nState != TS_STOPPED )
+	{
 		nResult = -ESRCH;
+		goto out;
+	}
+
+	/*
+	 * Reading and writing the target's memory clones its pages into a kernel
+	 * area (clone_from_inactive_ctx), which takes semaphores and can sleep:
+	 * not with cli() / sched_lock() held (that is Schedule() under
+	 * g_sSchedSpinLock, and the system livelocks at the debugger's first
+	 * breakpoint).  The checks above are done; a stopped thread can't go away
+	 * under us (see ptrace_getimages), so these run after unlocking.
+	 */
+	if ( nRequest == PTRACE_PEEKTEXT || nRequest == PTRACE_PEEKDATA ||
+	     nRequest == PTRACE_POKETEXT || nRequest == PTRACE_POKEDATA )
+	{
+		sched_unlock();
+		put_cpu_flags( nCpuFlags );
+		return f( psCurrentThread, psTargetThread, pAddr, pData );
+	}
+
+	if ( nRequest == PTRACE_DETACH )
+		hVMClone = take_vm_clone( psTargetThread );
+	nResult = f( psCurrentThread, psTargetThread, pAddr, pData );
 
 out:
 	sched_unlock();
 	put_cpu_flags( nCpuFlags );
 
+	/* The memory clone of a detached or killed thread: delete_area() takes
+	 * semaphores too, so after unlocking. */
+	if ( hVMClone > 0 )
+		delete_area( hVMClone );
+
+#ifdef PTRACE_DEBUG
 	printk( "sys_ptrace: result = %d\n", nResult );
+#endif
 	return nResult;
 }
 

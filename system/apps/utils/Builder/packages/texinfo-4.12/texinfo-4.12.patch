@@ -1,0 +1,22 @@
+--- texinfo-4.12.orig/Makefile.in	2008-04-18 01:34:58
++++ texinfo-4.12/Makefile.in	2026-10-24 01:09:19
+@@ -436,7 +436,7 @@
+ @TOOLS_ONLY_FALSE@SUBDIRS = $(native_tools) gnulib/lib lib \
+ @TOOLS_ONLY_FALSE@            install-info info makeinfo po util doc 
+ 
+-@TOOLS_ONLY_TRUE@SUBDIRS = lib info install-info makeinfo util
++@TOOLS_ONLY_TRUE@SUBDIRS = gnulib/lib lib info install-info makeinfo util
+ all: config.h
+ 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+ 
+--- texinfo-4.12.orig/info/Makefile.in	2008-04-18 01:34:57
++++ texinfo-4.12/info/Makefile.in	2026-10-24 01:26:39
+@@ -43,7 +43,7 @@
+ POST_UNINSTALL = :
+ build_triplet = @build@
+ host_triplet = @host@
+-bin_PROGRAMS = ginfo$(EXEEXT) infokey$(EXEEXT)
++@TOOLS_ONLY_FALSE@bin_PROGRAMS = ginfo$(EXEEXT) infokey$(EXEEXT)
+ noinst_PROGRAMS = makedoc$(EXEEXT)
+ subdir = info
+ DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in

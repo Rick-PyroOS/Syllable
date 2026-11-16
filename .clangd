@@ -1,0 +1,59 @@
+# clangd settings for the Syllable tree (read by Neovim/VS Code/any clangd editor).
+# Include paths, target and macros come from compile_commands.json, written by
+# tools/gen_compile_commands.py from each Makefile plus tools/base_flags.txt
+# (userland) and tools/base_flags_kernel.txt (kernel and drivers); the notes on
+# those flags are in those files. This file adds the language standard by file type.
+#
+# The current system compiler is GCC 4.1.2, so C++ is gnu++98 and C is gnu99.
+# Once the GCC 15 port lands, change gnu++98 to gnu++20 (or newer).
+
+If:
+  PathMatch: .*\.c
+CompileFlags:
+  Add: [-std=gnu99]
+---
+# No .*\.C here: on macOS clangd matches paths ignoring case, so it would
+# also catch every .c file.
+If:
+  PathMatch: [.*\.cpp, .*\.cc, .*\.cxx]
+CompileFlags:
+  Add: [-std=gnu++98]
+---
+# Headers outside the kernel are mostly C++ (gui/, util/, storage/ ...).
+If:
+  PathMatch: [.*\.h, .*\.hpp]
+  PathExclude: system/sys/kernel/.*
+CompileFlags:
+  Add: [-xc++-header, -std=gnu++98]
+---
+If:
+  PathMatch: system/sys/kernel/.*\.h
+CompileFlags:
+  Add: [-xc-header, -std=gnu99]
+---
+# Old code: don't nag about includes.
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+---
+# Imported glibc sources: huge and built with their own rules. Don't index.
+If:
+  PathMatch: system/libs/(glibc|glibc-2\.3\.2)/.*
+Index:
+  Background: Skip
+---
+# Editor hints: only parameter names before arguments ("x: 1"), like CLion.
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: No
+  Designators: No
+  BlockEnd: No
+---
+# Hover docs: clangd 22 and newer read the doxygen in comments (\brief,
+# \param, \return) and lay it out, parameter types included; older clangd
+# ignores this. Neovim tidies the rest (\par, \sa, the ***** lines) in
+# .nvim/lua/config/doxygen.lua. Keep a name on every \param: an empty
+# "\param" line crashes clangd 22-23 when you hover that function.
+Documentation:
+  CommentFormat: Doxygen

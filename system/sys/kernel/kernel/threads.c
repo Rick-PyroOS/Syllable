@@ -23,6 +23,7 @@
 #include <kernel/areas.h>
 #include <kernel/stdlib.h>
 #include <kernel/schedule.h>
+#include <kernel/signal.h>
 #include <kernel/malloc.h>
 #include <syllable/syscall.h>
 #include <posix/errno.h>
@@ -35,6 +36,7 @@
 #include <inc/smp.h>
 #include <inc/array.h>
 #include <inc/aio.h>
+#include <inc/ptrace.h>
 
 MultiArray_s g_sThreadTable;	// Global thread table
 
@@ -909,6 +911,19 @@ thread_id do_spawn_thread( const char *const pzName, void *const pfEntry, const 
 	psNewThread->tr_pEIP = exit_from_sys_call;
 
 	psNewThread->tr_nState = TS_WAIT;
+
+	/* A traced program's new thread is traced too, by the same debugger (the
+	 * spawning thread's tracer becomes its parent), and stops with SIGSTOP
+	 * before its first instruction, once the program resumes it.  So the
+	 * debugger learns about it before it can hit a breakpoint: an int3 in an
+	 * untraced thread is a SIGSEGV.  (Linux's PTRACE_O_TRACECLONE, always on.) */
+	if ( !bKernel && ( atomic_read( &psParentThread->tr_nPTraceFlags ) & PT_PTRACED ) )
+	{
+		psNewThread->tr_hRealParent = psNewThread->tr_hParent;
+		psNewThread->tr_hParent = psParentThread->tr_hParent;
+		atomic_or( &psNewThread->tr_nPTraceFlags, PT_PTRACED );
+		sigaddset( &psNewThread->tr_sSigPend, SIGSTOP );
+	}
 
       again:
 	nFlg = cli();
