@@ -1,0 +1,15 @@
+m_pcRoot = new os::VLayoutNode( "Root" );
+m_pcVRoot = new os::VLayoutNode( "VRoot", 1.000000 );
+m_pcVRoot->SetBorders( os::Rect( 0.000000, 0.000000, 0.000000, 0.000000 ) );
+m_pcRoot->AddChild( m_pcVRoot );
+m_pcServiceList = new os::ListView( os::Rect(), "ServiceList", os::ListView::F_NO_HEADER );
+m_pcVRoot->AddChild( m_pcServiceList, 1.000000 );
+m_pcButtons = new os::HLayoutNode( "Buttons", 0.000000 );
+m_pcButtons->SetBorders( os::Rect( 5.000000, 10.000000, 5.000000, 5.000000 ) );
+m_pcVRoot->AddChild( m_pcButtons );
+m_pcStopButton = new os::Button( os::Rect(), "StopButton", "Stop", new os::Message( M_STOP ) );
+m_pcButtons->AddChild( m_pcStopButton, 0.000000 );
+m_pcButtonSpacer = new os::HLayoutSpacer( "ButtonSpacer", 0.000000, 100000.000000, NULL, 1.000000 );
+m_pcButtons->AddChild( m_pcButtonSpacer );
+m_pcStartButton = new os::Button( os::Rect(), "StartButton", "Start", new os::Message( M_START ) );
+m_pcButtons->AddChild( m_pcStartButton, 0.000000 );
