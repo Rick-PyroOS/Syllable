@@ -19,6 +19,7 @@ set(SOURCES
   util/message.cpp util/messenger.cpp util/messagequeue.cpp util/invoker.cpp
   util/clipboard.cpp util/string.cpp util/regexp.cpp util/variant.cpp
   util/circularbuffer.cpp util/resources.cpp util/optionparser.cpp util/settings.cpp util/settingscache.cpp util/json.cpp util/jsonpath.cpp util/jsonschema.cpp
+  util/xml.cpp
   util/thread.cpp util/messagefilter.cpp util/event.cpp
   storage/filereference.cpp storage/filereference_info.cpp storage/filereference_rename.cpp
   storage/operation_copy.cpp storage/operation_move.cpp storage/operation_delete.cpp
@@ -45,13 +46,15 @@ syllable_library(libsyllable SONAME libsyllable.so.8
   OPTIONS -fexceptions
   LIBS m syllable::sqlite3         # SettingsCache (static SQLite, cmake/Ports.cmake)
        syllable::cjson           # os::JSON (static cJSON, cmake/Ports.cmake)
+       syllable::libxml2         # os::XML (static libxml2 2.15, cmake/Ports.cmake)
   LINKS libos.so libsyllable.so    # -lsyllable for the native compilers
   INSTALL system/libraries STRIP)
-# SQLite's and cJSON's symbols stay inside libsyllable: a program with its own
-# SQLite (Webster) or cJSON (-lcjson) gets its own, not libsyllable's
-target_link_options(libsyllable PRIVATE -Wl,--exclude-libs,libsqlite3.a:libcjson.a:libcjson_utils.a)
+# SQLite's, cJSON's and libxml2's symbols stay inside libsyllable: a program
+# with its own SQLite or libxml2 (Webster) or cJSON (-lcjson) gets its own,
+# not libsyllable's
+target_link_options(libsyllable PRIVATE -Wl,--exclude-libs,libsqlite3.a:libcjson.a:libcjson_utils.a:libxml2.a)
 syllable_catalogs(libsyllable NAME libsyllable DIR catalogs
   LANGS da de es fr hu nl pl pt-br ru sv
   INSTALL system/resources/catalogs)
 
-add_subdirectory(tests)    # LibsyllableTests: os::JSON (Google Test)
+add_subdirectory(tests)    # LibsyllableTests: os::JSON and os::XML (Google Test)

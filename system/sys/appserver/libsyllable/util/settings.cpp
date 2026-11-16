@@ -1,5 +1,6 @@
 #include <util/settings.h>
 #include <util/json.h>
+#include <util/xml.h>
 #include <util/application.h>
 #include <util/variant.h>
 #include <storage/file.h>
@@ -303,6 +304,38 @@ status_t Settings::SetJSON( const char *pzName, const JSON & cValue, int nIndex 
 	status_t nResult = cValue.Flatten( pBuffer, nSize );
 	if( nResult == 0 )
 		nResult = SetData( pzName, T_JSON, pBuffer, nSize, nIndex, false );
+	delete[] pBuffer;
+	return nResult;
+}
+
+/** Get an XML document
+ * \par		Description:
+ *		An XML document stored with SetXML(), as a new document, or an
+ *		empty one (<root/>) when the name isn't there.
+ * \sa SetXML(), os::XML
+ *****************************************************************************/
+XML Settings::GetXML( const char *pzName, int nIndex ) const
+{
+	XML cValue;
+	if( FindObject( pzName, cValue, nIndex ) < 0 )
+		return XML();
+	return cValue;
+}
+
+/** Add or change an XML document
+ * \par		Description:
+ *		Stores an XML element (the whole document, at its root) as a value
+ *		of its own type (T_XML, flattened to its text), as SetJSON() stores
+ *		a JSON document.
+ * \sa GetXML(), os::XML
+ *****************************************************************************/
+status_t Settings::SetXML( const char *pzName, const XML & cValue, int nIndex )
+{
+	size_t nSize = cValue.GetFlattenedSize();
+	uint8 *pBuffer = new uint8[nSize];
+	status_t nResult = cValue.Flatten( pBuffer, nSize );
+	if( nResult == 0 )
+		nResult = SetData( pzName, T_XML, pBuffer, nSize, nIndex, false );
 	delete[] pBuffer;
 	return nResult;
 }

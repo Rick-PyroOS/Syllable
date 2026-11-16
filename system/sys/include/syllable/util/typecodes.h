@@ -65,6 +65,7 @@ enum type_code
 	T_FONT,
     T_DATETIME,
     T_JSON,	// os::JSON
+    T_XML,	// os::XML
     
     T_USER = 0x80000000
 };

@@ -1,0 +1,19 @@
+authors				Daniel Veillard, Nick Wellnhofer and libxml2 contributors
+status				testing
+
+headline			XML C parser and toolkit
+description
+	Libxml2 is the XML C parser and toolkit developed for the GNOME project.  This build is the one libsyllable's os::XML is built on: the parser, serialization, XPath 1.0, DTD validation, W3C XML Schemas and Relax-NG, without threads, iconv, zlib or HTML.
+licenses			MIT
+
+home				gitlab.gnome.org/GNOME/libxml2
+locations			https://download.gnome.org/sources/libxml2/2.15/
+
+; The CMake build (cmake/Ports.cmake, libxml2_static) builds this port with
+; patches/Makefile and patches/config.h in place of configure, and
+; patches/include/libxml/xmlversion.h (the features os::XML uses): one static
+; library of PIC objects, linked into libsyllable with its symbols kept
+; private.  It is not installed on the boot volume.
+make-file			Makefile
+
+documentation		README.md Copyright NEWS
