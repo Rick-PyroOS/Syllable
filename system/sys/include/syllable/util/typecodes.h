@@ -64,6 +64,7 @@ enum type_code
     T_SHORTCUTKEY,
 	T_FONT,
     T_DATETIME,
+    T_JSON,	// os::JSON
     
     T_USER = 0x80000000
 };

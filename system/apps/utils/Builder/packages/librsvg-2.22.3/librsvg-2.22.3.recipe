@@ -7,7 +7,7 @@ description
 licenses			LGPL-2
 
 home				librsvg.sourceforge.net
-locations			https://github.com/Rick-PyroOS/Syllable-Ports/raw/main/archives/
+locations			https://download.gnome.org/sources/librsvg/2.22/
 
 needs
 	GLib >= 2.12
@@ -16,8 +16,8 @@ needs
 	LibraryXML2 >= 2.4.7
 	FontConfigure
 
-; The archive is the 2008 Syllable port (librsvg-2.22.3.zip): no configure
-; (it requires gdk-pixbuf-2.0); patches/Makefile builds the library.
+; No configure (it requires gdk-pixbuf-2.0): patches/Makefile and
+; patches/config.h build the library.
 configure-cmd		true
 install-prefix-var	prefix
 

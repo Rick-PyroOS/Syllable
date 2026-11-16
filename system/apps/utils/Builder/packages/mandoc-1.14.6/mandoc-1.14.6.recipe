@@ -1,0 +1,17 @@
+authors				Ingo Schwarze, Kristaps Dzonsons and mandoc contributors
+status				testing
+
+headline			Manual page formatter: man, apropos, whatis
+description
+	mandoc formats and shows UNIX manual pages written in mdoc(7) and man(7), with tbl(7) and eqn(7), straight from the roff source: it needs no groff.  It is also man(1), apropos(1), whatis(1) and makewhatis(8), which keeps the mandoc.db(5) index that apropos and whatis search.
+licenses			ISC BSD
+
+home				mandoc.bsd.lv
+locations			https://mandoc.bsd.lv/snapshots/
+
+; The CMake build (cmake/ports/60-man.cmake) cross-builds this port with
+; mandoc's own configure (not autoconf), set up by patches/configure.local:
+; every check it would compile and run is answered there, for glibc 2.7.
+; The pager is less, as Syllable's more is only a bash alias.
+
+documentation		README LICENSE NEWS TODO

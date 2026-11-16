@@ -1,0 +1,6 @@
+# The build host's mandoc (cmake/ports/60-man.cmake), for makewhatis only:
+# it indexes the boot volume's manual pages at install time
+# (cmake/scripts/index-manuals.sh).  Everything else is detected.
+CC=/usr/bin/gcc
+# the index's links point into the ports' folders, outside its base directory
+READ_ALLOWED_PATH="/"

@@ -1,4 +1,4 @@
 foreach(plugin Address battery Camera Clipper clock ColdFishRemote CpuSpeed Eyes Meter mixer Printer
-               Switcher WallpaperChanger)
+               Switcher WallpaperChanger Places)
   add_subdirectory(${plugin})
 endforeach()

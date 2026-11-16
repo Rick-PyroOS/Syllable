@@ -6,7 +6,7 @@
 
 | Piece | Where | Notes |
 |---|---|---|
-| librsvg 2.22.3 (2008) | `cmake/ports/30-cairo.cmake`, `Builder/packages/librsvg-2.22.3` | Built from the 2008 Syllable port (`Syllable-Ports/archives/librsvg-2.22.3.zip`, mounted by `sb` at `/ports-archives`). Library only, with its own Makefile: upstream `configure` requires gdk-pixbuf. Installed in `/usr/librsvg/2.22.3`. |
+| librsvg 2.22.3 (2008) | `cmake/ports/30-cairo.cmake`, `Builder/packages/librsvg-2.22.3` | Built from GNOME's release tarball, downloaded like the other ports. Library only, with the port's own Makefile and `config.h`: upstream `configure` requires gdk-pixbuf. The port's patch includes the GdkPixbuf stand-in and skips embedded raster images. Installed in `/usr/librsvg/2.22.3`. |
 | GdkPixbuf stand-in | `Builder/packages/librsvg-2.22.3/patches/gdk-pixbuf.[ch]` | A small GObject holding an RGB(A) buffer, with the accessors librsvg uses. Enough for filters and `rsvg_handle_get_pixbuf()`. It has no image loaders. |
 | SVG translator | `system/sys/translators/svg/svgtrans.cpp` | Reads the whole document, has librsvg draw it with cairo into a buffer, un-premultiplies the alpha, and emits one `CS_RGB32` frame. Identify looks for the opening `svg` tag in the first 8 KB. Links libpthread. |
 | `BitmapImage::Load()` fix | `system/sys/appserver/libsyllable/gui/image.cpp` | Sends the final `AddData()` call even when the file size is an exact multiple of 8 KB (the translator draws only on that call). |

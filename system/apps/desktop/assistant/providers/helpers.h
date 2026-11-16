@@ -4,8 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <posix/stat.h>
+#include <sys/stat.h>
 #include <util/string.h>
 #include "./provider.h"
+#include "posix/fcntl.h"
+#include "storage/directory.h"
 
 /*
  * These are inline so a plugin .so can use them without linking against
@@ -54,6 +57,11 @@ inline void BindSettings( os::Settings& cSettings, const os::String& cDirectory 
 	os::Path cPath( cDirectory );
 	cSettings.SetPath( &cPath );
 	cSettings.SetFile( "Settings" );
+}
+
+inline bool IsDirectory(const os::String &cDir){
+	struct stat info;
+	return stat(cDir.c_str(),&info) > 0 && S_ISDIR(info.st_mode);
 }
 
 /* mkdir -p */

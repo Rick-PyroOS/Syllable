@@ -6,8 +6,10 @@
 #include "storage/directory.h"
 #include "syllable/image.h"
 #include "syllable/inttypes.h"
+#include "util/exceptions.h"
 #include "util/typecodes.h"
 #include "messages.h"
+#include <exception>
 #include <sys/debug.h>
 #include <algorithm>
 #include <vector>

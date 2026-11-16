@@ -12,17 +12,22 @@
 -- Settings (Cmd+, or Space T) lists every Space t toggle in one popup, each
 -- with its on/off, plus the hover delay (how long the mouse rests before a
 -- popup shows: quick documentation, the margin's findings, tab and usage tips;
--- 500 ms like CLion). Enter on it picks from a list; :HoverDelay 250 sets any value.
+-- 500 ms like CLion), and the auto-save delay (how long after your last change
+-- a file is written, autosave.lua; 500 ms). Enter on either picks from a list;
+-- :HoverDelay 250 and :AutoSaveDelay 3000 set any value.
 
 local M = {}
 
 local file = vim.fn.stdpath("state") .. "/prefs.json"
 local defaults = { wrap = false, ctrl_z = false, double_click = false, mouse_docs = true, sticky_header = true,
   git_blame = false, auto_include = true, breadcrumbs = true, balloon = true, find_bar = false, images_inline = true,
-  thread_check = true, hover_delay = 500, ollama_autostart = true, ai_complete = true, clang_tidy = true }
+  thread_check = true, hover_delay = 500, autosave_delay = 500, ollama_autostart = true, ai_complete = true, clang_tidy = true }
 
--- Hover delays the Settings list offers (ms); :HoverDelay <ms> sets any other.
-local HOVER_DELAYS = { 100, 200, 300, 400, 500, 700, 1000, 1500, 2000 }
+-- The delays Settings offers (ms); :HoverDelay / :AutoSaveDelay <ms> set any other.
+local DELAYS = {
+  hover_delay = { label = "Hover delay", choices = { 100, 200, 300, 400, 500, 700, 1000, 1500, 2000 } },
+  autosave_delay = { label = "Auto-save delay", choices = { 300, 500, 1000, 1500, 2000, 3000, 5000, 10000 } },
+}
 
 local values = (function()
   local ok, data = pcall(function() return vim.json.decode(table.concat(vim.fn.readfile(file), "\n")) end)
@@ -152,8 +157,10 @@ function M.settings(cursor, src)
     items[#items + 1] = { text = p[2], label = p[2], pref = p[1], state = M.get(p[1]) and "on" or "off" }
   end
   table.sort(items, function(a, b) return a.label < b.label end)
-  local delay = M.get("hover_delay")
-  items[#items + 1] = { text = "Hover delay", label = "Hover delay", value = delay .. " ms", delay = true }
+  for _, name in ipairs({ "hover_delay", "autosave_delay" }) do
+    local label = DELAYS[name].label
+    items[#items + 1] = { text = label, label = label, value = M.get(name) .. " ms", delay = name }
+  end
   Snacks.picker({
     title = "Settings",
     items = items,
@@ -176,7 +183,7 @@ function M.settings(cursor, src)
       local idx = picker.list.cursor
       picker:close()
       if item.delay then
-        return vim.schedule(function() M.pick_hover_delay(function() M.settings(idx, src) end) end)
+        return vim.schedule(function() M.pick_delay(item.delay, function() M.settings(idx, src) end) end)
       end
       if item.pref then
         values[item.pref] = not M.get(item.pref)
@@ -194,22 +201,25 @@ function M.settings(cursor, src)
   })
 end
 
-function M.set_hover_delay(ms)
-  values.hover_delay = math.max(0, math.floor(ms))
+-- name: "hover_delay" or "autosave_delay".
+function M.set_delay(name, ms)
+  values[name] = math.max(0, math.floor(ms))
   save()
-  vim.notify("Hover delay: " .. values.hover_delay .. " ms")
+  vim.notify(DELAYS[name].label .. ": " .. values[name] .. " ms")
 end
+function M.set_hover_delay(ms) M.set_delay("hover_delay", ms) end
 
 -- A list of delays to pick from (the current one marked); then calls done.
-function M.pick_hover_delay(done)
-  local cur = M.get("hover_delay")
+function M.pick_delay(name, done)
+  local cur, choices = M.get(name), DELAYS[name].choices
   local labels = {}
-  for i, d in ipairs(HOVER_DELAYS) do labels[i] = (d == cur and "● " or "  ") .. d .. " ms" end
-  vim.ui.select(labels, { prompt = "Hover delay" }, function(_, i)
-    if i then M.set_hover_delay(HOVER_DELAYS[i]) end
+  for i, d in ipairs(choices) do labels[i] = (d == cur and "● " or "  ") .. d .. " ms" end
+  vim.ui.select(labels, { prompt = DELAYS[name].label }, function(_, i)
+    if i then M.set_delay(name, choices[i]) end
     if done then done() end
   end)
 end
+function M.pick_hover_delay(done) M.pick_delay("hover_delay", done) end
 
 -- clangd's --header-insertion follows the auto_include pref (lsp.lua).
 function M.header_insertion() return "--header-insertion=" .. (M.get("auto_include") and "iwyu" or "never") end
@@ -234,12 +244,16 @@ end
 function M.setup()
   apply_wrap()
   vim.keymap.set("n", "<D-,>", function() M.settings() end, { desc = "Settings" })
-  vim.api.nvim_create_user_command("HoverDelay", function(o)
-    if o.args == "" then return M.pick_hover_delay() end
-    local ms = tonumber(o.args)
-    if not ms then return vim.notify("HoverDelay: give a number of milliseconds", vim.log.levels.WARN) end
-    M.set_hover_delay(ms)
-  end, { nargs = "?", desc = "How long the mouse rests before hover popups show (ms)" })
+  local function delay_command(cmd, name, desc)
+    vim.api.nvim_create_user_command(cmd, function(o)
+      if o.args == "" then return M.pick_delay(name) end
+      local ms = tonumber(o.args)
+      if not ms then return vim.notify(cmd .. ": give a number of milliseconds", vim.log.levels.WARN) end
+      M.set_delay(name, ms)
+    end, { nargs = "?", desc = desc })
+  end
+  delay_command("HoverDelay", "hover_delay", "How long the mouse rests before hover popups show (ms)")
+  delay_command("AutoSaveDelay", "autosave_delay", "How long after your last change auto-save writes the file (ms)")
   vim.keymap.set("n", "<leader>T", function() M.settings() end, { desc = "Settings (all Space t toggles)" })
   for _, t in ipairs(toggles) do map_toggle(t) end
 

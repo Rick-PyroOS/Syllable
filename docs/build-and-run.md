@@ -17,7 +17,7 @@ Syllable-Build-System, does everything:
    GCC 4.1.2 and 9.5.0 cross compilers for Syllable) and `syllable-os-x86`
    (that plus CMake, Ninja and the other build tools). It also makes two
    Docker volumes: `syllable-build` (the build tree) and `syllable-golden`
-   (the reference disk the image is built from).
+   (the release disk, to compare against).
 2. `sb image` builds Syllable from your checkout and writes a bootable disk,
    `out/syllable.qcow2`.
 3. `sb run` boots that disk in QEMU on the host.
@@ -229,6 +229,13 @@ Under WSL with WSLg, and on a Linux desktop, the QEMU window opens like any
 other. With no display (an SSH session, WSL without WSLg), `sb run` serves VNC
 instead and says so: connect a VNC viewer to `127.0.0.1:5901` (from Windows
 too: WSL forwards localhost), password `syllable`.
+
+The mouse is absolute under `sb run`: QEMU's `pc` machine has VMware's
+vmmouse, which the `ps2mouse` input node turns on (the kernel log says
+`ps2mouse: VMware vmmouse absolute pointer enabled`), so over VNC Syllable's
+pointer stays under the viewer's cursor. Syllable still draws its own cursor,
+so a viewer that shows its local cursor too shows two arrows. See
+`system/sys/appserver/appserver/drivers/input/ps2mouse/README.md`.
 
 ## Day to day
 

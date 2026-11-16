@@ -1,4 +1,5 @@
 #include <util/settings.h>
+#include <util/json.h>
 #include <util/application.h>
 #include <util/variant.h>
 #include <storage/file.h>
@@ -272,6 +273,38 @@ status_t Settings::Save( void ) const
 		return 0;
 	}
 	return -1;
+}
+
+/** Get a JSON document
+ * \par		Description:
+ *		A JSON document stored with SetJSON(), as a new document, or an
+ *		empty object when the name isn't there.
+ * \sa SetJSON(), os::JSON
+ *****************************************************************************/
+JSON Settings::GetJSON( const char *pzName, int nIndex ) const
+{
+	JSON cValue;
+	if( FindObject( pzName, cValue, nIndex ) < 0 )
+		return JSON();
+	return cValue;
+}
+
+/** Add or change a JSON document
+ * \par		Description:
+ *		Stores a JSON object as a value of its own type (T_JSON, flattened
+ *		to its text), as SetString() stores a string: nested objects,
+ *		arrays and all, in the usual settings file.
+ * \sa GetJSON(), os::JSON
+ *****************************************************************************/
+status_t Settings::SetJSON( const char *pzName, const JSON & cValue, int nIndex )
+{
+	size_t nSize = cValue.GetFlattenedSize();
+	uint8 *pBuffer = new uint8[nSize];
+	status_t nResult = cValue.Flatten( pBuffer, nSize );
+	if( nResult == 0 )
+		nResult = SetData( pzName, T_JSON, pBuffer, nSize, nIndex, false );
+	delete[] pBuffer;
+	return nResult;
 }
 
 /** Get directory path

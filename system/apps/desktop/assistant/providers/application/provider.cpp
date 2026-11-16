@@ -50,6 +50,9 @@ status_t ApplicationProvider::Initialize()
 	}
 
 	os::String path = SettingsDirectory( GetName() );
+	if (!IsDirectory(path)){
+		MakeDirectories(path);
+	}
 	if( path.empty() )
 	{
 		printf( "Failed to get the SettingsPath\n" );
@@ -61,7 +64,7 @@ status_t ApplicationProvider::Initialize()
 	if( m_cSettings.Load() != 0 )
 	{
 		/* First run: write the defaults */
-		m_cPaths.push_back( "/Applications" );
+		m_cPaths.push_back( "/applications" );
 		if( SaveSettings() != 0 )
 		{
 			errno = EIO;

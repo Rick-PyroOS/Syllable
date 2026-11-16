@@ -51,6 +51,7 @@
 #include <inc/sysbase.h>
 #include <inc/swap.h>
 #include <inc/pit_timer.h>
+#include <inc/bootsplash.h>
 #include <version.h>
 
 extern int _end;
@@ -455,6 +456,7 @@ static int kernel_init( void )
 
 	g_bRootFSMounted = true;
 	protect_dos_mem();
+	bootsplash_progress( 25 );
 
 	sti();
 
@@ -510,6 +512,7 @@ void system_init( void )
 	init_ip();
 
 	printk( "Start init host\n" );
+	bootsplash_done();	/* from here the screen is the appserver's */
 	if ( Fork( "sh-host" ) == 0 )
 	{
 		int anPipe[2];
@@ -762,8 +765,7 @@ int init_kernel( char *pRealMemBase, int nKernelSize )
 	
 	cli();
 
-	dbcon_set_color( 0, 0, 0, 170 );
-	dbcon_clear();
+	dbcon_clear();		/* text mode: a black screen (bootsplash.c) */
 	
 	parse_kernel_params( g_zKernelParams );
 
@@ -810,6 +812,8 @@ int init_kernel( char *pRealMemBase, int nKernelSize )
 	init_threads();
 	init_areas();
 
+	bootsplash_init();	/* graphics mode: map the framebuffer, draw the splash */
+
 	init_smp( g_bDisableSMP == false, g_bDisableACPI == false );
 	
 	
@@ -846,6 +850,7 @@ void init_kernel_mb( MultiBootHeader_s * psInfo )
 	{
 		strcpy( g_zKernelParams, psInfo->mbh_pzKernelParams );
 	}
+	bootsplash_early( psInfo, g_zKernelParams );
 	g_sSysBase.sb_nFirstUserAddress = AREA_FIRST_USER_ADDRESS;
 	g_sSysBase.sb_nLastUserAddress = AREA_LAST_USER_ADDRESS;
 

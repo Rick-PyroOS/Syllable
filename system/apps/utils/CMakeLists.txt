@@ -10,7 +10,7 @@ add_subdirectory(dhcpc)
 add_subdirectory(sb-agent)        # ./sb execute's end (debug images)
 
 # Other applications
-foreach(app SimpleBurn aedit Albert archiver AttribEdit aview bzoom catalog charmap cpumon
+foreach(app slbmgr SimpleBurn aedit Albert archiver AttribEdit aview bzoom catalog charmap cpumon
             crypt DiskManager fsutils keymapconv Launch Man memmon mixer PrintQueue xpdf)
   add_subdirectory(${app})
 endforeach()

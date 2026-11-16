@@ -299,12 +299,57 @@ syllable_port(libxml2
   CONFIGURE --without-threads --without-python --with-zlib=${SYLLABLE_STAGING}
   DEST sysroot DEPENDS zlib BYPRODUCTS ${SYLLABLE_STAGING}/lib/libxml2.a)
 
+# SQLite: libsqlite3.so.0 in /system/libraries with its headers, for programs
+# built on Syllable, and the sqlite3 shell.  Built from the tarball's
+# amalgamation with the port's own Makefile (patches/Makefile: the Syllable
+# options), not its configure script.  The build tree links the static library
+# (PIC): libsyllable (os::SettingsCache, its symbols kept private) and Webster.
+# The staging sysroot has no libsqlite3.so, so -lsqlite3 there is the static one.
 syllable_port(sqlite
-  PORT sqlite-3.5.5
-  URL https://www.sqlite.org/sqlite-3.5.5.tar.gz
-  SHA256 c430ec6dca870d7c4af35b07cbdf90a20b8a857cc90c7c93c31c6896a8b5270d
-  CONFIGURE --disable-threadsafe --disable-tcl
-  DEST sysroot BYPRODUCTS ${SYLLABLE_STAGING}/lib/libsqlite3.a)
+  PORT sqlite-3.54.1
+  URL https://www.sqlite.org/2026/sqlite-autoconf-3540100.tar.gz
+  SHA256 926ef8d3eab93fbf6e06011901273eec076b25594a4e1cdadd50c987f4f6d64e
+  PREFIX /system/resources/sqlite/3.54.1
+  STYLE plain MAKE_ARGS ${_cc} SYSROOT
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libsqlite3.a
+  LINKS lib/libsqlite3.so.0:/system/libraries/libsqlite3.so.0 lib/libsqlite3.so.0:/usr/index/lib/libsqlite3.so
+        include/sqlite3.h:/usr/index/include/sqlite3.h include/sqlite3ext.h:/usr/index/include/sqlite3ext.h
+        bin/sqlite3:/usr/index/bin/sqlite3)
+
+# cJSON: JSON parsing and printing for C and C++ programs (libcjson.so.1 and
+# libcjson_utils.so.1, JSON Pointer/Patch, in /system/libraries).  C89 and
+# only the C ABI, so the system's GCC 4.1.2 C++ (C++98) uses it as well as C.
+# Built with the port's own Makefile (patches/Makefile), as SQLite is.  The
+# headers are in include/cjson, as upstream installs them:
+# #include <cjson/cJSON.h>.  The build tree links the static libraries.
+syllable_port(cjson
+  PORT cjson-1.7.19
+  URL https://github.com/DaveGamble/cJSON/archive/refs/tags/v1.7.19.tar.gz
+  SHA256 7fa616e3046edfa7a28a32d5f9eacfd23f92900fe1f8ccd988c1662f30454562
+  PREFIX /system/resources/cjson/1.7.19
+  STYLE plain MAKE_ARGS ${_cc} SYSROOT
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libcjson.a ${SYLLABLE_STAGING}/lib/libcjson_utils.a
+  LINKS lib/libcjson.so.1:/system/libraries/libcjson.so.1 lib/libcjson.so.1:/usr/index/lib/libcjson.so
+        lib/libcjson_utils.so.1:/system/libraries/libcjson_utils.so.1
+        lib/libcjson_utils.so.1:/usr/index/lib/libcjson_utils.so
+        include/cjson:/usr/index/include/cjson)
+
+# Google Test and Google Mock 1.8.1: unit tests for C++ programs, GUI ones
+# included (libguitest, system/libs/guitest).  1.8.1 is the last C++98
+# release, so GCC 4.1.2 builds it.  Static libraries only, as upstream
+# recommends, with their headers for programs built on Syllable
+# (#include <gtest/gtest.h>; -lgtest_main -lgtest, or -lgmock).  Built with the
+# port's own Makefile (patches/Makefile), as cJSON is.
+syllable_port(googletest
+  PORT googletest-1.8.1
+  URL https://github.com/google/googletest/archive/release-1.8.1.tar.gz
+  SHA256 9bf1fe5182a604b4135edc1a425ae356c9ad15e9b23f9f12a02e80184c3a249c
+  PREFIX /system/resources/googletest/1.8.1
+  STYLE plain MAKE_ARGS ${_cc} CXX=i586-pc-syllable-g++ SYSROOT
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libgtest.a ${SYLLABLE_STAGING}/lib/libgtest_main.a
+             ${SYLLABLE_STAGING}/lib/libgmock.a ${SYLLABLE_STAGING}/lib/libgmock_main.a
+  LINKS include/gtest:/usr/index/include/gtest include/gmock:/usr/index/include/gmock
+        @lib:/usr/index/lib)
 
 syllable_port(icu
   PORT icu-3.6
@@ -370,7 +415,7 @@ target_link_libraries(syllable_curl INTERFACE ${SYLLABLE_STAGING}/lib/libcurl.a 
 add_dependencies(syllable_curl curl)
 add_library(syllable::curl ALIAS syllable_curl)
 
-foreach(lib ssl crypto xml2 sqlite3)
+foreach(lib ssl crypto xml2)
   add_library(syllable_${lib} INTERFACE)
   target_include_directories(syllable_${lib} SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
   target_link_libraries(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/lib/lib${lib}.a)
@@ -379,7 +424,30 @@ endforeach()
 add_dependencies(syllable_ssl openssl)
 add_dependencies(syllable_crypto openssl)
 add_dependencies(syllable_xml2 libxml2)
+add_library(syllable_sqlite3 INTERFACE)
+target_include_directories(syllable_sqlite3 SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+target_link_libraries(syllable_sqlite3 INTERFACE ${SYLLABLE_STAGING}/lib/libsqlite3.a)
 add_dependencies(syllable_sqlite3 sqlite)
+add_library(syllable::sqlite3 ALIAS syllable_sqlite3)
+add_library(syllable_cjson INTERFACE)
+target_include_directories(syllable_cjson SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+target_link_libraries(syllable_cjson INTERFACE ${SYLLABLE_STAGING}/lib/libcjson_utils.a
+                      ${SYLLABLE_STAGING}/lib/libcjson.a m)
+add_dependencies(syllable_cjson cjson)
+add_library(syllable::cjson ALIAS syllable_cjson)
+# syllable::gtest: Google Test; syllable::gtest_main adds its main().
+# syllable::gmock carries Google Test as well.  Not SYSTEM: GCC 4.1.2 for
+# Syllable takes -isystem headers as extern "C", which C++ headers can't be.
+foreach(lib gtest gtest_main gmock gmock_main)
+  add_library(syllable_${lib} INTERFACE)
+  target_include_directories(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/include)
+  target_link_libraries(syllable_${lib} INTERFACE ${SYLLABLE_STAGING}/lib/lib${lib}.a)
+  add_dependencies(syllable_${lib} googletest)
+  add_library(syllable::${lib} ALIAS syllable_${lib})
+endforeach()
+# a main() library first on the link line, its framework after it
+target_link_libraries(syllable_gtest_main INTERFACE syllable_gtest)
+target_link_libraries(syllable_gmock_main INTERFACE syllable_gmock)
 target_link_libraries(syllable_curl INTERFACE syllable_ssl syllable_crypto libdl)
 
 # ---- Development ------------------------------------------------------------------
