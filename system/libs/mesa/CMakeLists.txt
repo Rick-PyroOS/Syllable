@@ -164,7 +164,7 @@ foreach(_d ${MESA_DEMOS})
     STRIP INSTALL applications/MesaDemos/bin)
   add_dependencies(mesademo_${_d} mesa_gl mesa_glut_src mesa_demos_src)
 endforeach()
-# In the Dock's menu: Other > Mesa, in folders (the Dock reads "Other/Mesa/
+# In the Dock's menu: Other > Mesa, in folders (the Dock reads "Demos/Mesa/
 # Showcase" as the Showcase folder in the Mesa folder in Other).  A menu
 # doesn't scroll, so one folder of all of them would run off the screen.
 # glinfo only prints, so it stays out of the menu; a demo in no list goes in
@@ -183,11 +183,11 @@ set(_mesa_menu_name_Shaders "Shaders")
 set(_mesa_menu_name_Textures "Textures")
 set(_mesa_menu_name_Tests "Tests and Benchmarks")
 foreach(_d ${MESA_DEMOS})
-  set(_category Other/Mesa)
+  set(_category Demos/Mesa)
   foreach(_f ${_mesa_menu_folders})
     list(FIND _mesa_menu_${_f} ${_d} _i)
     if(NOT _i EQUAL -1)
-      set(_category "Other/Mesa/${_mesa_menu_name_${_f}}")
+      set(_category "Demos/Mesa/${_mesa_menu_name_${_f}}")
     endif()
   endforeach()
   if(_d STREQUAL "glinfo")
@@ -212,7 +212,7 @@ syllable_program(gltest OUTPUT_NAME GLTest SOURCES ${_gltest}/GLTest.cpp demos/d
   STRIP INSTALL applications/MesaDemos/GLTest)
 add_dependencies(gltest mesa_gl)
 install(FILES ${_gltest}/texture.raw DESTINATION applications/MesaDemos/GLTest)
-syllable_attribute(applications/MesaDemos/GLTest/GLTest os::Category Other/Mesa)
+syllable_attribute(applications/MesaDemos/GLTest/GLTest os::Category Demos/Mesa)
 
 # GLTeapot: Haiku's GLTeapot on os::GLView (glteapot/README.md)
 syllable_program(glteapot OUTPUT_NAME GLTeapot
@@ -222,4 +222,4 @@ syllable_program(glteapot OUTPUT_NAME GLTeapot
   LIBS glview mesa_GLU mesa_GL libsyllable m
   STRIP INSTALL applications/MesaDemos/GLTeapot)
 add_dependencies(glteapot mesa_gl)
-syllable_attribute(applications/MesaDemos/GLTeapot/GLTeapot os::Category Other/Mesa)
+syllable_attribute(applications/MesaDemos/GLTeapot/GLTeapot os::Category Demos/Mesa)
