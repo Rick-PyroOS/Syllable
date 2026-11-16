@@ -167,8 +167,25 @@ void InputNode::EnqueueEvent( Message * pcEvent )
 	case M_MOUSE_MOVED:
 		{
 			Point cDeltaMove;
+			Point cAbsPos;
 
-			if( pcEvent->FindPoint( "delta_move", &cDeltaMove ) == 0 )
+			if( pcEvent->FindPoint( "abs_pos", &cAbsPos ) == 0 )
+			{
+				/*
+				 * An absolute pointer (vmmouse, tablet): "abs_pos" is the
+				 * position on the screen in 0-65535 on each axis.  It goes
+				 * straight to the screen, without mouse speed or
+				 * acceleration; "delta_move" is filled in from the change
+				 * for whoever reads it.
+				 */
+				Point cNewPos( floor( cAbsPos.x * ( g_pcScreenBitmap->m_nWidth - 1 ) / 65535.0 + 0.5 ),
+					       floor( cAbsPos.y * ( g_pcScreenBitmap->m_nHeight - 1 ) / 65535.0 + 0.5 ) );
+
+				pcEvent->RemoveName( "delta_move" );
+				pcEvent->AddPoint( "delta_move", cNewPos - s_cMousePos );
+				s_cMousePos = cNewPos;
+			}
+			else if( pcEvent->FindPoint( "delta_move", &cDeltaMove ) == 0 )
 			{
 				_CalculateMouseMovement( cDeltaMove );
 				s_cMousePos += cDeltaMove;

@@ -230,6 +230,13 @@ other. With no display (an SSH session, WSL without WSLg), `sb run` serves VNC
 instead and says so: connect a VNC viewer to `127.0.0.1:5901` (from Windows
 too: WSL forwards localhost), password `syllable`.
 
+The mouse is absolute under `sb run`: QEMU's `pc` machine has VMware's
+vmmouse, which the `ps2mouse` input node turns on (the kernel log says
+`ps2mouse: VMware vmmouse absolute pointer enabled`), so over VNC Syllable's
+pointer stays under the viewer's cursor. Syllable still draws its own cursor,
+so a viewer that shows its local cursor too shows two arrows. See
+`system/sys/appserver/appserver/drivers/input/ps2mouse/README.md`.
+
 ## Day to day
 
 Edit in `Syllable/`, then:
