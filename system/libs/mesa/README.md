@@ -29,7 +29,7 @@ cd ~/Code/Rick-PyroOS/Syllable-Build-System
 
 On Syllable, from the Dock's menu: Other > Mesa, with GLTeapot, GLTest and the demos in
 folders (Showcase, Shaders, Textures, Tests and Benchmarks; `os::Category`
-attributes like `Other/Mesa/Showcase`, which need the Dock's nested
+attributes like `Demos/Mesa/Showcase`, which need the Dock's nested
 categories).  From a terminal: `/applications/MesaDemos/bin/gears`. Each demo
 changes to its own folder first, because the demos open their data files
 (`isosurf.dat`, `../images/*.rgb`) relative to the working directory.

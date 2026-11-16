@@ -114,7 +114,7 @@ void DockMenu::AddEntry( os::RegistrarManager* pcManager, os::String zApplicatio
 	}
 	
 	os::Menu* pcAddMenu = this;
-	/* A category can name folders in it: "Other/Mesa" is the Mesa folder in
+	/* A category can name folders in it: "Demos/Mesa" is the Mesa folder in
 	   Other */
 	std::vector<os::String> cFolders;
 	std::string zFull = zCategory.const_str();
