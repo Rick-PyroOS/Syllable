@@ -299,6 +299,24 @@ syllable_port(libxml2
   CONFIGURE --without-threads --without-python --with-zlib=${SYLLABLE_STAGING}
   DEST sysroot DEPENDS zlib BYPRODUCTS ${SYLLABLE_STAGING}/lib/libxml2.a)
 
+# libxml2 2.15 for os::XML: a static library of PIC objects linked into
+# libsyllable (its symbols kept private there, as SQLite's and cJSON's), with
+# the parser, output, XPath, DTD validation, XML Schemas and Relax-NG; no
+# threads (os::XML serializes its calls), iconv, zlib or HTML.  Built with the
+# port's own Makefile and config.h (patches/), as cJSON is.  Into the staging
+# sysroot's libxml2-2.15/ (include/libxml2/libxml/*.h, lib/libxml2.a), apart
+# from Webster's 2.6.29 above, which keeps the staging sysroot's include/libxml2
+# and lib/libxml2.a.  The source is the GNOME repository's v2.15.4 tag as the
+# Go module proxy serves it (an immutable zip, checked by sum.golang.org);
+# GNOME's release tarball (download.gnome.org/sources/libxml2/2.15/
+# libxml2-2.15.4.tar.xz) builds the same way, with its own SHA256.
+syllable_port(libxml2_static
+  PORT libxml2-2.15.4
+  URL https://proxy.golang.org/github.com/gnome/libxml2/@v/v2.15.4+incompatible.zip
+  SHA256 66e5c435e126c542e59c955f9d7f106b6d697bddc1012338272ad1e9864a516f
+  STYLE plain MAKE_ARGS ${_cc} DEST sysroot
+  BYPRODUCTS ${SYLLABLE_STAGING}/libxml2-2.15/lib/libxml2.a)
+
 # SQLite: libsqlite3.so.0 in /system/libraries with its headers, for programs
 # built on Syllable, and the sqlite3 shell.  Built from the tarball's
 # amalgamation with the port's own Makefile (patches/Makefile: the Syllable
@@ -424,6 +442,15 @@ endforeach()
 add_dependencies(syllable_ssl openssl)
 add_dependencies(syllable_crypto openssl)
 add_dependencies(syllable_xml2 libxml2)
+# syllable::libxml2: libxml2 2.15 (os::XML; syllable::xml2 is Webster's 2.6.29).
+# Its include directory exists before the port is built: CMake checks an
+# INTERFACE_INCLUDE_DIRECTORIES path when it configures.
+file(MAKE_DIRECTORY ${SYLLABLE_STAGING}/libxml2-2.15/include/libxml2)
+add_library(syllable_libxml2 INTERFACE)
+target_include_directories(syllable_libxml2 SYSTEM INTERFACE ${SYLLABLE_STAGING}/libxml2-2.15/include/libxml2)
+target_link_libraries(syllable_libxml2 INTERFACE ${SYLLABLE_STAGING}/libxml2-2.15/lib/libxml2.a m)
+add_dependencies(syllable_libxml2 libxml2_static)
+add_library(syllable::libxml2 ALIAS syllable_libxml2)
 add_library(syllable_sqlite3 INTERFACE)
 target_include_directories(syllable_sqlite3 SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
 target_link_libraries(syllable_sqlite3 INTERFACE ${SYLLABLE_STAGING}/lib/libsqlite3.a)
