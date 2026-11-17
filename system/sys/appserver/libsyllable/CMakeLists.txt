@@ -53,3 +53,5 @@ target_link_options(libsyllable PRIVATE -Wl,--exclude-libs,libsqlite3.a:libcjson
 syllable_catalogs(libsyllable NAME libsyllable DIR catalogs
   LANGS da de es fr hu nl pl pt-br ru sv
   INSTALL system/resources/catalogs)
+
+add_subdirectory(tests)    # LibsyllableTests: os::JSON (Google Test)
