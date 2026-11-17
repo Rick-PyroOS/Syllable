@@ -20,6 +20,7 @@ set(SOURCES
   util/clipboard.cpp util/string.cpp util/regexp.cpp util/variant.cpp
   util/circularbuffer.cpp util/resources.cpp util/optionparser.cpp util/settings.cpp util/settingscache.cpp util/json.cpp util/jsonpath.cpp util/jsonschema.cpp
   util/xml.cpp
+  util/hash.cpp
   util/thread.cpp util/messagefilter.cpp util/event.cpp
   storage/filereference.cpp storage/filereference_info.cpp storage/filereference_rename.cpp
   storage/operation_copy.cpp storage/operation_move.cpp storage/operation_delete.cpp
@@ -57,4 +58,4 @@ syllable_catalogs(libsyllable NAME libsyllable DIR catalogs
   LANGS da de es fr hu nl pl pt-br ru sv
   INSTALL system/resources/catalogs)
 
-add_subdirectory(tests)    # LibsyllableTests: os::JSON and os::XML (Google Test)
+add_subdirectory(tests)    # LibsyllableTests: os::JSON, os::XML, os::Map and os::HashMap (Google Test)
