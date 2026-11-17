@@ -1,9 +1,11 @@
 # libsyllable's unit tests (Google Test, the googletest port): os::JSON
-# (with JSONPath and JSON Schema) and os::XML (with XPath and validation).
+# (with JSONPath and JSON Schema), os::XML (with XPath and validation), and
+# the containers os::Map, os::UnorderedMap and os::HashMap.
 # They need no app server: run them from a Terminal, all or some,
 #
 #   /system/development/tests/LibsyllableTests
 #   /system/development/tests/LibsyllableTests --gtest_filter='XML*'
+#   /system/development/tests/LibsyllableTests --gtest_filter='*Map*:Hash*'
 #
 # Always built, so they keep compiling; SYLLABLE_TESTS=ON (sb configure
 # -DSYLLABLE_TESTS=ON) also puts them on the image.
@@ -15,6 +17,7 @@ endif()
 syllable_program(libsyllable_tests OUTPUT_NAME LibsyllableTests
   SOURCES json_test.cpp jsonpath_test.cpp jsonschema_test.cpp
           xml_test.cpp xmlschema_test.cpp
+          map_test.cpp hashmap_test.cpp
   OPTIONS -O2 -Wall
   LIBS libsyllable syllable::gtest_main ${_install})
 
