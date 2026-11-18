@@ -18,7 +18,7 @@ $(OBJDIR)/%.o : %.s
 	@echo Assembling : $<
 	@$(CC) $(COPTS) -x assembler-with-cpp $< -o $@
 
-all : translations objs "WidgetGallery"
+all : translations objs "Gallery-libsyllable"
 
 translations:
 
@@ -27,22 +27,23 @@ objs:
 	@mkdir -p objs/views
 	@find views/ -type d -exec mkdir -p objs/{} \;
 
-"WidgetGallery": $(OBJS)
+"Gallery-libsyllable": $(OBJS)
 	@echo Linking...
-	@$(CXX) $(OBJS) -o "WidgetGallery"  -los -lstdc++
+	@$(CXX) $(OBJS) -o "Gallery-libsyllable"  -los -lstdc++
 	@echo Adding resources...
-	@rescopy "WidgetGallery" -r resources/icons/*
-	@addattrib "WidgetGallery" os::Category Other
+	@rescopy "Gallery-libsyllable" -r resources/icons/*
+	@addattrib "Gallery-libsyllable" os::Category Demos
 
 clean:
 	@echo Cleaning...
 	@rm -rf objs
-	@rm -f "WidgetGallery"
+	@rm -f "Gallery-libsyllable"
 
 deps:
 
 install: all
 	@echo Installing...
-	@cp "WidgetGallery" "$(IMAGE)/Applications/WidgetGallery"
+	@mkdir -p "$(IMAGE)/Applications/Demos/Libraries/Syllable"
+	@cp "Gallery-libsyllable" "$(IMAGE)/Applications/Demos/Libraries/Syllable/Gallery"
 
 dist: install

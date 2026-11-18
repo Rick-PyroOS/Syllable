@@ -5,7 +5,7 @@
 #include <gui/layoutview.h>
 #include <gui/window.h>
 
-MainWindow::MainWindow() : os::Window( os::Rect( 0, 0, 550, 300 ), "main_wnd", "Widget Gallery" )
+MainWindow::MainWindow() : os::Window( os::Rect( 0, 0, 550, 300 ), "main_wnd", "Widget Gallery (Syllable)" )
 {
 	/* Set Icon */
 	os::Resources cCol( get_image_id() );

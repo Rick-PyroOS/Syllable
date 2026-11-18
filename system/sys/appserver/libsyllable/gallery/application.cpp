@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 #include "util/random.h"
 
-App::App() : os::Application( "application/x-vnd.WidgetGallery" )
+App::App() : os::Application( "application/x-vnd.WidgetGallery-libsyllable" )
 {
 
 	m_cAlignments.insert(std::make_pair("Left",os::ALIGN_LEFT));
