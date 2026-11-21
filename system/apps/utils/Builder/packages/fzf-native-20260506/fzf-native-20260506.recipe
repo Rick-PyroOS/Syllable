@@ -1,0 +1,32 @@
+authors				Junegunn Choi, Simon Hauser and telescope-fzf-native contributors
+status				testing
+
+headline			fzf's fuzzy matching algorithm in C
+description
+	The scorer of the fzf fuzzy finder, ported to C for Telescope (Neovim): fuzzy, exact, prefix, suffix and whole-text matching of a pattern against a text, with fzf's scores (bonuses at word starts, camelCase and after separators) and the positions of the matched characters, and fzf's extended query syntax ('exact ^prefix suffix$ !not a | b).  One C99 file with a C interface, so libsyllable's GCC 4.1.2 C++ uses it as well as C.  libsyllable's os::FuzzyString is built on it.
+licenses			MIT
+
+home				github.com/nvim-telescope/telescope-fzf-native.nvim
+locations			https://proxy.golang.org/github.com/nvim-telescope/telescope-fzf-native.nvim/@v/
+
+; The project makes no releases: this is commit b25b749b (2026-05-06) of its
+; main branch, as the Go module proxy serves it (an immutable zip, checked
+; by sum.golang.org: h1:SbEL4hPWsNYt3kyOxSfq2pxNGQralp1RIn+QJY3pQ/A=).
+;
+; fzf-native-20260506.patch:
+; - fzf_suffix_match() (word$) read before the start of a text shorter than
+;   the word ("a.h" for ".cpp$"): a size_t difference checked for < 0
+; - trailing_whitespaces() read before the start of an empty or
+;   all-whitespace text (^word$, word$): a size_t counted down to >= 0
+; - strtok_r in place of strtok in fzf_parse_pattern(): strtok's state is
+;   shared by every thread
+; - extern "C" in fzf.h, for C++
+;
+; The CMake build (cmake/Ports.cmake, fzf_native) builds this port with
+; patches/Makefile in place of the project's (which builds a shared library
+; for Lua's FFI): one static library of PIC objects, linked into
+; libsyllable with its symbols kept private.  It is not installed on the
+; boot volume.
+make-file			Makefile
+
+documentation		README.md LICENSE

@@ -8,7 +8,8 @@ important parts of the util group. A class based on one of them will be able to 
 code asynchronously.
 
 Other classes include IPC wrappers (Message, Messenger, MessageFilter, MessageQueue,
-Handler, Invoker etc.), general utility classes (Variant, String, RegExp etc.),
+Handler, Invoker etc.), general utility classes (Variant, String, RegExp,
+FuzzyString, fuzzy text search as fzf does it, etc.),
 containers (Map, sorted by key; UnorderedMap; HashMap, a hash table that keeps
 the order of its entries; Set and HashSet, the same without values; Hash,
 their hash functions; Stack, last in first out; Queue, first in first

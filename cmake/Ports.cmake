@@ -352,6 +352,23 @@ syllable_port(cjson
         lib/libcjson_utils.so.1:/usr/index/lib/libcjson_utils.so
         include/cjson:/usr/index/include/cjson)
 
+# fzf-native (telescope-fzf-native.nvim): the fzf fuzzy finder's matching
+# in C, for os::FuzzyString.  A static library of PIC objects linked into
+# libsyllable (its symbols kept private there, as cJSON's and libxml2's); C99
+# with a C interface, so GCC 4.1.2's C++ uses it.  Built with the port's own
+# Makefile (patches/Makefile), as cJSON is, into the staging sysroot
+# (include/fzf/fzf.h, lib/libfzf.a).  The project makes no releases: the
+# source is commit b25b749b (2026-05-06) of its main branch as the Go module
+# proxy serves it (an immutable zip, checked by sum.golang.org), as libxml2
+# 2.15's is.  The port's patch fixes two reads before the start of a text
+# and makes pattern parsing thread-safe (fzf-native-20260506.recipe).
+syllable_port(fzf_native
+  PORT fzf-native-20260506
+  URL https://proxy.golang.org/github.com/nvim-telescope/telescope-fzf-native.nvim/@v/v0.0.0-20260506143031-b25b749b9db6.zip
+  SHA256 ae0adc4c6000e4d5530681a352a3eb18a3d41b7f8fc0d0df4506923d6bb8e10b
+  STYLE plain MAKE_ARGS ${_cc} DEST sysroot
+  BYPRODUCTS ${SYLLABLE_STAGING}/lib/libfzf.a)
+
 # Google Test and Google Mock 1.8.1: unit tests for C++ programs, GUI ones
 # included (libguitest, system/libs/guitest).  1.8.1 is the last C++98
 # release, so GCC 4.1.2 builds it.  Static libraries only, as upstream
@@ -462,6 +479,11 @@ target_link_libraries(syllable_cjson INTERFACE ${SYLLABLE_STAGING}/lib/libcjson_
                       ${SYLLABLE_STAGING}/lib/libcjson.a m)
 add_dependencies(syllable_cjson cjson)
 add_library(syllable::cjson ALIAS syllable_cjson)
+add_library(syllable_fzf INTERFACE)
+target_include_directories(syllable_fzf SYSTEM INTERFACE ${SYLLABLE_STAGING}/include)
+target_link_libraries(syllable_fzf INTERFACE ${SYLLABLE_STAGING}/lib/libfzf.a)
+add_dependencies(syllable_fzf fzf_native)
+add_library(syllable::fzf ALIAS syllable_fzf)
 # syllable::gtest: Google Test; syllable::gtest_main adds its main().
 # syllable::gmock carries Google Test as well.  Not SYSTEM: GCC 4.1.2 for
 # Syllable takes -isystem headers as extern "C", which C++ headers can't be.
