@@ -14,7 +14,7 @@ the order of its entries; Set and HashSet, the same without values; Hash,
 their hash functions; Stack, last in first out; Queue, first in first
 out; RingBuffer, a fixed-size queue for audio, logs and input events;
 Deque, a queue open at both ends; PriorityQueue, a heap for timers and
-schedulers) and a
+schedulers; LRUCache, a cache that forgets what was used longest ago) and a
 number of special classes, such as Settings, which simplifies handling of
 applications' options and Clipboard, used to access clipboard data.
 
