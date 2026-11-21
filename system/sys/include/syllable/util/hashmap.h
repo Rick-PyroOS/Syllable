@@ -188,7 +188,7 @@ public:
 				m_cEntries[nEntry].second = cValue;	// last already
 				return *this;
 			}
-			Kill( nSlot, false );
+			Kill( nSlot, true );	// tidy, or Push()es alone would pile up holes
 		}
 		Add( cKey, cValue, true );
 		return *this;

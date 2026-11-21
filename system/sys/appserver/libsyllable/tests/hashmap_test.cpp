@@ -65,6 +65,18 @@ struct BadHash
 	size_t operator()( int ) const { return 7; }
 };
 
+/* Counts its live copies, so a test can see how many entries and holes a
+ * HashMap keeps (a hole holds a V()) */
+int g_nLiveValues = 0;
+struct LiveValue
+{
+	LiveValue() { g_nLiveValues++; }
+	LiveValue( const LiveValue& ) { g_nLiveValues++; }
+	~LiveValue() { g_nLiveValues--; }
+	LiveValue& operator=( const LiveValue& ) { return *this; }
+	bool operator==( const LiveValue& ) const { return true; }
+};
+
 } // namespace
 
 TEST( HashMapTest, InsertUpdateAndSet )
@@ -475,4 +487,27 @@ TEST( HashMapTest, RandomRunMatchesAList )
 			}
 		}
 	}
+}
+
+TEST( HashMapTest, PushOverAndOverKeepsItSmall )
+{
+	// Push() of a key that is not last leaves a hole; the holes must be
+	// compacted away, not piled up behind the entries (an LRU cache does
+	// nothing but such Push()es)
+	g_nLiveValues = 0;
+	{
+		HashMap<int, LiveValue> cMap;
+		for( int i = 0; i < 1000; i++ )
+			cMap.Set( i, LiveValue() );
+		uint32 nSeed = 1;
+		for( int n = 0; n < 200000; n++ )
+		{
+			nSeed = nSeed * 1103515245U + 12345U;
+			cMap.Push( int( ( nSeed >> 16 ) % 1000 ), LiveValue() );
+		}
+		EXPECT_EQ( 1000, cMap.Count() );
+		EXPECT_LE( g_nLiveValues, 3000 );	// 1000 entries and some holes, not 200000
+		EXPECT_EQ( 999, cMap.IndexOf( cMap.KeyAt( 999 ) ) );
+	}
+	EXPECT_EQ( 0, g_nLiveValues );
 }
