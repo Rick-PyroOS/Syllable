@@ -10,7 +10,8 @@ code asynchronously.
 Other classes include IPC wrappers (Message, Messenger, MessageFilter, MessageQueue,
 Handler, Invoker etc.), general utility classes (Variant, String, RegExp etc.),
 containers (Map, sorted by key; UnorderedMap; HashMap, a hash table that keeps
-the order of its entries; Hash, their hash functions) and a
+the order of its entries; Hash, their hash functions; Stack, last in
+first out; Queue, first in first out) and a
 number of special classes, such as Settings, which simplifies handling of
 applications' options and Clipboard, used to access clipboard data.
 
