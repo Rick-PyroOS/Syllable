@@ -10,10 +10,11 @@ code asynchronously.
 Other classes include IPC wrappers (Message, Messenger, MessageFilter, MessageQueue,
 Handler, Invoker etc.), general utility classes (Variant, String, RegExp etc.),
 containers (Map, sorted by key; UnorderedMap; HashMap, a hash table that keeps
-the order of its entries; Hash, their hash functions; Stack, last in
-first out; Queue, first in first out; RingBuffer, a fixed-size queue
-for audio, logs and input events; Deque, a queue open at both ends;
-PriorityQueue, a heap for timers and schedulers) and a
+the order of its entries; Set and HashSet, the same without values; Hash,
+their hash functions; Stack, last in first out; Queue, first in first
+out; RingBuffer, a fixed-size queue for audio, logs and input events;
+Deque, a queue open at both ends; PriorityQueue, a heap for timers and
+schedulers) and a
 number of special classes, such as Settings, which simplifies handling of
 applications' options and Clipboard, used to access clipboard data.
 

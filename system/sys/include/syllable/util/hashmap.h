@@ -237,6 +237,14 @@ public:
 	}
 	bool Has( const K& cKey ) const { return FindEntry( cKey ) >= 0; }
 
+	/** The key in the map that is equal to cKey, or NULL if it's not in
+	 *  (for keys that are equal without being the same, and os::HashSet) */
+	const K* FindKey( const K& cKey ) const
+	{
+		int nEntry = FindEntry( cKey );
+		return nEntry >= 0 ? &m_cEntries[nEntry].first : NULL;
+	}
+
 	/** Removes a key.  \return false if it was not in. */
 	bool Remove( const K& cKey ) { return Take( cKey, NULL ); }
 
