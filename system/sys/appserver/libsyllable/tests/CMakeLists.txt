@@ -2,12 +2,13 @@
 # (with JSONPath and JSON Schema), os::XML (with XPath and validation), and
 # the containers os::Map, os::UnorderedMap, os::HashMap, os::Stack,
 # os::Queue, os::RingBuffer, os::Deque, os::PriorityQueue, os::Set,
-# os::HashSet and os::LRUCache.
+# os::HashSet and os::LRUCache, and the thread-safe os::ConcurrentQueue
+# and os::ConcurrentRingBuffer.
 # They need no app server: run them from a Terminal, all or some,
 #
 #   /system/development/tests/LibsyllableTests
 #   /system/development/tests/LibsyllableTests --gtest_filter='XML*'
-#   /system/development/tests/LibsyllableTests --gtest_filter='*Map*:Hash*:Stack*:Queue*:RingBuffer*:Deque*:PriorityQueue*:Set*:LRU*'
+#   /system/development/tests/LibsyllableTests --gtest_filter='*Map*:Hash*:Stack*:Queue*:RingBuffer*:Deque*:PriorityQueue*:Set*:LRU*:Concurrent*'
 #
 # Always built, so they keep compiling; SYLLABLE_TESTS=ON (sb configure
 # -DSYLLABLE_TESTS=ON) also puts them on the image.
@@ -21,6 +22,7 @@ syllable_program(libsyllable_tests OUTPUT_NAME LibsyllableTests
           xml_test.cpp xmlschema_test.cpp
           map_test.cpp hashmap_test.cpp stackqueue_test.cpp ringbuffer_test.cpp
           deque_test.cpp priorityqueue_test.cpp set_test.cpp lrucache_test.cpp
+          concurrent_test.cpp
   OPTIONS -O2 -Wall
   LIBS libsyllable syllable::gtest_main ${_install})
 

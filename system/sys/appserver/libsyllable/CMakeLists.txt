@@ -58,4 +58,4 @@ syllable_catalogs(libsyllable NAME libsyllable DIR catalogs
   LANGS da de es fr hu nl pl pt-br ru sv
   INSTALL system/resources/catalogs)
 
-add_subdirectory(tests)    # LibsyllableTests: os::JSON, os::XML, os::Map, os::HashMap, os::Stack, os::Queue, os::RingBuffer, os::Deque, os::PriorityQueue, os::Set, os::HashSet and os::LRUCache (Google Test)
+add_subdirectory(tests)    # LibsyllableTests: os::JSON, os::XML, os::Map, os::HashMap, os::Stack, os::Queue, os::RingBuffer, os::Deque, os::PriorityQueue, os::Set, os::HashSet, os::LRUCache and the Concurrent queues (Google Test)
