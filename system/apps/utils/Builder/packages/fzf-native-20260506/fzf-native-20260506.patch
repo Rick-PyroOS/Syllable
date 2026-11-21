@@ -1,0 +1,81 @@
+--- a/nvim-telescope/telescope-fzf-native.nvim@v0.0.0-20260506143031-b25b749b9db6/src/fzf.c
++++ b/nvim-telescope/telescope-fzf-native.nvim@v0.0.0-20260506143031-b25b749b9db6/src/fzf.c
+@@ -84,8 +84,10 @@
+ 
+ static size_t trailing_whitespaces(fzf_string_t *str) {
+   size_t whitespaces = 0;
+-  for (size_t i = str->size - 1; i >= 0; i--) {
+-    if (!isspace((uint8_t)str->data[i])) {
++  /* size_t i >= 0 is always true: an empty or all-whitespace text read
++   * before its start */
++  for (size_t i = str->size; i > 0; i--) {
++    if (!isspace((uint8_t)str->data[i - 1])) {
+       break;
+     }
+     whitespaces++;
+@@ -878,10 +880,12 @@
+   if (M == 0) {
+     return (fzf_result_t){(int32_t)trimmed_len, (int32_t)trimmed_len, 0};
+   }
+-  size_t diff = trimmed_len - M;
+-  if (diff < 0) {
++  /* size_t diff < 0 is never true: a text shorter than the pattern read
++   * before its start */
++  if (trimmed_len < M) {
+     return (fzf_result_t){-1, -1, 0};
+   }
++  size_t diff = trimmed_len - M;
+ 
+   for (size_t idx = 0; idx < M; idx++) {
+     char c = text->data[idx + diff];
+@@ -1008,7 +1012,9 @@
+ 
+   char *pattern_copy = str_replace(pattern, "\\ ", "\t");
+   const char *delim = " ";
+-  char *ptr = strtok(pattern_copy, delim);
++  /* strtok_r: strtok's state is shared by every thread */
++  char *save = NULL;
++  char *ptr = strtok_r(pattern_copy, delim, &save);
+ 
+   fzf_term_set_t *set = (fzf_term_set_t *)malloc(sizeof(fzf_term_set_t));
+   memset(set, 0, sizeof(*set));
+@@ -1041,7 +1047,7 @@
+     if (set->size > 0 && !after_bar && strcmp(text, "|") == 0) {
+       switch_set = false;
+       after_bar = true;
+-      ptr = strtok(NULL, delim);
++      ptr = strtok_r(NULL, delim, &save);
+       SFREE(og_str);
+       continue;
+     }
+@@ -1099,7 +1105,7 @@
+       SFREE(og_str);
+     }
+ 
+-    ptr = strtok(NULL, delim);
++    ptr = strtok_r(NULL, delim, &save);
+   }
+   if (set->size > 0) {
+     append_pattern(pat_obj, set);
+--- a/nvim-telescope/telescope-fzf-native.nvim@v0.0.0-20260506143031-b25b749b9db6/src/fzf.h
++++ b/nvim-telescope/telescope-fzf-native.nvim@v0.0.0-20260506143031-b25b749b9db6/src/fzf.h
+@@ -5,6 +5,10 @@
+ #include <stdint.h>
+ #include <stddef.h>
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ typedef struct {
+   int16_t *data;
+   size_t size;
+@@ -108,4 +112,8 @@
+ fzf_slab_t *fzf_make_default_slab(void);
+ void fzf_free_slab(fzf_slab_t *slab);
+ 
++#ifdef __cplusplus
++}
++#endif
++
+ #endif // FZF_H_
